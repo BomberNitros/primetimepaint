@@ -1,15 +1,15 @@
 import { useCallback, useRef, useState } from 'react';
-import { Upload, Image as ImageIcon } from 'lucide-react';
+import { Upload, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
 
 interface ImageUploaderProps {
   onUpload: (files: File[], type: ImageType) => void;
   mainCount: number;
-  maxMain?: number;
+  refCount: number;
 }
 
-export function ImageUploader({ onUpload, mainCount, maxMain = 6 }: ImageUploaderProps) {
+export function ImageUploader({ onUpload, mainCount, refCount }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadType, setUploadType] = useState<ImageType>('main');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +27,7 @@ export function ImageUploader({ onUpload, mainCount, maxMain = 6 }: ImageUploade
     handleFiles(e.dataTransfer.files);
   }, [handleFiles]);
 
-  const remainingMain = maxMain - mainCount;
+  const hasImages = mainCount > 0 || refCount > 0;
 
   return (
     <div className="flex flex-col items-center gap-6 p-8">
@@ -52,6 +52,12 @@ export function ImageUploader({ onUpload, mainCount, maxMain = 6 }: ImageUploade
         </button>
       </div>
 
+      {/* Soft recommendation */}
+      <p className="text-xs text-muted-foreground text-center">
+        Recommended: 4 main photos and up to 2 reference images for best results.
+      </p>
+
+      {/* Upload area */}
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
@@ -62,22 +68,38 @@ export function ImageUploader({ onUpload, mainCount, maxMain = 6 }: ImageUploade
           isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/50'
         )}
       >
-        {uploadType === 'main' ? (
-          <Upload className="w-10 h-10 text-muted-foreground" />
+        {hasImages ? (
+          <>
+            <CheckCircle className="w-10 h-10 text-primary" />
+            <div className="text-center">
+              <p className="text-sm font-medium text-foreground">
+                {mainCount} main {mainCount === 1 ? 'photo' : 'photos'}{refCount > 0 ? `, ${refCount} reference` : ''}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Drop or click to add more
+              </p>
+            </div>
+          </>
         ) : (
-          <ImageIcon className="w-10 h-10 text-muted-foreground" />
+          <>
+            {uploadType === 'main' ? (
+              <Upload className="w-10 h-10 text-muted-foreground" />
+            ) : (
+              <ImageIcon className="w-10 h-10 text-muted-foreground" />
+            )}
+            <div className="text-center">
+              <p className="text-sm font-medium text-foreground">
+                Drop {uploadType === 'main' ? 'miniature photos' : 'reference images'} here
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {uploadType === 'main'
+                  ? 'Click or drag to upload'
+                  : 'Optional inspiration references'
+                }
+              </p>
+            </div>
+          </>
         )}
-        <div className="text-center">
-          <p className="text-sm font-medium text-foreground">
-            Drop {uploadType === 'main' ? 'miniature photos' : 'reference images'} here
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {uploadType === 'main'
-              ? `${remainingMain > 0 ? `Up to ${remainingMain} more` : 'Maximum reached'} (4–6 recommended)`
-              : 'Optional inspiration references'
-            }
-          </p>
-        </div>
       </div>
 
       <input

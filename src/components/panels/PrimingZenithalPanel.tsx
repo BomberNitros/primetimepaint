@@ -1,6 +1,10 @@
 import { ToggleOption } from '@/components/ToggleOption';
+import { SprayViabilityBadge } from '@/components/SprayViabilityBadge';
 import { PrimeColor, ZenithalScheme, ZenithalMethod, ZenithalDirection } from '@/types/primetime';
 import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface PrimingZenithalPanelProps {
   primeColor: PrimeColor;
@@ -8,11 +12,16 @@ interface PrimingZenithalPanelProps {
   zenithalScheme: ZenithalScheme;
   zenithalMethod: ZenithalMethod;
   zenithalDirection: ZenithalDirection;
+  currentTemp: number | null;
+  manualTempInput: number | null;
+  sprayOverride: boolean;
   onPrimeColorChange: (v: PrimeColor) => void;
   onZenithalEnabledChange: (v: boolean) => void;
   onZenithalSchemeChange: (v: ZenithalScheme) => void;
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
+  onManualTempChange: (v: number | null) => void;
+  onSprayOverrideChange: (v: boolean) => void;
 }
 
 function OptionButtons<T extends string>({
@@ -46,15 +55,71 @@ function OptionButtons<T extends string>({
 
 export function PrimingZenithalPanel({
   primeColor, zenithalEnabled, zenithalScheme, zenithalMethod, zenithalDirection,
+  currentTemp, manualTempInput, sprayOverride,
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
+  onManualTempChange, onSprayOverrideChange,
 }: PrimingZenithalPanelProps) {
+  const [surfacePrepOpen, setSurfacePrepOpen] = useState(false);
+  const isAbove15 = currentTemp !== null && currentTemp > 15;
+
   return (
     <div className="space-y-6 max-w-lg">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">Priming & Zenithal</h2>
         <p className="text-sm text-muted-foreground">Set up your undercoat strategy.</p>
       </div>
+
+      {/* Surface Prep — collapsible section */}
+      <Collapsible open={surfacePrepOpen} onOpenChange={setSurfacePrepOpen}>
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border hover:bg-card/80 transition-colors">
+          <span className="text-sm font-medium text-foreground">Surface Preparation</span>
+          <ChevronDown className={cn('w-4 h-4 text-muted-foreground transition-transform', surfacePrepOpen && 'rotate-180')} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-2 space-y-4 p-4 rounded-xl bg-card/50 border border-border">
+          {/* TODO: Replace with Open-Meteo integration in Phase 3 */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground">Current temperature (°C)</label>
+            <input
+              type="number"
+              value={manualTempInput ?? ''}
+              onChange={(e) => {
+                const v = e.target.value === '' ? null : Number(e.target.value);
+                onManualTempChange(v);
+              }}
+              placeholder="Enter temperature..."
+              className="w-full px-3 py-2 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <SprayViabilityBadge temp={currentTemp} override={sprayOverride} />
+
+          {currentTemp !== null && !isAbove15 && (
+            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+              <p className="text-xs text-warning">
+                Spray priming is not recommended below 15°C. Paint may not cure properly and can cause texture issues.
+              </p>
+            </div>
+          )}
+
+          <ToggleOption
+            label="Override spray warning"
+            description="Dismiss the warning if you know your conditions are fine"
+            checked={sprayOverride}
+            onChange={onSprayOverrideChange}
+          />
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-foreground">Prep checklist</h3>
+            <ul className="text-xs text-muted-foreground space-y-1.5">
+              <li>• Remove mould lines with a hobby knife</li>
+              <li>• Wash resin/metal miniatures in warm soapy water</li>
+              <li>• Ensure parts are dry before priming</li>
+              <li>• Subassemble complex models if needed</li>
+            </ul>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <OptionButtons
         label="Prime colour"
