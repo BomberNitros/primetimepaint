@@ -1,4 +1,4 @@
-import { ShieldCheck, Sparkles, Spray, PaintBucket } from 'lucide-react';
+import { ShieldCheck, Sparkles, Wind, PaintBucket } from 'lucide-react';
 
 const items = [
   {
