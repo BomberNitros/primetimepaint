@@ -1,7 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
-import { Upload, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
+import { Button } from '@/components/ui/button';
 
 interface ImageUploaderProps {
   onUpload: (files: File[], type: ImageType) => void;
