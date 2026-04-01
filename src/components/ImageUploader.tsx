@@ -8,6 +8,7 @@ interface ImageUploaderProps {
   onUpload: (files: File[], type: ImageType) => void;
   mainCount: number;
   refCount: number;
+  onContinue: () => void;
 }
 
 export function ImageUploader({ onUpload, mainCount, refCount }: ImageUploaderProps) {
