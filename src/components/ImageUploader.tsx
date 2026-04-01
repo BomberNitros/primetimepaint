@@ -11,7 +11,7 @@ interface ImageUploaderProps {
   onContinue: () => void;
 }
 
-export function ImageUploader({ onUpload, mainCount, refCount }: ImageUploaderProps) {
+export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadType, setUploadType] = useState<ImageType>('main');
   const inputRef = useRef<HTMLInputElement>(null);
