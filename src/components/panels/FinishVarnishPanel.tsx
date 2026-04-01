@@ -20,7 +20,7 @@ const items = [
   {
     title: 'Spray varnish technique',
     desc: 'Short bursts at 20–25cm distance. Same temperature rules as priming — above 15°C, low humidity. Two thin coats are better than one thick coat. Allow 30 minutes between coats.',
-    icon: Spray,
+    icon: Wind,
   },
   {
     title: 'Brush-on varnish',
