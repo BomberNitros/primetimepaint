@@ -1,15 +1,17 @@
 import { useCallback, useRef, useState } from 'react';
-import { Upload, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
+import { Button } from '@/components/ui/button';
 
 interface ImageUploaderProps {
   onUpload: (files: File[], type: ImageType) => void;
   mainCount: number;
   refCount: number;
+  onContinue: () => void;
 }
 
-export function ImageUploader({ onUpload, mainCount, refCount }: ImageUploaderProps) {
+export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadType, setUploadType] = useState<ImageType>('main');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -110,6 +112,28 @@ export function ImageUploader({ onUpload, mainCount, refCount }: ImageUploaderPr
         onChange={(e) => handleFiles(e.target.files)}
         className="hidden"
       />
+
+      {/* Gated CTA */}
+      <Button
+        disabled={mainCount === 0}
+        onClick={onContinue}
+        className={cn(
+          'mt-2 transition-all duration-300 ease-in-out',
+          mainCount > 0
+            ? 'opacity-100'
+            : 'opacity-40 pointer-events-none'
+        )}
+        size="lg"
+      >
+        {mainCount > 0 ? (
+          <>
+            Continue to Priming
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </>
+        ) : (
+          'Upload at least one image to continue'
+        )}
+      </Button>
     </div>
   );
 }

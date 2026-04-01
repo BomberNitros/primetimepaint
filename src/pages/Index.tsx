@@ -144,6 +144,7 @@ export default function Index() {
             onUpload={addImages}
             mainCount={mainImages.length}
             refCount={refImages.length}
+            onContinue={() => setActiveStep('priming')}
           />
         );
       case 'priming':
