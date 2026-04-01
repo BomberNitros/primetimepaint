@@ -112,6 +112,28 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
         onChange={(e) => handleFiles(e.target.files)}
         className="hidden"
       />
+
+      {/* Gated CTA */}
+      <Button
+        disabled={mainCount === 0}
+        onClick={onContinue}
+        className={cn(
+          'mt-2 transition-all duration-300 ease-in-out',
+          mainCount > 0
+            ? 'opacity-100'
+            : 'opacity-40 pointer-events-none'
+        )}
+        size="lg"
+      >
+        {mainCount > 0 ? (
+          <>
+            Continue to Priming
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </>
+        ) : (
+          'Upload at least one image to continue'
+        )}
+      </Button>
     </div>
   );
 }

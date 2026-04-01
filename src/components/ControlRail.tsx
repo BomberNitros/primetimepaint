@@ -46,7 +46,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
               onClick={() => !isDisabled && onStepChange(step.id)}
               disabled={isDisabled}
               className={cn(
-                'w-full flex items-center gap-2 px-3 py-2.5 text-xs font-medium transition-colors text-left',
+                'w-full flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium transition-colors text-left',
                 isActive && 'bg-sidebar-accent text-sidebar-primary border-r-2 border-primary',
                 !isActive && !isDisabled && 'text-sidebar-foreground hover:bg-sidebar-accent/50',
                 isDisabled && 'text-muted-foreground/40 cursor-not-allowed'
