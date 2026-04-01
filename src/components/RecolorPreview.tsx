@@ -87,7 +87,7 @@ function blendOverlay(base: number, overlay: number): number {
   return Math.round(result * 255);
 }
 
-export function RecolorPreview({
+export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>(function RecolorPreview({
   imageUrl,
   baseColor,
   midtone1Color,
@@ -96,8 +96,9 @@ export function RecolorPreview({
   zenithalEnabled,
   zenithalDirection,
   renderStrategy = 'canvas',
-}: RecolorPreviewProps) {
+}, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  useImperativeHandle(ref, () => canvasRef.current as HTMLCanvasElement);
 
   const processImage = useCallback(() => {
     const canvas = canvasRef.current;
