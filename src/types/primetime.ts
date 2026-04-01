@@ -1,11 +1,10 @@
 export type StepId =
   | 'upload'
-  | 'surface-prep'
   | 'priming'
   | 'color-plan'
   | 'brush-guide'
   | 'paint-handling'
-  | 'paint-plan'
+  | 'thinning-plan'
   | 'finish';
 
 export type ImageType = 'main' | 'reference';
@@ -42,11 +41,14 @@ export interface SpeedpaintColor {
 
 export type LidColor = 'white' | 'green' | 'red' | 'black';
 
+export type BrushType = 'round' | 'flat' | 'filbert' | 'liner' | 'angle' | 'spot';
+
 export interface BrushRecommendation {
   task: string;
   brush: string;
   set: 'premium-round' | 'utility';
   tip: string;
+  brushType: BrushType;
 }
 
 export interface PrimetimeState {
@@ -57,7 +59,7 @@ export interface PrimetimeState {
   // Navigation
   activeStep: StepId;
 
-  // Surface Prep
+  // Surface Prep (merged into Priming panel)
   currentTemp: number | null;
   tempSource: TempSource;
   sprayOverride: boolean;
