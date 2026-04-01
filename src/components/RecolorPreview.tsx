@@ -219,4 +219,4 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
       </p>
     </div>
   );
-}
+});
