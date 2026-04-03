@@ -1,5 +1,7 @@
 import { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { ZenithalDirection, RenderStrategy } from '@/types/primetime';
+import { Timer, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * Heuristic miniature isolation + tonal-zone recoloring engine.
@@ -212,11 +214,31 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
   }
 
   return (
-    <div className="space-y-2">
-      <canvas ref={canvasRef} className="rounded-xl border border-border max-w-full" />
-      <p className="text-[10px] text-muted-foreground/60 italic">
-        Planning preview — not a paint simulation
-      </p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Left panel — Quick preview */}
+      <div className="rounded-xl border border-dashed border-border p-3 space-y-2">
+        <h4 className="text-sm font-medium text-muted-foreground">Quick preview</h4>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Timer className="h-3.5 w-3.5" />
+          <span>Colour approximation — AI recolour in progress</span>
+        </div>
+        <canvas ref={canvasRef} className="rounded-lg max-w-full" />
+        <p className="text-[10px] text-muted-foreground/60 italic">
+          Planning preview — not a paint simulation
+        </p>
+      </div>
+
+      {/* Right panel — AI recolour (STATE A: no API key) */}
+      <div className="rounded-xl border border-border bg-muted/30 p-3 flex flex-col items-center justify-center text-center gap-3 min-h-[200px]">
+        <Sparkles className="h-8 w-8 text-muted-foreground/60" />
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">AI recolour</p>
+          <p className="text-xs text-muted-foreground">Connect Gemini to enable high-quality AI repainting</p>
+        </div>
+        <Button variant="secondary" size="sm" onClick={() => {}}>
+          Add API key
+        </Button>
+      </div>
     </div>
   );
 });
