@@ -1,5 +1,7 @@
 import { useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { ZenithalDirection, RenderStrategy } from '@/types/primetime';
+import { Timer, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * Heuristic miniature isolation + tonal-zone recoloring engine.
