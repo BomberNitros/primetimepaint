@@ -1,6 +1,7 @@
 import { Vibrate, Droplets, Layers, Grid3X3, Paintbrush, Palette, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { randomFont } from '@/components/ControlRail';
 
 interface VideoSet {
   goobertown: [string, string];
