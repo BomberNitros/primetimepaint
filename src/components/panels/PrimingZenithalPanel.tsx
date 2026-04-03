@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { randomFont } from '@/components/ControlRail';
 
 interface PrimingZenithalPanelProps {
   primeColor: PrimeColor;
@@ -15,7 +16,6 @@ interface PrimingZenithalPanelProps {
   zenithalDirection: ZenithalDirection;
   currentTemp: number | null;
   manualTempInput: number | null;
-  sprayOverride: boolean;
   images: UploadedImage[];
   primingResultMap: Record<string, string | null>;
   onPrimeColorChange: (v: PrimeColor) => void;
@@ -24,7 +24,6 @@ interface PrimingZenithalPanelProps {
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
   onManualTempChange: (v: number | null) => void;
-  onSprayOverrideChange: (v: boolean) => void;
 }
 
 function OptionButtons<T extends string>({
