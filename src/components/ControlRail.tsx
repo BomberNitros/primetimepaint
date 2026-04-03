@@ -31,32 +31,22 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
       <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-center">
         {/* Logo SVG */}
         <svg
-          width="56"
-          height="56"
-          viewBox="0 0 64 64"
-          fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="text-foreground mb-2"
+          viewBox="0 0 60 160"
+          height="56"
+          fill="currentColor"
+          aria-label="Primetime logo"
+          className="text-foreground mb-2 self-start"
+          style={{ width: 'auto' }}
         >
-          {/* Brush handle */}
-          <rect x="29" y="2" width="6" height="28" rx="2" fill="currentColor" opacity="0.7" />
-          {/* Ferrule */}
-          <rect x="28" y="28" width="8" height="5" rx="1" fill="currentColor" opacity="0.9" />
-          {/* Bristle tip */}
-          <path d="M28 33 L32 40 L36 33 Z" fill="currentColor" />
-          {/* Shield drop */}
-          <path
-            d="M32 42 C32 42 22 47 22 54 C22 59 26.5 62 32 62 C37.5 62 42 59 42 54 C42 47 32 42 32 42Z"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-          />
-          {/* Miniature silhouette inside shield */}
-          <path
-            d="M30 54 L30 50 L29 50 L32 47 L35 50 L34 50 L34 54 Z"
-            fill="currentColor"
-            opacity="0.6"
-          />
+          <path d="M30 4 C30 4 18 26 18 38 C18 50 23 58 30 58 C37 58 42 50 42 38 C42 26 30 4 30 4Z"/>
+          <rect x="27" y="58" width="6" height="8"/>
+          <path d="M27 66 C27 66 16 68 14 74 C12 80 18 84 22 82 C24 81 26 78 27 74 L27 66Z"/>
+          <path d="M33 66 C33 66 44 68 46 74 C48 80 42 84 38 82 C36 81 34 78 33 74 L33 66Z"/>
+          <rect x="27" y="72" width="6" height="6" transform="rotate(45 30 75)"/>
+          <rect x="27.5" y="82" width="5" height="56"/>
+          <path d="M27.5 138 L32.5 138 L31 154 L29 154 Z"/>
+          <rect x="28" y="154" width="4" height="4" rx="1"/>
         </svg>
         <PrimetimeTitle />
         <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme First. Paint Later.</p>
