@@ -1,34 +1,29 @@
 
 
-# Plan Update — Two Technical Lock-Ins
+# Implementation Plan — Approved with Modifications
 
-## 1. Export Background: Explicit Offscreen Canvas Composite
+## Scope
+- **Section 1** — Priming panel: badge accent styling, remove zenithal sentence, default zenithal OFF
+- **Section 2** — Slider: thumbnail strip (replaces dots), persistent arrows, full-view lightbox
+- **Section 3** — Inline gradient styles for app background and primary buttons
+- **Section 4** — SKIPPED entirely. No mem:// writes.
 
-Before writing the PNG, the export function must:
+## Files to change
 
-1. Create an offscreen canvas at the same dimensions as the `RecolorPreview` output
-2. Fill it with `#808080` (mid-grey)
-3. `drawImage` the `RecolorPreview` canvas onto it
-4. Call `toDataURL('image/png')` on the offscreen canvas
+| File | Changes |
+|---|---|
+| `src/components/panels/PrimingZenithalPanel.tsx` | 1a: all badge states use `badgeRightAccent: true`; 1b: remove zenithal clarifying sentence |
+| `src/hooks/usePrimetimeState.ts` | 1c: `zenithalEnabled: false` |
+| `src/components/ImageSlider.tsx` | 2a: thumbnail strip replaces dots; 2b: always-visible arrows with disabled state; 2c: lightbox via portal |
+| `src/pages/Index.tsx` | 3a: inline `backgroundImage` gradient on root div |
+| `src/components/ui/button.tsx` | 3b: inline gradient style for default variant with hover handler |
+| `src/index.css` | 3a+3b: remove `.primetime-app-bg` and `.primetime-btn-primary` CSS rules |
 
-`html2canvas` is used only to capture the preview canvas element — the neutral background is composited programmatically, never inherited from CSS or DOM styling. This eliminates environment-dependent capture bugs.
+## Key details
 
-## 2. Zenithal Directional Modifier: Frozen Definition
+**Section 1** — Three small targeted edits. Badge accent fix ensures "Unprimed", "Processing", and "Primed · X" all render with the same accent pill. Zenithal sentence deletion is a single JSX removal. Default state change is one line in the initial state object.
 
-**Definition (one sentence):**
+**Section 2** — Thumbnail strip: 64×48px covers with accent border on active, 50% opacity on inactive, horizontal scroll overflow. Arrows: always rendered, 30% opacity + `pointer-events-none` at boundaries. Lightbox: `createPortal` to `document.body`, fixed overlay, keyboard nav via `useEffect`, close on backdrop/Escape/X button.
 
-> For each foreground pixel, compute a directional bias value `b` as `intensity * cos(angle_to_light_source)` where `intensity` is a fixed constant (default 30), then add `b` to the pixel's raw luminance before zone classification, clamping the result to 0–255.
-
-- `angle_to_light_source` is the angle between the pixel's position vector (from image center) and the light direction vector (`top` = 90°, `top-left` = 135°, `top-right` = 45°)
-- `intensity = 30` is a hardcoded constant in v1 — not user-adjustable
-- The bias is applied once, before the 4-zone threshold check, inside the single recolor pass
-- No second pass, no post-effect, no blur, no gradient overlay
-
-This is the complete Zenithal v1 spec. Any change to this formula requires an explicit plan revision.
-
-## Sections affected in plan
-
-- Phase 3 RecolorPreview implementation notes: add offscreen canvas export requirement
-- Phase 3 RecolorPreview implementation notes: add frozen Zenithal formula
-- Phase 4 export line item: reference offscreen composite, not CSS background
+**Section 3** — Inline `style` props override any conflicting Tailwind classes. Button component adds `isHovered` state and `onMouseEnter`/`onMouseLeave` for gradient swap, scoped to `variant === 'default'` only. Unused CSS classes removed from `index.css`.
 
