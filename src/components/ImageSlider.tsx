@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { UploadedImage, ImageType } from '@/types/primetime';
+import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface SliderImage {
@@ -15,13 +15,89 @@ interface ImageSliderProps {
   slides: SliderImage[];
 }
 
+function Lightbox({
+  slides,
+  current,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  slides: SliderImage[];
+  current: number;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNext();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose, onPrev, onNext]);
+
+  const slide = slides[current];
+  const total = slides.length;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      style={{ backgroundColor: 'rgba(0,0,0,0.92)' }}
+      onClick={onClose}
+    >
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
+      {total > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); onPrev(); }}
+            disabled={current === 0}
+            className={cn(
+              'absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white transition-colors z-10',
+              current === 0 ? 'opacity-30 pointer-events-none' : 'hover:bg-black/70'
+            )}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onNext(); }}
+            disabled={current === total - 1}
+            className={cn(
+              'absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white transition-colors z-10',
+              current === total - 1 ? 'opacity-30 pointer-events-none' : 'hover:bg-black/70'
+            )}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      )}
+
+      <img
+        src={slide.src}
+        alt={`Slide ${current + 1}`}
+        className="object-contain"
+        style={{ maxWidth: '90vw', maxHeight: '90vh' }}
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>,
+    document.body
+  );
+}
+
 export function ImageSlider({ slides }: ImageSliderProps) {
   const [current, setCurrent] = useState(0);
-  const [hovered, setHovered] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const total = slides.length;
-  const prev = useCallback(() => setCurrent(i => (i - 1 + total) % total), [total]);
-  const next = useCallback(() => setCurrent(i => (i + 1) % total), [total]);
+  const prev = useCallback(() => setCurrent(i => Math.max(0, i - 1)), []);
+  const next = useCallback(() => setCurrent(i => Math.min(total - 1, i + 1)), [total]);
 
   if (total === 0) return null;
 
@@ -30,29 +106,36 @@ export function ImageSlider({ slides }: ImageSliderProps) {
   return (
     <div className="space-y-2">
       <div
-        className="relative w-full overflow-hidden rounded-xl border border-border bg-card"
+        className="relative w-full overflow-hidden rounded-xl border border-border bg-card cursor-pointer"
         style={{ height: 340 }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
       >
         <img
           src={slide.src}
           alt={`Slide ${current + 1}`}
-          className="w-full h-full object-cover object-center transition-opacity duration-400"
+          className="w-full h-full object-cover object-center"
+          onClick={() => setLightboxOpen(true)}
         />
 
-        {/* Arrows — only visible on hover, hidden if 1 image */}
-        {total > 1 && hovered && (
+        {/* Always-visible arrows */}
+        {total > 1 && (
           <>
             <button
               onClick={prev}
-              className="absolute top-1/2 left-3 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              disabled={current === 0}
+              className={cn(
+                'absolute top-1/2 left-3 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white transition-colors',
+                current === 0 ? 'opacity-30 pointer-events-none' : 'hover:bg-black/70'
+              )}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={next}
-              className="absolute top-1/2 right-3 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              disabled={current === total - 1}
+              className={cn(
+                'absolute top-1/2 right-3 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center text-white transition-colors',
+                current === total - 1 ? 'opacity-30 pointer-events-none' : 'hover:bg-black/70'
+              )}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -77,18 +160,27 @@ export function ImageSlider({ slides }: ImageSliderProps) {
         </span>
       </div>
 
-      {/* Dot indicators — hidden if 1 image */}
+      {/* Thumbnail strip */}
       {total > 1 && (
-        <div className="flex justify-center gap-1.5">
-          {slides.map((_, i) => (
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {slides.map((s, i) => (
             <button
-              key={i}
+              key={s.id}
               onClick={() => setCurrent(i)}
               className={cn(
-                'w-2 h-2 rounded-full transition-colors',
-                i === current ? 'bg-accent' : 'bg-muted-foreground/30'
+                'flex-shrink-0 rounded-md overflow-hidden transition-all',
+                i === current
+                  ? 'ring-2 ring-accent opacity-100'
+                  : 'opacity-50 hover:opacity-75'
               )}
-            />
+              style={{ width: 64, height: 48 }}
+            >
+              <img
+                src={s.src}
+                alt={`Thumbnail ${i + 1}`}
+                className="w-full h-full object-cover object-center"
+              />
+            </button>
           ))}
         </div>
       )}
@@ -96,6 +188,16 @@ export function ImageSlider({ slides }: ImageSliderProps) {
       <p className="text-[10px] text-muted-foreground/60 italic">
         Planning preview — not a paint simulation
       </p>
+
+      {lightboxOpen && (
+        <Lightbox
+          slides={slides}
+          current={current}
+          onClose={() => setLightboxOpen(false)}
+          onPrev={prev}
+          onNext={next}
+        />
+      )}
     </div>
   );
 }

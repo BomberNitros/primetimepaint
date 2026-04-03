@@ -11,7 +11,7 @@ const initialState: PrimetimeState = {
   geoFailed: false,
   manualTempInput: null,
   primeColor: 'black',
-  zenithalEnabled: true,
+  zenithalEnabled: false,
   zenithalScheme: '2tone',
   zenithalMethod: 'drybrush',
   zenithalDirection: 'top',

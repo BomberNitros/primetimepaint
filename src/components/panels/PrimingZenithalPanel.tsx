@@ -87,7 +87,7 @@ export function PrimingZenithalPanel({
         src: img.objectUrl,
         badgeLeft: 'Original',
         badgeRight: 'Unprimed',
-        badgeRightAccent: false,
+        badgeRightAccent: true,
       });
       // Primed slide
       const primedSrc = primingResultMap[img.id];
@@ -98,7 +98,7 @@ export function PrimingZenithalPanel({
         badgeRight: primedSrc
           ? getPrimedBadgeRight(primeColor, zenithalEnabled, zenithalScheme)
           : 'Processing…',
-        badgeRightAccent: !!primedSrc,
+        badgeRightAccent: true,
       });
     }
     return result;
@@ -186,9 +186,6 @@ export function PrimingZenithalPanel({
       {zenithalEnabled && (
         <>
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">
-              Zenithal priming uses directional light to pre-shade your model before painting.
-            </p>
             <OptionButtons
               label="Zenithal scheme"
               options={[
