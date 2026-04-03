@@ -98,7 +98,7 @@ export function PrimingZenithalPanel({
         badgeRight: primedSrc
           ? getPrimedBadgeRight(primeColor, zenithalEnabled, zenithalScheme)
           : 'Processing…',
-        badgeRightAccent: !!primedSrc,
+        badgeRightAccent: true,
       });
     }
     return result;
