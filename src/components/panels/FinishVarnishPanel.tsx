@@ -1,4 +1,5 @@
 import { ShieldCheck, Sparkles, Wind, PaintBucket } from 'lucide-react';
+import { randomFont } from '@/components/ControlRail';
 
 const items = [
   {
