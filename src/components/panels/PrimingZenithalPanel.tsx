@@ -87,7 +87,7 @@ export function PrimingZenithalPanel({
         src: img.objectUrl,
         badgeLeft: 'Original',
         badgeRight: 'Unprimed',
-        badgeRightAccent: false,
+        badgeRightAccent: true,
       });
       // Primed slide
       const primedSrc = primingResultMap[img.id];
