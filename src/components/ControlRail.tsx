@@ -19,6 +19,17 @@ const STEPS: Step[] = [
   { id: 'finish', label: 'Finish & Varnish', icon: Shield },
 ];
 
+// ---- Font pool (18 fonts) ----
+const TITLE_FONTS = [
+  'Satoshi', 'Cabinet Grotesk', 'Clash Display', 'General Sans', 'Chillax',
+  'Zodiak', 'Boska', 'Switzer', 'Ranade', 'Playfair Display',
+  'DM Serif Display', 'Oswald', 'Raleway', 'Cinzel', 'Fjalla One',
+  'Libre Baskerville', 'Cormorant Garamond', 'Marcellus',
+];
+
+// Pick once at module load — stable across renders, exported for column labels
+export const randomFont = TITLE_FONTS[Math.floor(Math.random() * TITLE_FONTS.length)];
+
 interface ControlRailProps {
   activeStep: StepId;
   onStepChange: (step: StepId) => void;
@@ -30,25 +41,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
     <nav className="w-[168px] min-w-[168px] bg-sidebar border-r border-sidebar-border flex flex-col h-full">
       {/* Brand */}
       <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-start">
-        {/* Logo SVG */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 60 160"
-          height="56"
-          fill="currentColor"
-          aria-label="Primetime logo"
-          className="text-foreground mb-2 self-start"
-          style={{ width: 'auto' }}
-        >
-          <path d="M30 4 C30 4 18 26 18 38 C18 50 23 58 30 58 C37 58 42 50 42 38 C42 26 30 4 30 4Z"/>
-          <rect x="27" y="58" width="6" height="8"/>
-          <path d="M27 66 C27 66 16 68 14 74 C12 80 18 84 22 82 C24 81 26 78 27 74 L27 66Z"/>
-          <path d="M33 66 C33 66 44 68 46 74 C48 80 42 84 38 82 C36 81 34 78 33 74 L33 66Z"/>
-          <rect x="27" y="72" width="6" height="6" transform="rotate(45 30 75)"/>
-          <rect x="27.5" y="82" width="5" height="56"/>
-          <path d="M27.5 138 L32.5 138 L31 154 L29 154 Z"/>
-          <rect x="28" y="154" width="4" height="4" rx="1"/>
-        </svg>
+        <PaintBottleLogo />
         <PrimetimeTitle />
         <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme First. Paint Later.</p>
       </div>
@@ -82,22 +75,82 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
   );
 }
 
-// ---- Primetime Title with random font on page load ----
+// ---- Animated Paint Bottle Logo ----
+function PaintBottleLogo() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 80 130"
+      height="52"
+      fill="currentColor"
+      aria-label="Primetime logo"
+      className="text-foreground mb-2 primetime-bottle"
+      style={{ width: 'auto' }}
+    >
+      <g id="bottleGroup" className="primetime-bottle-group">
+        {/* Bottle body */}
+        <rect x="10" y="52" width="60" height="66" rx="10" fill="currentColor" />
+        {/* Bottle neck */}
+        <rect x="28" y="38" width="24" height="18" fill="currentColor" />
+        {/* Cap (starts open) */}
+        <rect className="primetime-cap" x="22" y="14" width="36" height="28" rx="6" fill="currentColor" />
+        {/* Dropper hole cutout */}
+        <circle cx="40" cy="10" r="4" fill="hsl(var(--sidebar-background))" />
+        {/* P letter cutout */}
+        <text
+          x="40" y="84"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="32"
+          fontWeight="700"
+          fontFamily="inherit"
+          fill="hsl(var(--sidebar-background))"
+        >
+          P
+        </text>
 
-const TITLE_FONTS = [
-  'Bebas Neue',
-  'Cinzel',
-  'Abril Fatface',
-  'Playfair Display',
-  'Pirata One',
-  'Uncial Antiqua',
-  'Permanent Marker',
-  'Josefin Sans',
-];
+        {/* Clip path for bottle interior */}
+        <defs>
+          <clipPath id="bottleClip">
+            <rect x="10" y="52" width="60" height="66" rx="10" />
+          </clipPath>
+        </defs>
 
-// Pick once at module load time — stable across renders
-const randomFont = TITLE_FONTS[Math.floor(Math.random() * TITLE_FONTS.length)];
+        {/* Fill rect — rises up */}
+        <rect
+          className="primetime-fill"
+          x="10" y="52" width="60" height="66"
+          fill="hsl(var(--primary))"
+          opacity="0.4"
+          clipPath="url(#bottleClip)"
+        />
 
+        {/* Wave layer */}
+        <g className="primetime-wave-riser">
+          <g className="primetime-wave-oscillator">
+            <path
+              d="M-20,0 C0,-8 20,8 40,-8 C60,8 80,-8 100,0 L100,12 C80,20 60,4 40,12 C20,4 0,20 -20,12 Z"
+              fill="hsl(var(--primary))"
+              opacity="0.55"
+              clipPath="url(#bottleClip)"
+              transform="translate(0,52)"
+            />
+          </g>
+        </g>
+
+        {/* Ink drop */}
+        <ellipse
+          className="primetime-inkdrop"
+          cx="40" cy="10" rx="4" ry="6"
+          fill="hsl(var(--primary))"
+          opacity="0"
+        />
+      </g>
+    </svg>
+  );
+}
+
+// ---- Primetime Title with random font + auto-shrink ----
 function PrimetimeTitle() {
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -109,9 +162,9 @@ function PrimetimeTitle() {
       if (!parent) return;
       const style = getComputedStyle(parent);
       const available = parent.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-      let size = 56; // ~3.5rem in px
+      let size = 56;
       el.style.fontSize = `${size}px`;
-      while (el.scrollWidth > available && size > 18) {
+      while (el.scrollWidth > available && size > 16) {
         size -= 1;
         el.style.fontSize = `${size}px`;
       }
@@ -126,10 +179,11 @@ function PrimetimeTitle() {
       ref={titleRef}
       className="leading-none font-bold tracking-tight text-foreground"
       style={{
-        fontFamily: `'${randomFont}', cursive`,
+        fontFamily: `'${randomFont}', sans-serif`,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         maxWidth: '100%',
+        textOverflow: 'clip',
       }}
     >
       Primetime
