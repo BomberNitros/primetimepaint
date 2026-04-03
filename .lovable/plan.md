@@ -1,29 +1,32 @@
 
 
-# Implementation Plan — Approved with Modifications
+# Build Plan — Three Sections
 
-## Scope
-- **Section 1** — Priming panel: badge accent styling, remove zenithal sentence, default zenithal OFF
-- **Section 2** — Slider: thumbnail strip (replaces dots), persistent arrows, full-view lightbox
-- **Section 3** — Inline gradient styles for app background and primary buttons
-- **Section 4** — SKIPPED entirely. No mem:// writes.
+## Section 1 — Panel headings: apply Primetime font family
 
-## Files to change
+All seven `<h2>` elements confirmed as panel-level section titles. Import `randomFont` from `ControlRail.tsx` and add `style={{ fontFamily: \`'${randomFont}', sans-serif\` }}` to each.
 
-| File | Changes |
+| File | Line |
 |---|---|
-| `src/components/panels/PrimingZenithalPanel.tsx` | 1a: all badge states use `badgeRightAccent: true`; 1b: remove zenithal clarifying sentence |
-| `src/hooks/usePrimetimeState.ts` | 1c: `zenithalEnabled: false` |
-| `src/components/ImageSlider.tsx` | 2a: thumbnail strip replaces dots; 2b: always-visible arrows with disabled state; 2c: lightbox via portal |
-| `src/pages/Index.tsx` | 3a: inline `backgroundImage` gradient on root div |
-| `src/components/ui/button.tsx` | 3b: inline gradient style for default variant with hover handler |
-| `src/index.css` | 3a+3b: remove `.primetime-app-bg` and `.primetime-btn-primary` CSS rules |
+| `src/components/ImageUploader.tsx` | 46 — "Miniature" ✓ |
+| `src/components/panels/PrimingZenithalPanel.tsx` | ~110 — "Priming" |
+| `src/components/panels/BrushGuidePanel.tsx` | ~22 — "Brush guide" |
+| `src/components/panels/PaintPlanPanel.tsx` | ~65 — "Thinning & application" |
+| `src/components/panels/PaintHandlingPanel.tsx` | ~99 — "Handling" |
+| `src/components/panels/FinishVarnishPanel.tsx` | ~36 — "Finish & varnish" |
+| `src/components/panels/ColorPlanPanel.tsx` | ~69 — "Colour plan" |
 
-## Key details
+Font family only. No size/weight/colour changes.
 
-**Section 1** — Three small targeted edits. Badge accent fix ensures "Unprimed", "Processing", and "Primed · X" all render with the same accent pill. Zenithal sentence deletion is a single JSX removal. Default state change is one line in the initial state object.
+## Section 2 — Remove spray override warning from Priming panel
 
-**Section 2** — Thumbnail strip: 64×48px covers with accent border on active, 50% opacity on inactive, horizontal scroll overflow. Arrows: always rendered, 30% opacity + `pointer-events-none` at boundaries. Lightbox: `createPortal` to `document.body`, fixed overlay, keyboard nav via `useEffect`, close on backdrop/Escape/X button.
+Delete the conditional amber warning box and the "Override spray warning" `ToggleOption` from `PrimingZenithalPanel.tsx`. Remove unused props (`sprayOverride`, `onSprayOverrideChange`) and imports if they become dead code.
 
-**Section 3** — Inline `style` props override any conflicting Tailwind classes. Button component adds `isHovered` state and `onMouseEnter`/`onMouseLeave` for gradient swap, scoped to `variant === 'default'` only. Unused CSS classes removed from `index.css`.
+## Section 3 — Wet palette ratio warnings
+
+In `PaintPlanPanel.tsx`, append text to two existing bullet strings:
+- **50/50** 💡 tip: append wet palette quick-use warning
+- **25/75** ⚠️ warning: append dry palette recommendation
+
+No new bullets, no layout changes.
 
