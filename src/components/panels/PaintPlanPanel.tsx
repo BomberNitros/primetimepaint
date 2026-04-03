@@ -1,6 +1,7 @@
 import { MediumRatioVisualizer } from '@/components/MediumRatioVisualizer';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { randomFont } from '@/components/ControlRail';
 
 const RATIO_PRESETS: {
   label: string;
