@@ -34,7 +34,7 @@ export function FinishVarnishPanel() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Finish & Varnish</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Finish & varnish</h2>
         <p className="text-sm text-muted-foreground">Protect your work and set the final look.</p>
       </div>
 

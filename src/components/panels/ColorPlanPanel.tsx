@@ -66,7 +66,7 @@ export function ColorPlanPanel({
     <div className="space-y-6">
       {/* Heading */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Colour plan</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Colour plan</h2>
         <p className="text-sm text-muted-foreground">Choose a mood and build your palette.</p>
       </div>
 

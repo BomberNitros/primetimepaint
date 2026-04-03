@@ -48,7 +48,7 @@ const RATIO_PRESETS: {
       { emoji: '🧪', text: 'Start with a loaded brush of medium, add a small touch of Speedpaint. Mixture should look barely tinted on the palette.' },
       { emoji: '🖌️', text: 'Extremely fluid — flows freely off the brush. Almost water-like but with a slight colour tint.' },
       { emoji: '🎨', text: 'Seeks every recess and crevice. Each pass shifts colour temperature without hiding the work underneath.' },
-      { emoji: '⚠️', text: 'Too much at once causes coffee-staining at drying edges. Apply sparingly and wick excess with a clean damp brush.' },
+      { emoji: '⚠️', text: 'Too much at once causes coffee-staining at drying edges. Apply sparingly and wick excess with a clean damp brush. Avoid leaving this ratio on a wet palette — additional moisture will push it to near-water consistency quickly and cannot be recovered. Use a dry palette or tile for this ratio.' },
       { emoji: '✅', text: 'Use after base colours are down — for colour modulation, tinted shadows, atmospheric filters, and transitions.' },
       { emoji: '❌', text: 'Never use for basecoating. Will never build to full opacity without an impractical number of coats.' },
       { emoji: '💡', text: 'Build up across 2–3 passes rather than trying to get visible colour in one. Patience is the technique.' },

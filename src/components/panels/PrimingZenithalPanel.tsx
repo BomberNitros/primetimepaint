@@ -135,22 +135,7 @@ export function PrimingZenithalPanel({
             />
           </div>
 
-          <SprayViabilityBadge temp={currentTemp} override={sprayOverride} />
-
-          {currentTemp !== null && !isAbove15 && (
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <p className="text-xs text-warning">
-                Spray priming is not recommended below 15°C. Paint may not cure properly and can cause texture issues.
-              </p>
-            </div>
-          )}
-
-          <ToggleOption
-            label="Override spray warning"
-            description="Dismiss the warning if you know your conditions are fine"
-            checked={sprayOverride}
-            onChange={onSprayOverrideChange}
-          />
+          <SprayViabilityBadge temp={currentTemp} />
 
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-foreground">Prep checklist</h3>
