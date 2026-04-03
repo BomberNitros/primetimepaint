@@ -12,11 +12,11 @@ interface Step {
 const STEPS: Step[] = [
   { id: 'upload', label: 'Miniature', icon: Upload },
   { id: 'priming', label: 'Priming', icon: Sun },
-  { id: 'color-plan', label: 'Colour Plan', icon: Palette },
-  { id: 'brush-guide', label: 'Brush Guide', icon: Paintbrush },
+  { id: 'color-plan', label: 'Colour plan', icon: Palette },
+  { id: 'brush-guide', label: 'Brush guide', icon: Paintbrush },
   { id: 'paint-handling', label: 'Handling', icon: Droplets },
-  { id: 'thinning-plan', label: 'Thinning & Application', icon: ClipboardList },
-  { id: 'finish', label: 'Finish & Varnish', icon: Shield },
+  { id: 'thinning-plan', label: 'Thinning & application', icon: ClipboardList },
+  { id: 'finish', label: 'Finish & varnish', icon: Shield },
 ];
 
 // ---- Font pool (18 fonts) ----
@@ -43,7 +43,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
       <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-start">
         <PaintBottleLogo />
         <PrimetimeTitle />
-        <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme First. Paint Later.</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme first. Paint later.</p>
       </div>
 
       {/* Steps */}
@@ -87,12 +87,18 @@ function PaintBottleLogo() {
       className="text-foreground mb-2 primetime-bottle"
       style={{ width: 'auto' }}
     >
-      <g id="bottleGroup" className="primetime-bottle-group">
+      <defs>
+        <clipPath id="bottleClip">
+          <rect x="10" y="52" width="60" height="66" rx="10" />
+        </clipPath>
+      </defs>
+
+      <g className="primetime-bottle-group">
         {/* Bottle body */}
         <rect x="10" y="52" width="60" height="66" rx="10" fill="currentColor" />
         {/* Bottle neck */}
         <rect x="28" y="38" width="24" height="18" fill="currentColor" />
-        {/* Cap (starts open) */}
+        {/* Cap (starts open — rotated and offset) */}
         <rect className="primetime-cap" x="22" y="14" width="36" height="28" rx="6" fill="currentColor" />
         {/* Dropper hole cutout */}
         <circle cx="40" cy="10" r="4" fill="hsl(var(--sidebar-background))" />
@@ -108,13 +114,6 @@ function PaintBottleLogo() {
         >
           P
         </text>
-
-        {/* Clip path for bottle interior */}
-        <defs>
-          <clipPath id="bottleClip">
-            <rect x="10" y="52" width="60" height="66" rx="10" />
-          </clipPath>
-        </defs>
 
         {/* Fill rect — rises up */}
         <rect

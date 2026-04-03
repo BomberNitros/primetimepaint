@@ -1,10 +1,11 @@
 import { ToggleOption } from '@/components/ToggleOption';
 import { SprayViabilityBadge } from '@/components/SprayViabilityBadge';
-import { PrimeColor, ZenithalScheme, ZenithalMethod, ZenithalDirection } from '@/types/primetime';
+import { ImageSlider, SliderImage } from '@/components/ImageSlider';
+import { PrimeColor, ZenithalScheme, ZenithalMethod, ZenithalDirection, UploadedImage } from '@/types/primetime';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface PrimingZenithalPanelProps {
   primeColor: PrimeColor;
@@ -15,6 +16,8 @@ interface PrimingZenithalPanelProps {
   currentTemp: number | null;
   manualTempInput: number | null;
   sprayOverride: boolean;
+  images: UploadedImage[];
+  primingResultMap: Record<string, string | null>;
   onPrimeColorChange: (v: PrimeColor) => void;
   onZenithalEnabledChange: (v: boolean) => void;
   onZenithalSchemeChange: (v: ZenithalScheme) => void;
@@ -53,27 +56,68 @@ function OptionButtons<T extends string>({
   );
 }
 
+function getPrimedBadgeRight(primeColor: PrimeColor, zenithalEnabled: boolean, zenithalScheme: ZenithalScheme): string {
+  if (!zenithalEnabled || zenithalScheme === 'flat') {
+    const colourLabel = primeColor.charAt(0).toUpperCase() + primeColor.slice(1);
+    return `Primed · ${colourLabel}`;
+  }
+  const schemeLabel = zenithalScheme === '2tone' ? '2T' : '3T';
+  return `Primed · Zenithal ${schemeLabel}`;
+}
+
 export function PrimingZenithalPanel({
   primeColor, zenithalEnabled, zenithalScheme, zenithalMethod, zenithalDirection,
   currentTemp, manualTempInput, sprayOverride,
+  images, primingResultMap,
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
   onManualTempChange, onSprayOverrideChange,
 }: PrimingZenithalPanelProps) {
-  const [surfacePrepOpen, setSurfacePrepOpen] = useState(false);
+  const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
   const isAbove15 = currentTemp !== null && currentTemp > 15;
 
+  const mainImages = images.filter(i => i.type === 'main');
+
+  const slides: SliderImage[] = useMemo(() => {
+    const result: SliderImage[] = [];
+    for (const img of mainImages) {
+      // Original slide
+      result.push({
+        id: `${img.id}-original`,
+        src: img.objectUrl,
+        badgeLeft: 'Original',
+        badgeRight: 'Unprimed',
+        badgeRightAccent: false,
+      });
+      // Primed slide
+      const primedSrc = primingResultMap[img.id];
+      result.push({
+        id: `${img.id}-primed`,
+        src: primedSrc || img.objectUrl,
+        badgeLeft: 'Primed',
+        badgeRight: primedSrc
+          ? getPrimedBadgeRight(primeColor, zenithalEnabled, zenithalScheme)
+          : 'Processing…',
+        badgeRightAccent: !!primedSrc,
+      });
+    }
+    return result;
+  }, [mainImages, primingResultMap, primeColor, zenithalEnabled, zenithalScheme]);
+
   return (
-    <div className="space-y-6 max-w-lg">
+    <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">Priming</h2>
         <p className="text-sm text-muted-foreground">Set up your undercoat strategy.</p>
       </div>
 
-      {/* Surface Prep — collapsible section */}
+      {/* Slider */}
+      {slides.length > 0 && <ImageSlider slides={slides} />}
+
+      {/* Surface Prep — collapsible, open by default */}
       <Collapsible open={surfacePrepOpen} onOpenChange={setSurfacePrepOpen}>
         <CollapsibleTrigger className="w-full flex items-center justify-between p-3 rounded-xl bg-card border border-border hover:bg-card/80 transition-colors">
-          <span className="text-sm font-medium text-foreground">Surface Preparation</span>
+          <span className="text-sm font-medium text-foreground">Surface preparation</span>
           <ChevronDown className={cn('w-4 h-4 text-muted-foreground transition-transform', surfacePrepOpen && 'rotate-180')} />
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 space-y-4 p-4 rounded-xl bg-card/50 border border-border">
@@ -123,7 +167,11 @@ export function PrimingZenithalPanel({
 
       <OptionButtons
         label="Prime colour"
-        options={[{ value: 'black' as PrimeColor, label: 'Black' }, { value: 'white' as PrimeColor, label: 'White' }]}
+        options={[
+          { value: 'black' as PrimeColor, label: 'Black' },
+          { value: 'grey' as PrimeColor, label: 'Grey' },
+          { value: 'white' as PrimeColor, label: 'White' },
+        ]}
         value={primeColor}
         onChange={onPrimeColorChange}
       />
@@ -137,21 +185,27 @@ export function PrimingZenithalPanel({
 
       {zenithalEnabled && (
         <>
-          <OptionButtons
-            label="Zenithal scheme"
-            options={[
-              { value: '2tone' as ZenithalScheme, label: '2-Tone' },
-              { value: '3tone' as ZenithalScheme, label: '3-Tone' },
-            ]}
-            value={zenithalScheme}
-            onChange={onZenithalSchemeChange}
-          />
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Zenithal priming uses directional light to pre-shade your model before painting.
+            </p>
+            <OptionButtons
+              label="Zenithal scheme"
+              options={[
+                { value: 'flat' as ZenithalScheme, label: 'Flat' },
+                { value: '2tone' as ZenithalScheme, label: '2-Tone' },
+                { value: '3tone' as ZenithalScheme, label: '3-Tone' },
+              ]}
+              value={zenithalScheme}
+              onChange={onZenithalSchemeChange}
+            />
+          </div>
 
           <OptionButtons
             label="Application method"
             options={[
               { value: 'drybrush' as ZenithalMethod, label: 'Drybrush' },
-              { value: 'spray' as ZenithalMethod, label: 'Spray / Airbrush' },
+              { value: 'spray' as ZenithalMethod, label: 'Spray / Rattle can' },
             ]}
             value={zenithalMethod}
             onChange={onZenithalMethodChange}
@@ -160,9 +214,9 @@ export function PrimingZenithalPanel({
           <OptionButtons
             label="Light direction"
             options={[
-              { value: 'top-left' as ZenithalDirection, label: '↖ Top-Left' },
+              { value: 'top-left' as ZenithalDirection, label: '↖ Top-left' },
               { value: 'top' as ZenithalDirection, label: '↑ Top' },
-              { value: 'top-right' as ZenithalDirection, label: '↗ Top-Right' },
+              { value: 'top-right' as ZenithalDirection, label: '↗ Top-right' },
             ]}
             value={zenithalDirection}
             onChange={onZenithalDirectionChange}
