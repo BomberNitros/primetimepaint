@@ -21,7 +21,7 @@ const RATIO_PRESETS: {
       { emoji: '⚠️', text: 'Overloading the brush causes tide marks and pooling. If you see staining, leave it — fix with a second thin coat.' },
       { emoji: '✅', text: 'Use for large flat surfaces: cloaks, armour panels, skin — anywhere you want even basecoat coverage.' },
       { emoji: '❌', text: 'Not ideal for fine detail work or glazing — too opaque for tinting, not controlled enough for eyes or gems.' },
-      { emoji: '💡', text: 'If paint beads up, add more medium. If it runs uncontrollably, add more Speedpaint. Adjust on your palette, not the model.' },
+      { emoji: '💡', text: 'If paint beads up, add more medium. If it runs uncontrollably, add more Speedpaint. Adjust on your palette, not the model. On a wet palette, work quickly — passive moisture will thin this mix further within minutes. Reload from the bottle rather than letting the mix sit.' },
     ],
   },
   {
