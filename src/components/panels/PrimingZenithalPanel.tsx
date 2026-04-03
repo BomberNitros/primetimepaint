@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { randomFont } from '@/components/ControlRail';
 
 interface PrimingZenithalPanelProps {
   primeColor: PrimeColor;
@@ -15,7 +16,6 @@ interface PrimingZenithalPanelProps {
   zenithalDirection: ZenithalDirection;
   currentTemp: number | null;
   manualTempInput: number | null;
-  sprayOverride: boolean;
   images: UploadedImage[];
   primingResultMap: Record<string, string | null>;
   onPrimeColorChange: (v: PrimeColor) => void;
@@ -24,7 +24,6 @@ interface PrimingZenithalPanelProps {
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
   onManualTempChange: (v: number | null) => void;
-  onSprayOverrideChange: (v: boolean) => void;
 }
 
 function OptionButtons<T extends string>({
@@ -67,11 +66,11 @@ function getPrimedBadgeRight(primeColor: PrimeColor, zenithalEnabled: boolean, z
 
 export function PrimingZenithalPanel({
   primeColor, zenithalEnabled, zenithalScheme, zenithalMethod, zenithalDirection,
-  currentTemp, manualTempInput, sprayOverride,
+  currentTemp, manualTempInput,
   images, primingResultMap,
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
-  onManualTempChange, onSprayOverrideChange,
+  onManualTempChange,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
   const isAbove15 = currentTemp !== null && currentTemp > 15;
@@ -107,7 +106,7 @@ export function PrimingZenithalPanel({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Priming</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Priming</h2>
         <p className="text-sm text-muted-foreground">Set up your undercoat strategy.</p>
       </div>
 
@@ -136,22 +135,7 @@ export function PrimingZenithalPanel({
             />
           </div>
 
-          <SprayViabilityBadge temp={currentTemp} override={sprayOverride} />
-
-          {currentTemp !== null && !isAbove15 && (
-            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <p className="text-xs text-warning">
-                Spray priming is not recommended below 15°C. Paint may not cure properly and can cause texture issues.
-              </p>
-            </div>
-          )}
-
-          <ToggleOption
-            label="Override spray warning"
-            description="Dismiss the warning if you know your conditions are fine"
-            checked={sprayOverride}
-            onChange={onSprayOverrideChange}
-          />
+          <SprayViabilityBadge temp={currentTemp} />
 
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-foreground">Prep checklist</h3>

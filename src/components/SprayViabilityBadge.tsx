@@ -2,13 +2,12 @@ import { cn } from '@/lib/utils';
 
 interface SprayViabilityBadgeProps {
   temp: number | null;
-  override: boolean;
 }
 
-export function SprayViabilityBadge({ temp, override }: SprayViabilityBadgeProps) {
+export function SprayViabilityBadge({ temp }: SprayViabilityBadgeProps) {
   if (temp === null) return null;
 
-  const viable = temp > 15 || override;
+  const viable = temp > 15;
 
   return (
     <span className={cn(

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
+import { randomFont } from '@/components/ControlRail';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -43,7 +44,7 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
   return (
     <div className="flex flex-col items-center gap-6 p-8">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Miniature</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Miniature</h2>
         <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
       </div>
 

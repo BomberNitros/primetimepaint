@@ -1,6 +1,7 @@
 import { MediumRatioVisualizer } from '@/components/MediumRatioVisualizer';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { randomFont } from '@/components/ControlRail';
 
 const RATIO_PRESETS: {
   label: string;
@@ -20,7 +21,7 @@ const RATIO_PRESETS: {
       { emoji: '⚠️', text: 'Overloading the brush causes tide marks and pooling. If you see staining, leave it — fix with a second thin coat.' },
       { emoji: '✅', text: 'Use for large flat surfaces: cloaks, armour panels, skin — anywhere you want even basecoat coverage.' },
       { emoji: '❌', text: 'Not ideal for fine detail work or glazing — too opaque for tinting, not controlled enough for eyes or gems.' },
-      { emoji: '💡', text: 'If paint beads up, add more medium. If it runs uncontrollably, add more Speedpaint. Adjust on your palette, not the model.' },
+      { emoji: '💡', text: 'If paint beads up, add more medium. If it runs uncontrollably, add more Speedpaint. Adjust on your palette, not the model. On a wet palette, work quickly — passive moisture will thin this mix further within minutes. Reload from the bottle rather than letting the mix sit.' },
     ],
   },
   {
@@ -47,7 +48,7 @@ const RATIO_PRESETS: {
       { emoji: '🧪', text: 'Start with a loaded brush of medium, add a small touch of Speedpaint. Mixture should look barely tinted on the palette.' },
       { emoji: '🖌️', text: 'Extremely fluid — flows freely off the brush. Almost water-like but with a slight colour tint.' },
       { emoji: '🎨', text: 'Seeks every recess and crevice. Each pass shifts colour temperature without hiding the work underneath.' },
-      { emoji: '⚠️', text: 'Too much at once causes coffee-staining at drying edges. Apply sparingly and wick excess with a clean damp brush.' },
+      { emoji: '⚠️', text: 'Too much at once causes coffee-staining at drying edges. Apply sparingly and wick excess with a clean damp brush. Avoid leaving this ratio on a wet palette — additional moisture will push it to near-water consistency quickly and cannot be recovered. Use a dry palette or tile for this ratio.' },
       { emoji: '✅', text: 'Use after base colours are down — for colour modulation, tinted shadows, atmospheric filters, and transitions.' },
       { emoji: '❌', text: 'Never use for basecoating. Will never build to full opacity without an impractical number of coats.' },
       { emoji: '💡', text: 'Build up across 2–3 passes rather than trying to get visible colour in one. Patience is the technique.' },
@@ -62,7 +63,7 @@ export function PaintPlanPanel() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Thinning & Application</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Thinning & application</h2>
         <p className="text-sm text-muted-foreground">Plan your medium ratios and application technique.</p>
       </div>
 

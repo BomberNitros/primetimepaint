@@ -1,6 +1,7 @@
 import { Vibrate, Droplets, Layers, Grid3X3, Paintbrush, Palette, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { randomFont } from '@/components/ControlRail';
 
 interface VideoSet {
   goobertown: [string, string];
@@ -96,7 +97,7 @@ export function PaintHandlingPanel() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Handling</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Handling</h2>
         <p className="text-sm text-muted-foreground">Handling tips specific to Speedpaints.</p>
       </div>
 

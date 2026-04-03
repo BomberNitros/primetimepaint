@@ -3,6 +3,7 @@ import { BrushSvg } from '@/components/BrushSvg';
 import { BrushType } from '@/types/primetime';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { randomFont } from '@/components/ControlRail';
 
 const BRUSH_USE_CASES: Record<BrushType, string> = {
   round: 'Versatile pointed tip for basecoating, layering, and detail.',
@@ -19,7 +20,7 @@ export function BrushGuidePanel() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Brush Guide</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Brush guide</h2>
         <p className="text-sm text-muted-foreground">Match each painting task to the right brush from your sets.</p>
       </div>
 

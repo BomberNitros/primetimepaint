@@ -167,7 +167,6 @@ export default function Index() {
             zenithalDirection={state.zenithalDirection}
             currentTemp={state.currentTemp}
             manualTempInput={state.manualTempInput}
-            sprayOverride={state.sprayOverride}
             images={state.uploadedImages}
             primingResultMap={primingResultMap}
             onPrimeColorChange={setPrimeColor}
@@ -176,7 +175,6 @@ export default function Index() {
             onZenithalMethodChange={setZenithalMethod}
             onZenithalDirectionChange={setZenithalDirection}
             onManualTempChange={setManualTempInput}
-            onSprayOverrideChange={setSprayOverride}
           />
         );
       case 'color-plan':
