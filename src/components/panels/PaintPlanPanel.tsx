@@ -63,7 +63,7 @@ export function PaintPlanPanel() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Thinning & Application</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Thinning & application</h2>
         <p className="text-sm text-muted-foreground">Plan your medium ratios and application technique.</p>
       </div>
 
