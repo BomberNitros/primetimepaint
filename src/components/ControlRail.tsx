@@ -9,12 +9,12 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { id: 'upload', label: 'Upload', icon: Upload },
-  { id: 'priming', label: 'Priming & Zenithal', icon: Sun },
+  { id: 'upload', label: 'Miniature', icon: Upload },
+  { id: 'priming', label: 'Priming', icon: Sun },
   { id: 'color-plan', label: 'Colour Plan', icon: Palette },
   { id: 'brush-guide', label: 'Brush Guide', icon: Paintbrush },
-  { id: 'paint-handling', label: 'Paint Handling', icon: Droplets },
-  { id: 'thinning-plan', label: 'Thinning Plan', icon: ClipboardList },
+  { id: 'paint-handling', label: 'Handling', icon: Droplets },
+  { id: 'thinning-plan', label: 'Thinning & Application', icon: ClipboardList },
   { id: 'finish', label: 'Finish & Varnish', icon: Shield },
 ];
 
@@ -28,8 +28,37 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
   return (
     <nav className="w-[168px] min-w-[168px] bg-sidebar border-r border-sidebar-border flex flex-col h-full">
       {/* Brand */}
-      <div className="px-3 py-4 border-b border-sidebar-border">
-        <h1 className="text-base font-bold tracking-tight text-foreground">Primetime</h1>
+      <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-center">
+        {/* Logo SVG */}
+        <svg
+          width="56"
+          height="56"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="text-foreground mb-2"
+        >
+          {/* Brush handle */}
+          <rect x="29" y="2" width="6" height="28" rx="2" fill="currentColor" opacity="0.7" />
+          {/* Ferrule */}
+          <rect x="28" y="28" width="8" height="5" rx="1" fill="currentColor" opacity="0.9" />
+          {/* Bristle tip */}
+          <path d="M28 33 L32 40 L36 33 Z" fill="currentColor" />
+          {/* Shield drop */}
+          <path
+            d="M32 42 C32 42 22 47 22 54 C22 59 26.5 62 32 62 C37.5 62 42 59 42 54 C42 47 32 42 32 42Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+          />
+          {/* Miniature silhouette inside shield */}
+          <path
+            d="M30 54 L30 50 L29 50 L32 47 L35 50 L34 50 L34 54 Z"
+            fill="currentColor"
+            opacity="0.6"
+          />
+        </svg>
+        <PrimetimeTitle />
         <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme First. Paint Later.</p>
       </div>
 
@@ -59,5 +88,32 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
         })}
       </div>
     </nav>
+  );
+}
+
+// ---- Primetime Title with random font on page load ----
+
+const TITLE_FONTS = [
+  'Bebas Neue',
+  'Cinzel',
+  'Abril Fatface',
+  'Playfair Display',
+  'Pirata One',
+  'Uncial Antiqua',
+  'Permanent Marker',
+  'Josefin Sans',
+];
+
+// Pick once at module load time — stable across renders
+const randomFont = TITLE_FONTS[Math.floor(Math.random() * TITLE_FONTS.length)];
+
+function PrimetimeTitle() {
+  return (
+    <h1
+      className="text-[2.5rem] leading-none font-bold tracking-tight text-foreground"
+      style={{ fontFamily: `'${randomFont}', cursive` }}
+    >
+      Primetime
+    </h1>
   );
 }

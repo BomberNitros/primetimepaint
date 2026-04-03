@@ -3,6 +3,7 @@ import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-reac
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface ImageUploaderProps {
   onUpload: (files: File[], type: ImageType) => void;
@@ -18,9 +19,17 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
 
   const handleFiles = useCallback((files: FileList | null) => {
     if (!files) return;
-    const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const all = Array.from(files);
+    const valid = all.filter(f => f.type.startsWith('image/'));
+    const invalid = all.length - valid.length;
+
+    if (invalid > 0) {
+      toast.error('Upload failed. Please use a valid image file.', { duration: 4000 });
+    }
     if (valid.length === 0) return;
+
     onUpload(valid, uploadType);
+    toast.success('Image uploaded successfully.', { duration: 3000 });
   }, [onUpload, uploadType]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -33,6 +42,11 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
 
   return (
     <div className="flex flex-col items-center gap-6 p-8">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">Miniature</h2>
+        <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
+      </div>
+
       <div className="flex items-center gap-2 mb-2">
         <button
           onClick={() => setUploadType('main')}
@@ -54,12 +68,10 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
         </button>
       </div>
 
-      {/* Soft recommendation */}
       <p className="text-xs text-muted-foreground text-center">
         Recommended: 4 main photos and up to 2 reference images for best results.
       </p>
 
-      {/* Upload area */}
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
@@ -113,7 +125,6 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
         className="hidden"
       />
 
-      {/* Gated CTA */}
       <Button
         disabled={mainCount === 0}
         onClick={onContinue}

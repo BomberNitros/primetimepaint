@@ -66,7 +66,7 @@ export function PrimingZenithalPanel({
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Priming & Zenithal</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1">Priming</h2>
         <p className="text-sm text-muted-foreground">Set up your undercoat strategy.</p>
       </div>
 
