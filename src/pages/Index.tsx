@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { usePrimetimeState } from '@/hooks/usePrimetimeState';
+import { useRecolorMap } from '@/hooks/useRecolorMap';
 import { ControlRail } from '@/components/ControlRail';
 import { BottomBar } from '@/components/BottomBar';
 import { ImageUploader } from '@/components/ImageUploader';
@@ -15,7 +16,6 @@ import { extractDominantColors } from '@/lib/color-extraction';
 import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
 import { ColorScheme, ThemeId } from '@/types/primetime';
 
-// Generate 3 colour schemes from extracted colours + theme + overrides
 function generateSchemes(
   extractedColors: string[],
   theme: ThemeId | null,
@@ -131,6 +131,16 @@ export default function Index() {
   const previewMid2 = getOverrideHex(state.midtoneOverrides[1]) || activeScheme?.midtone2?.hex || null;
   const previewHigh = getOverrideHex(state.highlightOverride) || activeScheme?.highlight.hex || null;
 
+  // Section 3: recolor ALL images
+  const recolorMap = useRecolorMap(state.uploadedImages, {
+    baseColor: previewBase,
+    midtone1Color: previewMid1,
+    midtone2Color: previewMid2,
+    highlightColor: previewHigh,
+    zenithalEnabled: state.zenithalEnabled,
+    zenithalDirection: state.zenithalDirection,
+  });
+
   const handleThemeSelect = useCallback((t: ThemeId) => {
     setSelectedTheme(t);
     if (state.activeStep !== 'color-plan') setActiveStep('color-plan');
@@ -180,6 +190,8 @@ export default function Index() {
             onBaseChange={setBaseOverride}
             onMidtoneChange={setMidtoneOverrides}
             onHighlightChange={setHighlightOverride}
+            images={state.uploadedImages}
+            recolorMap={recolorMap}
           />
         );
       case 'brush-guide':
@@ -196,7 +208,7 @@ export default function Index() {
   const showPreview = ['color-plan', 'priming'].includes(state.activeStep) && selectedImage;
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen overflow-hidden primetime-app-bg">
       <ControlRail
         activeStep={state.activeStep}
         onStepChange={setActiveStep}

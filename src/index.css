@@ -4,7 +4,6 @@
 
 @layer base {
   :root {
-    /* Primetime uses dark-only. These are the dark tokens. */
     --background: 235 25% 11%;
     --foreground: 220 20% 92%;
 
@@ -44,7 +43,6 @@
     --sidebar-border: 235 15% 20%;
     --sidebar-ring: 217 80% 56%;
 
-    /* Primetime custom tokens */
     --surface: 235 20% 13%;
     --surface-raised: 235 18% 17%;
     --success: 142 60% 45%;
@@ -60,9 +58,22 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
   }
+}
+
+/* Section 6 — App background gradient */
+.primetime-app-bg {
+  background: linear-gradient(65deg, hsl(var(--background)) 0%, #1e1b2e 100%);
+}
+
+/* Section 6 — Primary button gradient */
+.primetime-btn-primary {
+  background: linear-gradient(65deg, hsl(var(--primary)) 0%, #60a5fa 100%);
+}
+.primetime-btn-primary:hover {
+  background: linear-gradient(65deg, hsl(217 80% 46%) 0%, #93c5fd 100%);
 }
 
 /* Scrollbar styling */
@@ -78,4 +89,101 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
+}
+
+/* ===== Section 1 — Paint Bottle Animation Keyframes ===== */
+
+@keyframes ptFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ptDropFall {
+  0%   { opacity: 0; transform: translateY(0); }
+  10%  { opacity: 0.9; }
+  80%  { opacity: 0.7; transform: translateY(52px); }
+  100% { opacity: 0; transform: translateY(58px); }
+}
+
+@keyframes ptFillRise {
+  from { transform: translateY(66px); }
+  to   { transform: translateY(0px); }
+}
+
+@keyframes ptWaveRise {
+  from { transform: translateY(66px); }
+  to   { transform: translateY(0px); }
+}
+
+@keyframes ptWaveSlosh {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes ptCapClose {
+  from { transform: translateX(18px) rotate(22deg); }
+  to   { transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes ptBottleBop {
+  0%   { transform: translateY(0); }
+  30%  { transform: translateY(4px); }
+  65%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes ptBottleShake {
+  0%   { transform: rotate(0deg); }
+  15%  { transform: rotate(-8deg); }
+  30%  { transform: rotate(7deg); }
+  45%  { transform: rotate(-6deg); }
+  60%  { transform: rotate(5deg); }
+  75%  { transform: rotate(-3deg); }
+  90%  { transform: rotate(2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Step 1 — SVG fade in */
+.primetime-bottle {
+  animation: ptFadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+/* Step 2 — Ink drop falls */
+.primetime-inkdrop {
+  animation: ptDropFall 0.5s ease-in 0.5s forwards;
+}
+
+/* Step 3 — Fill rises */
+.primetime-fill {
+  transform: translateY(66px);
+  animation: ptFillRise 1.2s ease-out 0.9s forwards;
+}
+
+/* Step 4 — Wave rises + sloshes */
+.primetime-wave-riser {
+  transform: translateY(66px);
+  animation: ptWaveRise 1.2s ease-out 0.9s forwards;
+}
+.primetime-wave-oscillator {
+  animation: ptWaveSlosh 0.4s ease-in-out 0.9s 3;
+}
+
+/* Step 5 — Cap closes */
+.primetime-cap {
+  transform-origin: center bottom;
+  transform: translateX(18px) rotate(22deg);
+  animation: ptCapClose 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 2.2s forwards;
+}
+
+/* Step 6 — Bottle bop */
+.primetime-bottle-group {
+  animation: ptBottleBop 0.3s ease-out 2.5s forwards;
+}
+
+/* Hover — Bottle shake */
+.primetime-bottle:hover .primetime-bottle-group {
+  animation: ptBottleShake 0.5s ease-in-out;
+  transform-origin: center bottom;
 }
