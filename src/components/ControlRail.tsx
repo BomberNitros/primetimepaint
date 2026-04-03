@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { StepId } from '@/types/primetime';
 import { Upload, Sun, Palette, Paintbrush, Droplets, ClipboardList, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
