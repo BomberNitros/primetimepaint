@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
+import { randomFont } from '@/components/ControlRail';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
