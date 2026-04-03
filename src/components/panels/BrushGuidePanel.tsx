@@ -3,6 +3,7 @@ import { BrushSvg } from '@/components/BrushSvg';
 import { BrushType } from '@/types/primetime';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { randomFont } from '@/components/ControlRail';
 
 const BRUSH_USE_CASES: Record<BrushType, string> = {
   round: 'Versatile pointed tip for basecoating, layering, and detail.',
