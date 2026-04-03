@@ -1,27 +1,31 @@
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { UploadedImage } from '@/types/primetime';
+import { UploadedImage, ImageType } from '@/types/primetime';
 import { cn } from '@/lib/utils';
 
-interface ImageSliderProps {
-  images: UploadedImage[];
-  recolorMap: Record<string, string | null>;
+export interface SliderImage {
+  id: string;
+  src: string;
+  badgeLeft: string;
+  badgeRight: string;
+  badgeRightAccent: boolean;
 }
 
-export function ImageSlider({ images, recolorMap }: ImageSliderProps) {
+interface ImageSliderProps {
+  slides: SliderImage[];
+}
+
+export function ImageSlider({ slides }: ImageSliderProps) {
   const [current, setCurrent] = useState(0);
   const [hovered, setHovered] = useState(false);
 
-  const total = images.length;
+  const total = slides.length;
   const prev = useCallback(() => setCurrent(i => (i - 1 + total) % total), [total]);
   const next = useCallback(() => setCurrent(i => (i + 1) % total), [total]);
 
   if (total === 0) return null;
 
-  const img = images[current];
-  const recolored = recolorMap[img.id] ?? null;
-  const src = recolored || img.objectUrl;
-  const isRecolored = !!recolored;
+  const slide = slides[current];
 
   return (
     <div className="space-y-2">
@@ -32,8 +36,8 @@ export function ImageSlider({ images, recolorMap }: ImageSliderProps) {
         onMouseLeave={() => setHovered(false)}
       >
         <img
-          src={src}
-          alt={`Image ${current + 1}`}
+          src={slide.src}
+          alt={`Slide ${current + 1}`}
           className="w-full h-full object-cover object-center transition-opacity duration-400"
         />
 
@@ -55,28 +59,28 @@ export function ImageSlider({ images, recolorMap }: ImageSliderProps) {
           </>
         )}
 
-        {/* Bottom-left badge: MAIN or REF */}
+        {/* Bottom-left badge */}
         <span className="absolute bottom-3 left-3 px-2 py-0.5 rounded-full bg-black/60 text-white text-[11px] font-medium uppercase tracking-wide">
-          {img.type === 'main' ? 'Main' : 'Ref'}
+          {slide.badgeLeft}
         </span>
 
-        {/* Bottom-right badge: Recolored or Original */}
+        {/* Bottom-right badge */}
         <span
           className={cn(
             'absolute bottom-3 right-3 px-2 py-0.5 rounded-full text-[11px] font-medium',
-            isRecolored
+            slide.badgeRightAccent
               ? 'bg-primary/80 text-primary-foreground'
               : 'bg-black/40 text-muted-foreground'
           )}
         >
-          {isRecolored ? 'Recolored' : 'Original'}
+          {slide.badgeRight}
         </span>
       </div>
 
       {/* Dot indicators — hidden if 1 image */}
       {total > 1 && (
         <div className="flex justify-center gap-1.5">
-          {images.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}

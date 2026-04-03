@@ -7,17 +7,19 @@ export type StepId =
   | 'thinning-plan'
   | 'finish';
 
-export type ImageType = 'main' | 'reference';
+export type ImageType = 'main' | 'reference' | 'primed';
 
 export interface UploadedImage {
   id: string;
   objectUrl: string;
   type: ImageType;
   file: File;
+  /** For primed images, the id of the source main image */
+  sourceMainId?: string;
 }
 
-export type PrimeColor = 'black' | 'white';
-export type ZenithalScheme = '2tone' | '3tone';
+export type PrimeColor = 'black' | 'grey' | 'white';
+export type ZenithalScheme = 'flat' | '2tone' | '3tone';
 export type ZenithalMethod = 'drybrush' | 'spray';
 export type ZenithalDirection = 'top' | 'top-left' | 'top-right';
 export type ThemeId = 'grimdark' | 'vibrant' | 'natural' | 'high-contrast';

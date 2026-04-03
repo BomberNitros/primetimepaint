@@ -4,8 +4,6 @@ import { useRecolorMap } from '@/hooks/useRecolorMap';
 import { ControlRail } from '@/components/ControlRail';
 import { BottomBar } from '@/components/BottomBar';
 import { ImageUploader } from '@/components/ImageUploader';
-import { RecolorPreview } from '@/components/RecolorPreview';
-import { DownloadBar } from '@/components/DownloadBar';
 import { PrimingZenithalPanel } from '@/components/panels/PrimingZenithalPanel';
 import { ColorPlanPanel } from '@/components/panels/ColorPlanPanel';
 import { BrushGuidePanel } from '@/components/panels/BrushGuidePanel';
@@ -43,7 +41,7 @@ function generateSchemes(
   const getHigh = () => highlightOverride ? paints.find(p => p.name === highlightOverride) || paints[23] : (extractedColors[3] ? closestPaint(extractedColors[3]) : paints[23]);
 
   const s1: ColorScheme = {
-    name: 'Closest Match',
+    name: 'Closest match',
     type: 'speedpaint-led',
     base: getBase(),
     midtone1: getMid1(),
@@ -54,7 +52,7 @@ function generateSchemes(
   const themeShift = theme === 'grimdark' ? 0 : theme === 'vibrant' ? 6 : theme === 'natural' ? 3 : 9;
   const s2Base = baseOverride ? s1.base : paints[(paints.indexOf(s1.base) + themeShift) % paints.length];
   const s2: ColorScheme = {
-    name: 'Theme Variation',
+    name: 'Theme variation',
     type: 'speedpaint-led',
     base: s2Base,
     midtone1: paints[(paints.indexOf(s1.midtone1) + themeShift + 2) % paints.length],
@@ -63,7 +61,7 @@ function generateSchemes(
   };
 
   const s3: ColorScheme = {
-    name: 'Mix Approach',
+    name: 'Mix approach',
     type: 'mix-based',
     base: s1.base,
     midtone1: paints[(paints.indexOf(s1.midtone1) + 12) % paints.length],
@@ -96,10 +94,8 @@ export default function Index() {
     setColorSchemes,
   } = usePrimetimeState();
 
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const mainImages = state.uploadedImages.filter(i => i.type === 'main');
   const refImages = state.uploadedImages.filter(i => i.type === 'reference');
-  const selectedImage = mainImages[state.selectedImageIndex] || null;
 
   const getOverrideHex = (name: string | null) => {
     if (!name) return null;
@@ -131,7 +127,7 @@ export default function Index() {
   const previewMid2 = getOverrideHex(state.midtoneOverrides[1]) || activeScheme?.midtone2?.hex || null;
   const previewHigh = getOverrideHex(state.highlightOverride) || activeScheme?.highlight.hex || null;
 
-  // Section 3: recolor ALL images
+  // Recolor ALL images for colour plan
   const recolorMap = useRecolorMap(state.uploadedImages, {
     baseColor: previewBase,
     midtone1Color: previewMid1,
@@ -140,6 +136,10 @@ export default function Index() {
     zenithalEnabled: state.zenithalEnabled,
     zenithalDirection: state.zenithalDirection,
   });
+
+  // Priming results map — placeholder: shows original for now
+  // TODO: implement actual priming preview rendering
+  const primingResultMap: Record<string, string | null> = {};
 
   const handleThemeSelect = useCallback((t: ThemeId) => {
     setSelectedTheme(t);
@@ -168,6 +168,8 @@ export default function Index() {
             currentTemp={state.currentTemp}
             manualTempInput={state.manualTempInput}
             sprayOverride={state.sprayOverride}
+            images={state.uploadedImages}
+            primingResultMap={primingResultMap}
             onPrimeColorChange={setPrimeColor}
             onZenithalEnabledChange={setZenithalEnabled}
             onZenithalSchemeChange={setZenithalScheme}
@@ -205,8 +207,6 @@ export default function Index() {
     }
   };
 
-  const showPreview = ['color-plan', 'priming'].includes(state.activeStep) && selectedImage;
-
   return (
     <div className="flex h-screen overflow-hidden primetime-app-bg">
       <ControlRail
@@ -217,26 +217,8 @@ export default function Index() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 overflow-y-auto">
-          <div className={showPreview ? 'flex gap-6 p-6' : 'p-6'}>
-            <div className={showPreview ? 'flex-1 min-w-0' : ''}>
-              {renderWorkspace()}
-            </div>
-
-            {showPreview && (
-              <div className="w-[360px] flex-shrink-0 space-y-3">
-                <RecolorPreview
-                  ref={previewCanvasRef}
-                  imageUrl={selectedImage.objectUrl}
-                  baseColor={previewBase}
-                  midtone1Color={previewMid1}
-                  midtone2Color={previewMid2}
-                  highlightColor={previewHigh}
-                  zenithalEnabled={state.zenithalEnabled}
-                  zenithalDirection={state.zenithalDirection}
-                />
-                <DownloadBar previewCanvasRef={previewCanvasRef} />
-              </div>
-            )}
+          <div className="p-6">
+            {renderWorkspace()}
           </div>
         </div>
 
