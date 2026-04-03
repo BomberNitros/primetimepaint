@@ -30,7 +30,7 @@ const RATIO_PRESETS: {
     bullets: [
       { emoji: '🎯', text: 'Delivers near-opaque coverage in a single pass. Asserts colour quickly over black or dark undercoats.' },
       { emoji: '🧪', text: 'Full brush of Speedpaint plus a small touch of medium — roughly a quarter of the paint volume. Consistency like single cream.' },
-      { emoji: '🖌️', text: 'Noticeably thicker on the brush. Doesn't self-level as aggressively — gives more placement control.' },
+      { emoji: '🖌️', text: "Noticeably thicker on the brush. Doesn't self-level as aggressively — gives more placement control." },
       { emoji: '🎨', text: 'Applies as a strong, near-opaque coat. Brush marks may remain visible if overworked — apply and leave.' },
       { emoji: '⚠️', text: 'Scrubbing back and forth creates visible strokes. Let gravity and capillary action do the work.' },
       { emoji: '✅', text: 'Best for bright reds over black, yellows that wash out thinner, and any area needing fast opaque coverage.' },
