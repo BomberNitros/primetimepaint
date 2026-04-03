@@ -208,7 +208,7 @@ export default function Index() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden primetime-app-bg">
+    <div className="flex h-screen overflow-hidden" style={{ backgroundImage: 'linear-gradient(65deg, #13131a 0%, #1e1b2e 100%)' }}>
       <ControlRail
         activeStep={state.activeStep}
         onStepChange={setActiveStep}

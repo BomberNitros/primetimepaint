@@ -186,9 +186,6 @@ export function PrimingZenithalPanel({
       {zenithalEnabled && (
         <>
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">
-              Zenithal priming uses directional light to pre-shade your model before painting.
-            </p>
             <OptionButtons
               label="Zenithal scheme"
               options={[
