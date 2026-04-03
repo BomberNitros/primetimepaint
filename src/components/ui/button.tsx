@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "primetime-btn-primary text-primary-foreground",
+        default: "text-primary-foreground",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
@@ -36,10 +36,45 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
+const GRADIENT_DEFAULT = 'linear-gradient(65deg, #3b82f6 0%, #60a5fa 100%)';
+const GRADIENT_HOVER = 'linear-gradient(65deg, #2563eb 0%, #93c5fd 100%)';
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, style, ...props }, ref) => {
+    const [isHovered, setIsHovered] = React.useState(false);
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    const isDefault = !variant || variant === 'default';
+
+    const mergedStyle: React.CSSProperties = isDefault
+      ? {
+          ...style,
+          backgroundImage: isHovered ? GRADIENT_HOVER : GRADIENT_DEFAULT,
+          backgroundColor: 'transparent',
+        }
+      : style || {};
+
+    const hoverHandlers = isDefault
+      ? {
+          onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
+            setIsHovered(true);
+            props.onMouseEnter?.(e);
+          },
+          onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => {
+            setIsHovered(false);
+            props.onMouseLeave?.(e);
+          },
+        }
+      : {};
+
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        style={mergedStyle}
+        {...props}
+        {...hoverHandlers}
+      />
+    );
   },
 );
 Button.displayName = "Button";
