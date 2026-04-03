@@ -28,7 +28,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
   return (
     <nav className="w-[168px] min-w-[168px] bg-sidebar border-r border-sidebar-border flex flex-col h-full">
       {/* Brand */}
-      <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-center">
+      <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-start">
         {/* Logo SVG */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
