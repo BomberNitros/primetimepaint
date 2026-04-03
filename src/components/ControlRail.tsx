@@ -98,10 +98,38 @@ const TITLE_FONTS = [
 const randomFont = TITLE_FONTS[Math.floor(Math.random() * TITLE_FONTS.length)];
 
 function PrimetimeTitle() {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    function fitTitle() {
+      const el = titleRef.current;
+      if (!el) return;
+      const parent = el.parentElement;
+      if (!parent) return;
+      const style = getComputedStyle(parent);
+      const available = parent.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      let size = 56; // ~3.5rem in px
+      el.style.fontSize = `${size}px`;
+      while (el.scrollWidth > available && size > 18) {
+        size -= 1;
+        el.style.fontSize = `${size}px`;
+      }
+    }
+    fitTitle();
+    window.addEventListener('resize', fitTitle);
+    return () => window.removeEventListener('resize', fitTitle);
+  }, []);
+
   return (
     <h1
-      className="text-[2.5rem] leading-none font-bold tracking-tight text-foreground"
-      style={{ fontFamily: `'${randomFont}', cursive` }}
+      ref={titleRef}
+      className="leading-none font-bold tracking-tight text-foreground"
+      style={{
+        fontFamily: `'${randomFont}', cursive`,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        maxWidth: '100%',
+      }}
     >
       Primetime
     </h1>
