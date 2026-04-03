@@ -66,11 +66,11 @@ function getPrimedBadgeRight(primeColor: PrimeColor, zenithalEnabled: boolean, z
 
 export function PrimingZenithalPanel({
   primeColor, zenithalEnabled, zenithalScheme, zenithalMethod, zenithalDirection,
-  currentTemp, manualTempInput, sprayOverride,
+  currentTemp, manualTempInput,
   images, primingResultMap,
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
-  onManualTempChange, onSprayOverrideChange,
+  onManualTempChange,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
   const isAbove15 = currentTemp !== null && currentTemp > 15;
