@@ -11,6 +11,7 @@ import { PaintHandlingPanel } from '@/components/panels/PaintHandlingPanel';
 import { PaintPlanPanel } from '@/components/panels/PaintPlanPanel';
 import { FinishVarnishPanel } from '@/components/panels/FinishVarnishPanel';
 import { extractDominantColors } from '@/lib/color-extraction';
+import { processZenithalPreview } from '@/lib/zenithal-preview';
 import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
 import { ColorScheme, ThemeId } from '@/types/primetime';
 
