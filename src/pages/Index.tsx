@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePrimetimeState } from '@/hooks/usePrimetimeState';
 import { useRecolorMap } from '@/hooks/useRecolorMap';
 import { ControlRail } from '@/components/ControlRail';
