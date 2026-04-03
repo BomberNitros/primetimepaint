@@ -137,9 +137,53 @@ export default function Index() {
     zenithalDirection: state.zenithalDirection,
   });
 
-  // Priming results map — placeholder: shows original for now
-  // TODO: implement actual priming preview rendering
-  const primingResultMap: Record<string, string | null> = {};
+  const [primingResultMap, setPrimingResultMap] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    if (mainImages.length === 0) {
+      setPrimingResultMap({});
+      return;
+    }
+
+    const urls: string[] = [];
+    let cancelled = false;
+
+    const processAll = async () => {
+      const newMap: Record<string, string | null> = {};
+      for (const img of mainImages) {
+        if (cancelled) return;
+        const el = new Image();
+        el.crossOrigin = 'anonymous';
+        el.src = img.objectUrl;
+        await new Promise<void>(r => { el.onload = () => r(); el.onerror = () => r(); });
+        if (cancelled) return;
+
+        await new Promise<void>(r => requestAnimationFrame(() => r()));
+
+        const result = processZenithalPreview(el, {
+          zenithalEnabled: state.zenithalEnabled,
+          zenithalMethod: state.zenithalScheme,
+          zenithalDirection: state.zenithalDirection,
+          primeColour: state.primeColor,
+        });
+
+        const blob = await new Promise<Blob | null>(r => result.toBlob(r, 'image/png'));
+        if (cancelled || !blob) return;
+
+        const url = URL.createObjectURL(blob);
+        urls.push(url);
+        newMap[img.id] = url;
+      }
+      if (!cancelled) setPrimingResultMap(newMap);
+    };
+
+    processAll();
+
+    return () => {
+      cancelled = true;
+      urls.forEach(URL.revokeObjectURL);
+    };
+  }, [mainImages.length, state.primeColor, state.zenithalEnabled, state.zenithalScheme, state.zenithalDirection]);
 
   const handleThemeSelect = useCallback((t: ThemeId) => {
     setSelectedTheme(t);
