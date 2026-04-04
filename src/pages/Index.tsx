@@ -344,6 +344,7 @@ export default function Index() {
           />
         );
       case 'color-plan':
+
         return (
           <ColorPlanPanel
             extractedColors={state.extractedColors}

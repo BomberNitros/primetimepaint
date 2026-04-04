@@ -144,6 +144,8 @@ export function PrimingZenithalPanel({
           onSubmit={onSubmitRepaint}
           currentlyRepainting={currentlyRepainting}
           submitError={submitError}
+          zenithalEnabled={zenithalEnabled}
+          primeColor={primeColor}
         />
       )}
 

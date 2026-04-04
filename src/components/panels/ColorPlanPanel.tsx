@@ -34,6 +34,8 @@ interface ColorPlanPanelProps {
   customRepaintImage: string | null;
   sliderIndex: number;
   onSliderIndexChange: (i: number) => void;
+  zenithalEnabled: boolean;
+  primeColor: string;
 }
 
 const columnLabelStyle: React.CSSProperties = {
