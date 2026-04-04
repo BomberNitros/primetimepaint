@@ -140,13 +140,57 @@ Return only a valid JSON array. No prose. No explanation. No markdown.` +
     }
 
     const response = await res.json();
-    const imageUrl = response.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log('Repaint response structure:', JSON.stringify(Object.keys(response)));
+    const msg = response.choices?.[0]?.message;
+    if (msg) {
+      console.log('Message keys:', JSON.stringify(Object.keys(msg)));
+      if (msg.content) {
+        console.log('Content type:', typeof msg.content, Array.isArray(msg.content) ? 'array len=' + msg.content.length : '');
+        if (Array.isArray(msg.content)) {
+          msg.content.forEach((part: Record<string, unknown>, i: number) => {
+            console.log(`Content part ${i} keys:`, JSON.stringify(Object.keys(part)));
+          });
+        }
+      }
+    }
 
-    if (!imageUrl) {
+    // Try multiple response formats
+    let imageData: string | undefined;
+
+    // Format 1: images array (older format)
+    imageData = msg?.images?.[0]?.image_url?.url;
+
+    // Format 2: content array with image parts
+    if (!imageData && Array.isArray(msg?.content)) {
+      for (const part of msg.content) {
+        if (part.type === 'image_url' && part.image_url?.url) {
+          imageData = part.image_url.url;
+          break;
+        }
+        if (part.type === 'image' && part.image_url?.url) {
+          imageData = part.image_url.url;
+          break;
+        }
+        // Some models return inline_data
+        if (part.inline_data?.data) {
+          const mime = part.inline_data.mime_type || 'image/png';
+          imageData = `data:${mime};base64,${part.inline_data.data}`;
+          break;
+        }
+      }
+    }
+
+    // Format 3: direct base64 string in content
+    if (!imageData && typeof msg?.content === 'string' && msg.content.startsWith('data:image')) {
+      imageData = msg.content;
+    }
+
+    if (!imageData) {
+      console.log('Full response:', JSON.stringify(response).slice(0, 2000));
       return jsonResponse({ error: 'Image data not found in gateway response.' }, 500);
     }
 
-    return jsonResponse({ image: imageUrl });
+    return jsonResponse({ image: imageData });
 
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Unknown error.';
