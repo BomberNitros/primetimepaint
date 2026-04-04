@@ -35,8 +35,7 @@ interface PrimingZenithalPanelProps {
   pipelineComplete: boolean;
   originalImage: string | null;
   customRepaintImage: string | null;
-  sliderIndex: number;
-  onSliderIndexChange: (i: number) => void;
+  repaintMap: Record<number, string>;
 }
 
 function OptionButtons<T extends string>({
