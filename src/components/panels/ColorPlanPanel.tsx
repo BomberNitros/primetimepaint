@@ -100,11 +100,16 @@ export function ColorPlanPanel({
         <DualSlider
           originalImage={originalImage}
           customRepaintImage={customRepaintImage}
-          mainImages={mainImages}
-          sliderIndex={sliderIndex}
-          onSliderIndexChange={onSliderIndexChange}
           leftLabel="Original"
           rightLabel="AI Repaint"
+          leftImages={mainImages.map((img, i) => ({
+            src: img.objectUrl,
+            label: `Original ${i + 1}`,
+          }))}
+          rightImages={Object.entries(repaintMap).map(([k, v]) => ({
+            src: v,
+            label: `Repaint ${parseInt(k) + 1}`,
+          }))}
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />
