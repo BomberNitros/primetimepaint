@@ -66,8 +66,7 @@ export function ColorPlanPanel({
   pipelineComplete,
   originalImage,
   customRepaintImage,
-  sliderIndex,
-  onSliderIndexChange,
+  repaintMap,
   zenithalEnabled,
   primeColor,
 }: ColorPlanPanelProps) {
