@@ -96,7 +96,7 @@ export function ColorPlanPanel({
       {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
       {pipelineComplete ? (
         <DualSlider
-          initialRepaintImage={initialRepaintImage}
+          originalImage={originalImage}
           customRepaintImage={customRepaintImage}
           sliderIndex={sliderIndex}
           onSliderIndexChange={onSliderIndexChange}
