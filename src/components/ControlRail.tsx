@@ -12,11 +12,11 @@ interface Step {
 const STEPS: Step[] = [
   { id: 'upload', label: 'Miniature', icon: Upload },
   { id: 'priming', label: 'Priming', icon: Sun },
-  { id: 'color-plan', label: 'Colour plan', icon: Palette },
-  { id: 'brush-guide', label: 'Brush guide', icon: Paintbrush },
+  { id: 'color-plan', label: 'Coloring', icon: Palette },
+  { id: 'brush-guide', label: 'Brush Guide', icon: Paintbrush },
   { id: 'paint-handling', label: 'Handling', icon: Droplets },
-  { id: 'thinning-plan', label: 'Thinning & application', icon: ClipboardList },
-  { id: 'finish', label: 'Finish & varnish', icon: Shield },
+  { id: 'thinning-plan', label: 'Application & Thinning', icon: ClipboardList },
+  { id: 'finish', label: 'Varnish', icon: Shield },
 ];
 
 // ---- Font pool (18 fonts) ----
