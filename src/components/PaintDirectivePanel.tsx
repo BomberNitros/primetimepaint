@@ -150,6 +150,7 @@ export function PaintDirectivePanel({
                 {condition}
               </span>
               <Button
+                type="button"
                 onClick={() => {
                   let result = activePrompt ?? '';
 
@@ -224,6 +225,7 @@ export function PaintDirectivePanel({
 
           <div className="flex items-center gap-2">
             <Button
+              type="button"
               onClick={onSubmit}
               disabled={currentlyRepainting || !activePrompt}
               size="sm"
