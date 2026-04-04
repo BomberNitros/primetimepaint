@@ -63,7 +63,7 @@ export function ColorPlanPanel({
   currentlyRepainting,
   submitError,
   pipelineComplete,
-  initialRepaintImage,
+  originalImage,
   customRepaintImage,
   sliderIndex,
   onSliderIndexChange,
