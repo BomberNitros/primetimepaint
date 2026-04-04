@@ -111,6 +111,7 @@ export default function Index() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setRepaintMapEntry,
     setRepaintHistory,
   } = usePrimetimeState();
 
