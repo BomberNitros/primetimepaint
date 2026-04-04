@@ -34,6 +34,8 @@ interface ColorPlanPanelProps {
   customRepaintImage: string | null;
   sliderIndex: number;
   onSliderIndexChange: (i: number) => void;
+  zenithalEnabled: boolean;
+  primeColor: string;
 }
 
 const columnLabelStyle: React.CSSProperties = {
@@ -67,6 +69,8 @@ export function ColorPlanPanel({
   customRepaintImage,
   sliderIndex,
   onSliderIndexChange,
+  zenithalEnabled,
+  primeColor,
 }: ColorPlanPanelProps) {
   const primaryHex = extractedColors[0] || '#666666';
 
@@ -113,6 +117,8 @@ export function ColorPlanPanel({
           onSubmit={onSubmitRepaint}
           currentlyRepainting={currentlyRepainting}
           submitError={submitError}
+          zenithalEnabled={zenithalEnabled}
+          primeColor={primeColor}
         />
       )}
 

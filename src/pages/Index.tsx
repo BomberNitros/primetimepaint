@@ -344,6 +344,7 @@ export default function Index() {
           />
         );
       case 'color-plan':
+
         return (
           <ColorPlanPanel
             extractedColors={state.extractedColors}
@@ -368,6 +369,8 @@ export default function Index() {
             customRepaintImage={state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
+            zenithalEnabled={state.zenithalEnabled}
+            primeColor={state.primeColor}
           />
         );
       case 'brush-guide':
