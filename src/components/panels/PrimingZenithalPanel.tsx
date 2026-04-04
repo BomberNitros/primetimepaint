@@ -86,7 +86,7 @@ export function PrimingZenithalPanel({
   activePrompt, onPromptChange, onSubmitRepaint,
   currentlyRepainting, submitError,
   pipelineComplete, originalImage, customRepaintImage,
-  sliderIndex, onSliderIndexChange,
+  repaintMap,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
 
