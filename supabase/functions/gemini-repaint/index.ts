@@ -140,13 +140,38 @@ Return only a valid JSON array. No prose. No explanation. No markdown.` +
     }
 
     const response = await res.json();
-    const imageUrl = response.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const msg = response.choices?.[0]?.message;
 
-    if (!imageUrl) {
+    let imageData: string | undefined;
+
+    // Format 1: images array
+    imageData = msg?.images?.[0]?.image_url?.url;
+
+    // Format 2: content array with image parts
+    if (!imageData && Array.isArray(msg?.content)) {
+      for (const part of msg.content) {
+        if ((part.type === 'image_url' || part.type === 'image') && part.image_url?.url) {
+          imageData = part.image_url.url;
+          break;
+        }
+        if (part.inline_data?.data) {
+          const mime = part.inline_data.mime_type || 'image/png';
+          imageData = `data:${mime};base64,${part.inline_data.data}`;
+          break;
+        }
+      }
+    }
+
+    // Format 3: direct base64 string in content
+    if (!imageData && typeof msg?.content === 'string' && msg.content.startsWith('data:image')) {
+      imageData = msg.content;
+    }
+
+    if (!imageData) {
       return jsonResponse({ error: 'Image data not found in gateway response.' }, 500);
     }
 
-    return jsonResponse({ image: imageUrl });
+    return jsonResponse({ image: imageData });
 
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Unknown error.';
