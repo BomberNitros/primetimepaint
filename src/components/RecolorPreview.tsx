@@ -208,7 +208,7 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
   if (!imageUrl) {
     return (
       <div className="flex items-center justify-center h-64 rounded-xl bg-card border border-border">
-        <p className="text-sm text-muted-foreground">Upload an image and assign colours to see the preview</p>
+        <p className="text-sm text-muted-foreground">Upload an image and assign colors to see the preview</p>
       </div>
     );
   }
