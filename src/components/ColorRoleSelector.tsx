@@ -1,7 +1,7 @@
 import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
 import { cn } from '@/lib/utils';
 
-interface ColourRoleSelectorProps {
+interface ColorRoleSelectorProps {
   baseOverride: string | null;
   midtoneOverrides: string[];
   highlightOverride: string | null;
@@ -48,17 +48,17 @@ function PaintPicker({
   );
 }
 
-export function ColourRoleSelector({
+export function ColorRoleSelector({
   baseOverride,
   midtoneOverrides,
   highlightOverride,
   onBaseChange,
   onMidtoneChange,
   onHighlightChange,
-}: ColourRoleSelectorProps) {
+}: ColorRoleSelectorProps) {
   return (
     <div className="space-y-4 p-4 rounded-xl bg-card border border-border">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Colour Role Overrides</h3>
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Color role overrides</h3>
 
       <PaintPicker
         label="Base"

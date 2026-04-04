@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Upload, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
+import { Upload, Image as ImageIcon, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageType } from '@/types/primetime';
 import { randomFont } from '@/components/ControlRail';
@@ -10,10 +10,23 @@ interface ImageUploaderProps {
   onUpload: (files: File[], type: ImageType) => void;
   mainCount: number;
   refCount: number;
-  onContinue: () => void;
+  onAnalyseAndRepaint: () => void;
+  pipelineComplete: boolean;
+  pipelineError: string | null;
+  currentlyRepainting: boolean;
+  initialRepaintImage: string | null;
 }
 
-export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: ImageUploaderProps) {
+export function ImageUploader({
+  onUpload,
+  mainCount,
+  refCount,
+  onAnalyseAndRepaint,
+  pipelineComplete,
+  pipelineError,
+  currentlyRepainting,
+  initialRepaintImage,
+}: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadType, setUploadType] = useState<ImageType>('main');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -126,26 +139,63 @@ export function ImageUploader({ onUpload, mainCount, refCount, onContinue }: Ima
         className="hidden"
       />
 
-      <Button
-        disabled={mainCount === 0}
-        onClick={onContinue}
-        className={cn(
-          'mt-2 transition-all duration-300 ease-in-out',
-          mainCount > 0
-            ? 'opacity-100'
-            : 'opacity-40 pointer-events-none'
-        )}
-        size="lg"
-      >
-        {mainCount > 0 ? (
-          <>
-            Continue to Priming
-            <ArrowRight className="w-4 h-4 ml-1" />
-          </>
-        ) : (
-          'Upload at least one image to continue'
-        )}
-      </Button>
+      {/* Pipeline button */}
+      {!pipelineComplete && (
+        <>
+          <Button
+            disabled={mainCount === 0 || currentlyRepainting}
+            onClick={onAnalyseAndRepaint}
+            className={cn(
+              'mt-2 transition-all duration-300 ease-in-out gap-2',
+              mainCount > 0 ? 'opacity-100' : 'opacity-40 pointer-events-none'
+            )}
+            size="lg"
+          >
+            {currentlyRepainting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Analysing & repainting…
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Analyse & Repaint
+              </>
+            )}
+          </Button>
+          {!currentlyRepainting && mainCount > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Anatomy analysis · free · Repaint · €0.04
+            </p>
+          )}
+        </>
+      )}
+
+      {/* Pipeline complete state */}
+      {pipelineComplete && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle className="w-4 h-4 text-primary" />
+          <span>Pipeline complete. Navigate via sidebar.</span>
+        </div>
+      )}
+
+      {/* Pipeline error */}
+      {pipelineError && (
+        <p className="text-xs text-destructive">{pipelineError}</p>
+      )}
+
+      {/* Initial repaint image */}
+      {initialRepaintImage && (
+        <div className="w-full max-w-lg mt-4">
+          <p className="text-xs text-muted-foreground mb-1">Initial repaint</p>
+          <p className="text-xs text-muted-foreground/60 mb-2">Priming section now unlocked.</p>
+          <img
+            src={initialRepaintImage}
+            alt="Initial repaint"
+            className="w-full rounded-md"
+          />
+        </div>
+      )}
     </div>
   );
 }

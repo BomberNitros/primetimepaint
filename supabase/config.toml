@@ -1,0 +1,4 @@
+project_id = "kkixznetktokezynrvea"
+
+[functions.gemini-repaint]
+verify_jwt = false

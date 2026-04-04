@@ -208,7 +208,7 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
   if (!imageUrl) {
     return (
       <div className="flex items-center justify-center h-64 rounded-xl bg-card border border-border">
-        <p className="text-sm text-muted-foreground">Upload an image and assign colours to see the preview</p>
+        <p className="text-sm text-muted-foreground">Upload an image and assign colors to see the preview</p>
       </div>
     );
   }
@@ -220,7 +220,7 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
         <h4 className="text-sm font-medium text-muted-foreground">Quick preview</h4>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Timer className="h-3.5 w-3.5" />
-          <span>Colour approximation — AI recolour in progress</span>
+          <span>Color approximation — AI recolor in progress</span>
         </div>
         <canvas ref={canvasRef} className="rounded-lg max-w-full" />
         <p className="text-[10px] text-muted-foreground/60 italic">
@@ -228,11 +228,11 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
         </p>
       </div>
 
-      {/* Right panel — AI recolour (STATE A: no API key) */}
+      {/* Right panel — AI recolor (STATE A: no API key) */}
       <div className="rounded-xl border border-border bg-muted/30 p-3 flex flex-col items-center justify-center text-center gap-3 min-h-[200px]">
         <Sparkles className="h-8 w-8 text-muted-foreground/60" />
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-foreground">AI recolour</p>
+          <p className="text-sm font-semibold text-foreground">AI recolor</p>
           <p className="text-xs text-muted-foreground">Connect Gemini to enable high-quality AI repainting</p>
         </div>
         <Button variant="secondary" size="sm" onClick={() => {}}>

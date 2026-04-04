@@ -1,4 +1,4 @@
-// Colour theory helpers — compute complement, split-complement, triad from a hex colour
+// Color theory helpers — compute complement, split-complement, triad from a hex color
 
 function hexToHsl(hex: string): [number, number, number] {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -55,11 +55,11 @@ export function getTriad(hex: string): [string, string] {
   ];
 }
 
-interface ColourTheoryHelperProps {
+interface ColorTheoryHelperProps {
   baseHex: string;
 }
 
-export function ColourTheoryHelper({ baseHex }: ColourTheoryHelperProps) {
+export function ColorTheoryHelper({ baseHex }: ColorTheoryHelperProps) {
   const complement = getComplement(baseHex);
   const splitComp = getSplitComplement(baseHex);
   const triad = getTriad(baseHex);
@@ -72,7 +72,7 @@ export function ColourTheoryHelper({ baseHex }: ColourTheoryHelperProps) {
 
   return (
     <div className="space-y-3">
-      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Colour Theory</h4>
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Color theory</h4>
       {groups.map(g => (
         <div key={g.label} className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground w-28 flex-shrink-0">{g.label}</span>
