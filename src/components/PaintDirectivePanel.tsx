@@ -51,6 +51,8 @@ export function PaintDirectivePanel({
   const [role, setRole] = useState('');
   const [customRole, setCustomRole] = useState('');
   const [manufacturer, setManufacturer] = useState('');
+  const [injectTick, setInjectTick] = useState(0);
+  const lastProcessedTick = useRef(0);
 
   useEffect(() => {
     if (bodyRef.current) {
