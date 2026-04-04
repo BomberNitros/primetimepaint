@@ -69,6 +69,8 @@ export function ColorPlanPanel({
   customRepaintImage,
   sliderIndex,
   onSliderIndexChange,
+  zenithalEnabled,
+  primeColor,
 }: ColorPlanPanelProps) {
   const primaryHex = extractedColors[0] || '#666666';
 
