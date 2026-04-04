@@ -3,11 +3,15 @@ import {
   PrimetimeState, StepId, UploadedImage, PrimeColor,
   ZenithalScheme, ZenithalMethod, ZenithalDirection,
   ThemeId, ColorScheme, AnatomyRegion, GeminiTurn, RepaintEntry,
+  RepaintHistoryEntry,
 } from '@/types/primetime';
 
 const initialState: PrimetimeState = {
-  uploadedImages: [],
+  mainImages: [],
+  referenceImages: [],
+  referenceBase64s: [],
   selectedImageIndex: 0,
+  repaintHistory: [],
   activeStep: 'upload',
   currentTemp: null,
   tempSource: 'manual',
@@ -45,27 +49,55 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, activeStep: step }));
   }, []);
 
-  const addImages = useCallback((files: File[], type: UploadedImage['type']) => {
+  const setMainImages = useCallback((imgs: UploadedImage[]) => {
+    setState(s => ({ ...s, mainImages: imgs }));
+  }, []);
+
+  const setReferenceImages = useCallback((imgs: UploadedImage[]) => {
+    setState(s => ({ ...s, referenceImages: imgs }));
+  }, []);
+
+  const setReferenceBase64s = useCallback((v: string[]) => {
+    setState(s => ({ ...s, referenceBase64s: v }));
+  }, []);
+
+  const addMainImages = useCallback((files: File[]) => {
     setState(s => {
       const newImages: UploadedImage[] = files.map(file => ({
         id: crypto.randomUUID(),
         objectUrl: URL.createObjectURL(file),
-        type,
+        type: 'main' as const,
         file,
       }));
-      return { ...s, uploadedImages: [...s.uploadedImages, ...newImages] };
+      return { ...s, mainImages: [...s.mainImages, ...newImages] };
+    });
+  }, []);
+
+  const addReferenceImages = useCallback((files: File[]) => {
+    setState(s => {
+      const newImages: UploadedImage[] = files.map(file => ({
+        id: crypto.randomUUID(),
+        objectUrl: URL.createObjectURL(file),
+        type: 'reference' as const,
+        file,
+      }));
+      return { ...s, referenceImages: [...s.referenceImages, ...newImages] };
     });
   }, []);
 
   const removeImage = useCallback((id: string) => {
     setState(s => {
-      const img = s.uploadedImages.find(i => i.id === id);
-      if (img) URL.revokeObjectURL(img.objectUrl);
-      const uploadedImages = s.uploadedImages.filter(i => i.id !== id);
+      const mainImg = s.mainImages.find(i => i.id === id);
+      const refImg = s.referenceImages.find(i => i.id === id);
+      if (mainImg) URL.revokeObjectURL(mainImg.objectUrl);
+      if (refImg) URL.revokeObjectURL(refImg.objectUrl);
+      const mainImages = s.mainImages.filter(i => i.id !== id);
+      const referenceImages = s.referenceImages.filter(i => i.id !== id);
       return {
         ...s,
-        uploadedImages,
-        selectedImageIndex: Math.min(s.selectedImageIndex, Math.max(0, uploadedImages.length - 1)),
+        mainImages,
+        referenceImages,
+        selectedImageIndex: Math.min(s.selectedImageIndex, Math.max(0, mainImages.length + referenceImages.length - 1)),
       };
     });
   }, []);
@@ -176,10 +208,21 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, sharedSliderIndex: v }));
   }, []);
 
+  const setRepaintHistory = useCallback((v: RepaintHistoryEntry[] | ((prev: RepaintHistoryEntry[]) => RepaintHistoryEntry[])) => {
+    setState(s => ({
+      ...s,
+      repaintHistory: typeof v === 'function' ? v(s.repaintHistory) : v,
+    }));
+  }, []);
+
   return {
     state,
     setActiveStep,
-    addImages,
+    setMainImages,
+    setReferenceImages,
+    setReferenceBase64s,
+    addMainImages,
+    addReferenceImages,
     removeImage,
     setSelectedImageIndex,
     setPrimeColor,
@@ -206,5 +249,6 @@ export function usePrimetimeState() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setRepaintHistory,
   };
 }
