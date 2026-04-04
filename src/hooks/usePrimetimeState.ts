@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react';
-import { PrimetimeState, StepId, UploadedImage, PrimeColor, ZenithalScheme, ZenithalMethod, ZenithalDirection, ThemeId, ColorScheme } from '@/types/primetime';
+import {
+  PrimetimeState, StepId, UploadedImage, PrimeColor,
+  ZenithalScheme, ZenithalMethod, ZenithalDirection,
+  ThemeId, ColorScheme, AnatomyRegion, GeminiTurn, RepaintEntry,
+} from '@/types/primetime';
 
 const initialState: PrimetimeState = {
   uploadedImages: [],
@@ -21,6 +25,17 @@ const initialState: PrimetimeState = {
   baseOverride: null,
   midtoneOverrides: [],
   highlightOverride: null,
+  anatomyRegions: [],
+  initialRepaintImage: null,
+  customRepaintImage: null,
+  activePrompt: null,
+  geminiHistory: [],
+  repaintLog: [],
+  currentlyRepainting: false,
+  repaintStartTime: null,
+  pipelineComplete: false,
+  pipelineError: null,
+  sharedSliderIndex: 0,
 };
 
 export function usePrimetimeState() {
@@ -111,6 +126,56 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, colorSchemes: schemes }));
   }, []);
 
+  const setAnatomyRegions = useCallback((regions: AnatomyRegion[]) => {
+    setState(s => ({ ...s, anatomyRegions: regions }));
+  }, []);
+
+  const setInitialRepaintImage = useCallback((v: string | null) => {
+    setState(s => ({ ...s, initialRepaintImage: v }));
+  }, []);
+
+  const setCustomRepaintImage = useCallback((v: string | null) => {
+    setState(s => ({ ...s, customRepaintImage: v }));
+  }, []);
+
+  const setActivePrompt = useCallback((v: string | null | ((prev: string | null) => string | null)) => {
+    setState(s => ({
+      ...s,
+      activePrompt: typeof v === 'function' ? v(s.activePrompt) : v,
+    }));
+  }, []);
+
+  const setGeminiHistory = useCallback((v: GeminiTurn[]) => {
+    setState(s => ({ ...s, geminiHistory: v }));
+  }, []);
+
+  const setRepaintLog = useCallback((v: RepaintEntry[] | ((prev: RepaintEntry[]) => RepaintEntry[])) => {
+    setState(s => ({
+      ...s,
+      repaintLog: typeof v === 'function' ? v(s.repaintLog) : v,
+    }));
+  }, []);
+
+  const setCurrentlyRepainting = useCallback((v: boolean) => {
+    setState(s => ({ ...s, currentlyRepainting: v }));
+  }, []);
+
+  const setRepaintStartTime = useCallback((v: Date | null) => {
+    setState(s => ({ ...s, repaintStartTime: v }));
+  }, []);
+
+  const setPipelineComplete = useCallback((v: boolean) => {
+    setState(s => ({ ...s, pipelineComplete: v }));
+  }, []);
+
+  const setPipelineError = useCallback((v: string | null) => {
+    setState(s => ({ ...s, pipelineError: v }));
+  }, []);
+
+  const setSharedSliderIndex = useCallback((v: number) => {
+    setState(s => ({ ...s, sharedSliderIndex: v }));
+  }, []);
+
   return {
     state,
     setActiveStep,
@@ -130,5 +195,16 @@ export function usePrimetimeState() {
     setSprayOverride,
     setExtractedColors,
     setColorSchemes,
+    setAnatomyRegions,
+    setInitialRepaintImage,
+    setCustomRepaintImage,
+    setActivePrompt,
+    setGeminiHistory,
+    setRepaintLog,
+    setCurrentlyRepainting,
+    setRepaintStartTime,
+    setPipelineComplete,
+    setPipelineError,
+    setSharedSliderIndex,
   };
 }
