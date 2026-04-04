@@ -35,8 +35,7 @@ interface PrimingZenithalPanelProps {
   pipelineComplete: boolean;
   originalImage: string | null;
   customRepaintImage: string | null;
-  sliderIndex: number;
-  onSliderIndexChange: (i: number) => void;
+  repaintMap: Record<number, string>;
 }
 
 function OptionButtons<T extends string>({
@@ -87,7 +86,7 @@ export function PrimingZenithalPanel({
   activePrompt, onPromptChange, onSubmitRepaint,
   currentlyRepainting, submitError,
   pipelineComplete, originalImage, customRepaintImage,
-  sliderIndex, onSliderIndexChange,
+  repaintMap,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
 
@@ -129,11 +128,16 @@ export function PrimingZenithalPanel({
         <DualSlider
           originalImage={originalImage}
           customRepaintImage={customRepaintImage}
-          mainImages={mainImages}
-          sliderIndex={sliderIndex}
-          onSliderIndexChange={onSliderIndexChange}
           leftLabel="Primed"
           rightLabel="AI Repaint"
+          leftImages={mainImages.map((img, i) => ({
+            src: img.objectUrl,
+            label: `Primed ${i + 1}`,
+          }))}
+          rightImages={Object.entries(repaintMap).map(([k, v]) => ({
+            src: v,
+            label: `Repaint ${parseInt(k) + 1}`,
+          }))}
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />
