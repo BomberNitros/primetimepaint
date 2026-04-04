@@ -225,7 +225,11 @@ export default function Index() {
 
     try {
       const base64 = await toBase64(mainImage.file);
-      const regions = await analyseAnatomy(base64, state.referenceBase64s);
+      const refBase64s = await Promise.all(
+        state.referenceImages.map(img => toBase64(img.file))
+      );
+      console.log('[index] referenceBase64s:', refBase64s.length);
+      const regions = await analyseAnatomy(base64, refBase64s);
       setAnatomyRegions(regions);
 
       const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', state.referenceBase64s);
