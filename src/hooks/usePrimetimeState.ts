@@ -32,6 +32,7 @@ const initialState: PrimetimeState = {
   anatomyRegions: [],
   initialRepaintImage: null,
   customRepaintImage: null,
+  repaintMap: {},
   activePrompt: null,
   geminiHistory: [],
   repaintLog: [],

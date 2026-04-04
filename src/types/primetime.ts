@@ -121,6 +121,7 @@ export interface PrimetimeState {
   anatomyRegions: AnatomyRegion[];
   initialRepaintImage: string | null;
   customRepaintImage: string | null;
+  repaintMap: Record<number, string>;
   activePrompt: string | null;
   geminiHistory: GeminiTurn[];
   repaintLog: RepaintEntry[];

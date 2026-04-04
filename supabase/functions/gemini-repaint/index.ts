@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
     }
 
     const { type, image, prompt, referenceImages } = await req.json();
+    console.log('[edge] referenceImages count:', Array.isArray(referenceImages) ? referenceImages.length : 0);
 
     if (!type || (type !== 'anatomy' && type !== 'repaint')) {
       return jsonResponse({ error: 'Invalid request type' }, 400);
