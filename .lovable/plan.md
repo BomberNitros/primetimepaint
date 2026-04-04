@@ -1,26 +1,43 @@
 
 
-# Sprint 2 — Full Build
+# Fix pass — Injection form corrections
 
-## Blocker: Lovable Cloud not enabled
+## FIX 1 — Index.tsx: analyse handler wiring
 
-`src/integrations/` is empty and `supabase/` does not exist. The Supabase client required by `gemini-pipeline.ts` (`supabase.functions.invoke()`) is not available.
+**Already correct.** `handleAnalyseAndRepaint` exists at line 218 and is passed as `onAnalyseAndRepaint={handleAnalyseAndRepaint}` at line 310. No change needed.
 
-**You must enable Lovable Cloud before this build can proceed.** Go to the Cloud tab in the Lovable editor sidebar and enable it. This auto-generates `src/integrations/supabase/client.ts` with the project URL and anon key.
+## FIX 2 — PaintDirectivePanel.tsx: injection form + token replacement
 
-Once enabled, confirm and resubmit this prompt. The 14-step build will then execute in order:
+**Current state:** Panel has only a textarea and submit button. No injection form exists. `isOpen` defaults to `false`.
 
-## Build order (once Cloud is enabled)
+**Changes:**
+- Add props: `zenithalEnabled: boolean`, `primeColor: string`
+- Change `isOpen` initial state to `true`
+- Replace `{isOpen && ...}` with `useRef`-based `maxHeight` transition
+- Add injection form inside collapsible body, below textarea:
+  - Section label "Miniature details"
+  - `grid grid-cols-1 md:grid-cols-2 gap-3`
+  - Local state: `name`, `origin`, `role`, `customRole`, `manufacturer`
+  - Fields: Name input, Origin input, Role select (with full options list including "other" → free text), Manufacturer input
+  - Read-only condition badge derived from `zenithalEnabled`/`primeColor`
+  - "Inject into prompt" button with full token replacement logic per the spec tables
 
-| Phase | Steps | Summary |
-|---|---|---|
-| Infrastructure | 0–5 | Global colour→color rename, edge function, config.toml, types, state hook, pipeline lib |
-| Components | 6–11 | RepaintTimer, RepaintTicker, ControlRail additions, ImageUploader additions, DualSlider, PaintDirectivePanel |
-| Orchestration | 12–14 | PrimingZenithalPanel additions, ColorPlanPanel additions, Index.tsx wiring |
+## FIX 3 — Forward zenithalEnabled + primeColor to PaintDirectivePanel
 
-All spec details from the prompt are understood and will be implemented exactly as written. No changes to canvas recolor engine, BottomBar, ImageSlider, Brush Guide, Handling, Thinning, Finish panels, export logic, zenithal processing, animated SVG logo, or font pool.
+**PrimingZenithalPanel:** Already receives `primeColor` and `zenithalEnabled` as props. Just needs to forward them to `<PaintDirectivePanel>` at line 141.
 
-## Action required
+**ColorPlanPanel:** Does **not** have `zenithalEnabled` or `primeColor` in its props interface. Must:
+- Add both to `ColorPlanPanelProps`
+- Forward to `<PaintDirectivePanel>` at line 110
 
-Enable Lovable Cloud, then resubmit.
+**Index.tsx:** Must pass `zenithalEnabled={state.zenithalEnabled}` and `primeColor={state.primeColor}` to `<ColorPlanPanel>` at line 348. PrimingZenithalPanel already receives both.
+
+## Files changed
+
+| File | Change |
+|---|---|
+| `src/components/PaintDirectivePanel.tsx` | New props, `isOpen=true`, max-height transition, full injection form with token replacement |
+| `src/components/panels/PrimingZenithalPanel.tsx` | Forward `zenithalEnabled` + `primeColor` to PaintDirectivePanel |
+| `src/components/panels/ColorPlanPanel.tsx` | Add `zenithalEnabled` + `primeColor` to props, forward to PaintDirectivePanel |
+| `src/pages/Index.tsx` | Pass `zenithalEnabled` + `primeColor` to ColorPlanPanel |
 
