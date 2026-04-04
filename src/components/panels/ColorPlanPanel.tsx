@@ -105,6 +105,8 @@ export function ColorPlanPanel({
           mainImages={mainImages}
           sliderIndex={sliderIndex}
           onSliderIndexChange={onSliderIndexChange}
+          leftLabel="Original"
+          rightLabel="AI Repaint"
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />

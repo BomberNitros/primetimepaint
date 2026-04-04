@@ -369,7 +369,7 @@ export default function Index() {
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
             originalImage={originalImage}
-            customRepaintImage={state.customRepaintImage}
+            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
             zenithalEnabled={state.zenithalEnabled}

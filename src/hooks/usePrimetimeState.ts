@@ -254,6 +254,7 @@ export function usePrimetimeState() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setRepaintMapEntry,
     setRepaintHistory,
   };
 }
