@@ -233,6 +233,7 @@ export function usePrimetimeState() {
     setMainImages,
     setReferenceImages,
     setReferenceBase64s,
+    appendReferenceBase64s,
     addMainImages,
     addReferenceImages,
     removeImage,
