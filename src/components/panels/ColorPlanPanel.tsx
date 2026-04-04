@@ -30,7 +30,7 @@ interface ColorPlanPanelProps {
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  initialRepaintImage: string | null;
+  originalImage: string | null;
   customRepaintImage: string | null;
   sliderIndex: number;
   onSliderIndexChange: (i: number) => void;
@@ -63,7 +63,7 @@ export function ColorPlanPanel({
   currentlyRepainting,
   submitError,
   pipelineComplete,
-  initialRepaintImage,
+  originalImage,
   customRepaintImage,
   sliderIndex,
   onSliderIndexChange,
@@ -96,7 +96,7 @@ export function ColorPlanPanel({
       {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
       {pipelineComplete ? (
         <DualSlider
-          initialRepaintImage={initialRepaintImage}
+          originalImage={originalImage}
           customRepaintImage={customRepaintImage}
           sliderIndex={sliderIndex}
           onSliderIndexChange={onSliderIndexChange}

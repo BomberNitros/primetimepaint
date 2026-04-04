@@ -33,7 +33,7 @@ interface PrimingZenithalPanelProps {
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  initialRepaintImage: string | null;
+  originalImage: string | null;
   customRepaintImage: string | null;
   sliderIndex: number;
   onSliderIndexChange: (i: number) => void;
@@ -86,7 +86,7 @@ export function PrimingZenithalPanel({
   onManualTempChange,
   activePrompt, onPromptChange, onSubmitRepaint,
   currentlyRepainting, submitError,
-  pipelineComplete, initialRepaintImage, customRepaintImage,
+  pipelineComplete, originalImage, customRepaintImage,
   sliderIndex, onSliderIndexChange,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
@@ -127,7 +127,7 @@ export function PrimingZenithalPanel({
       {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
       {pipelineComplete ? (
         <DualSlider
-          initialRepaintImage={initialRepaintImage}
+          originalImage={originalImage}
           customRepaintImage={customRepaintImage}
           sliderIndex={sliderIndex}
           onSliderIndexChange={onSliderIndexChange}

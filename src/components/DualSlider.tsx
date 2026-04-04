@@ -1,21 +1,21 @@
 import { cn } from '@/lib/utils';
 
 interface DualSliderProps {
-  initialRepaintImage: string | null;
+  originalImage: string | null;
   customRepaintImage: string | null;
   sliderIndex: number;
   onSliderIndexChange: (i: number) => void;
 }
 
 export function DualSlider({
-  initialRepaintImage,
+  originalImage,
   customRepaintImage,
   sliderIndex,
   onSliderIndexChange,
 }: DualSliderProps) {
   const panels = [
-    { label: 'Initial repaint', src: initialRepaintImage },
-    { label: 'Custom repaint', src: customRepaintImage },
+    { label: 'Original', src: originalImage },
+    { label: 'AI Repaint', src: customRepaintImage },
   ];
 
   return (
@@ -34,12 +34,12 @@ export function DualSlider({
               <img
                 src={panel.src}
                 alt={panel.label}
-                className="w-full rounded-md object-contain"
+                className="w-full rounded-md object-contain max-h-[350px]"
               />
             ) : (
               <div className="flex items-center justify-center h-48 bg-muted/30 rounded-md">
                 <span className="text-xs text-muted-foreground">
-                  {i === 0 ? 'Awaiting initial repaint' : 'No custom repaint yet'}
+                  {i === 0 ? 'No image selected' : 'No AI repaint yet'}
                 </span>
               </div>
             )}

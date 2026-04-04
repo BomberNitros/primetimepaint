@@ -75,10 +75,20 @@ export interface RepaintEntry {
   elapsedSeconds: number;
 }
 
+export interface RepaintHistoryEntry {
+  label: string;
+  image: string;
+}
+
 export interface PrimetimeState {
-  // Images
-  uploadedImages: UploadedImage[];
+  // Images — split by type
+  mainImages: UploadedImage[];
+  referenceImages: UploadedImage[];
+  referenceBase64s: string[];
   selectedImageIndex: number;
+
+  // Repaint history
+  repaintHistory: RepaintHistoryEntry[];
 
   // Navigation
   activeStep: StepId;
