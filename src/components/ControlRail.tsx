@@ -43,7 +43,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
       <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-start">
         <PaintBottleLogo />
         <PrimetimeTitle />
-        <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme first. Paint later.</p>
+        <p className="text-muted-foreground mt-0.5 tracking-wide text-xs">Scheme first. Paint later.</p>
       </div>
 
       {/* Steps */}
