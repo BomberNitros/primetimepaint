@@ -268,6 +268,7 @@ export default function Index() {
       const base64 = await toBase64(mainImage.file);
       const result = await submitCustomRepaint(base64, state.activePrompt, state.referenceBase64s);
       setCustomRepaintImage(result);
+      setRepaintMapEntry(state.sharedSliderIndex, result);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       const imageTurns = state.geminiHistory.filter(t => t.hasImage);
