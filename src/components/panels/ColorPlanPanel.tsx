@@ -30,7 +30,7 @@ interface ColorPlanPanelProps {
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  initialRepaintImage: string | null;
+  originalImage: string | null;
   customRepaintImage: string | null;
   sliderIndex: number;
   onSliderIndexChange: (i: number) => void;
