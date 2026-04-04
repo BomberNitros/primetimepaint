@@ -113,6 +113,7 @@ export default function Index() {
     setSharedSliderIndex,
     setRepaintMapEntry,
     setRepaintHistory,
+    appendReferenceBase64s,
   } = usePrimetimeState();
 
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -316,7 +317,14 @@ export default function Index() {
             mainImages={state.mainImages}
             referenceImages={state.referenceImages}
             onMainImagesChange={files => addMainImages(files)}
-            onReferenceImagesChange={files => addReferenceImages(files)}
+            onReferenceImagesChange={async (files) => {
+              addReferenceImages(files);
+              const base64s = await Promise.all(
+                files.map(f => toBase64(f instanceof File ? f : (f as unknown as { file: File }).file))
+              );
+              appendReferenceBase64s(base64s);
+              console.log('[upload] referenceBase64s stored:', base64s.length);
+            }}
             repaintStartTime={state.repaintStartTime}
             onAnalyseAndRepaint={handleAnalyseAndRepaint}
             pipelineComplete={state.pipelineComplete}
