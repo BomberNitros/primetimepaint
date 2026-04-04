@@ -92,6 +92,8 @@ OUTPUT: Same photo angle and framing as input. Miniature repainted as described 
     /\{\{COLOR_SCHEME_BLOCK\}\}/g,
     initialSchemeBlock
   );
+  console.log('[pipeline] referenceImages count:', referenceImages?.length ?? 0);
+  console.log('[pipeline] promptToSend preview:', promptToSend.slice(0, 200));
 
   const { data, error } = await supabase.functions.invoke('gemini-repaint', {
     body: { type: 'repaint', image: imageBase64, prompt: promptToSend, referenceImages },

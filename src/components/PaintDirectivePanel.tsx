@@ -51,12 +51,80 @@ export function PaintDirectivePanel({
   const [role, setRole] = useState('');
   const [customRole, setCustomRole] = useState('');
   const [manufacturer, setManufacturer] = useState('');
+  const [injectTick, setInjectTick] = useState(0);
+  const lastProcessedTick = useRef(0);
 
   useEffect(() => {
     if (bodyRef.current) {
       setBodyHeight(bodyRef.current.scrollHeight);
     }
   }, [isOpen, activePrompt, name, origin, role, customRole, manufacturer]);
+
+  // Injection useEffect
+  useEffect(() => {
+    if (injectTick === 0 || injectTick === lastProcessedTick.current) return;
+    lastProcessedTick.current = injectTick;
+
+    let result = activePrompt ?? '';
+
+    const roleMap: Record<string, string> = {
+      'Boss / Major Enemy':
+        'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Hero / Champion':
+        'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Villain / Antagonist':
+        'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Monster / Creature':
+        'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Daemon / Otherworldly Entity':
+        'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Undead / Construct':
+        'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Vehicle / War Machine':
+        'Hard surface priority. Panel shading, wear and weathering appropriate.',
+      'Terrain / Structure':
+        'Hard surface priority. Panel shading, wear and weathering appropriate.',
+      'Infantry / Foot Soldier':
+        'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+      'Swarm / Horde Unit':
+        'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+    };
+
+    const roleInstruction = role === 'other'
+      ? (customRole || null)
+      : (roleMap[role] ?? (role ? 'Standard centrepiece treatment.' : null));
+
+    const primerInstruction = zenithalEnabled
+      ? 'Zenithal gradient present — light from directly above, shadow below. Preserve it. Work with it, do not flatten it.'
+      : primeColor === 'white'
+        ? 'White primer. Surface reads bright. Push shadows hard into recesses to create depth.'
+        : primeColor === 'black'
+          ? 'Black primer. Surface reads dark. Highlights on raised upper surfaces must be strong and deliberate. Let recesses stay near-black.'
+          : 'Neutral grey primer. Build shading from scratch — light from 45° above. Highlights on upper/forward surfaces, shadow on underside.';
+
+    result = name
+      ? result.replace(/\{\{SUBJECT_NAME\}\}/g, name)
+      : result.replace(/\{\{SUBJECT_NAME\}\}/g, '');
+
+    result = origin
+      ? result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, ` from ${origin}`)
+      : result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, '');
+
+    result = manufacturer
+      ? result.replace(/\{\{MANUFACTURER_REF\}\}/g, `Manufactured by ${manufacturer}.`)
+      : result.replace(/\{\{MANUFACTURER_REF\}\}/g, '');
+
+    result = roleInstruction
+      ? result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, roleInstruction)
+      : result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, '');
+
+    result = result.replace(
+      /\{\{PRIMER_SHADING_INSTRUCTION\}\}/g,
+      primerInstruction
+    );
+
+    onPromptChange(result);
+  }, [injectTick, activePrompt, name, origin, manufacturer, role, customRole, zenithalEnabled, primeColor]);
 
   const condition = zenithalEnabled
     ? 'Zenithal'
@@ -151,67 +219,7 @@ export function PaintDirectivePanel({
               </span>
               <Button
                 type="button"
-                onClick={() => {
-                  let result = activePrompt ?? '';
-
-                  const roleMap: Record<string, string> = {
-                    'Boss / Major Enemy':
-                      'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
-                    'Hero / Champion':
-                      'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
-                    'Villain / Antagonist':
-                      'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
-                    'Monster / Creature':
-                      'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
-                    'Daemon / Otherworldly Entity':
-                      'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
-                    'Undead / Construct':
-                      'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
-                    'Vehicle / War Machine':
-                      'Hard surface priority. Panel shading, wear and weathering appropriate.',
-                    'Terrain / Structure':
-                      'Hard surface priority. Panel shading, wear and weathering appropriate.',
-                    'Infantry / Foot Soldier':
-                      'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
-                    'Swarm / Horde Unit':
-                      'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
-                  };
-
-                  const roleInstruction = role === 'other'
-                    ? (customRole || null)
-                    : (roleMap[role] ?? (role ? 'Standard centrepiece treatment.' : null));
-
-                  const primerInstruction = zenithalEnabled
-                    ? 'Zenithal gradient present — light from directly above, shadow below. Preserve it. Work with it, do not flatten it.'
-                    : primeColor === 'white'
-                      ? 'White primer. Surface reads bright. Push shadows hard into recesses to create depth.'
-                      : primeColor === 'black'
-                        ? 'Black primer. Surface reads dark. Highlights on raised upper surfaces must be strong and deliberate. Let recesses stay near-black.'
-                        : 'Neutral grey primer. Build shading from scratch — light from 45° above. Highlights on upper/forward surfaces, shadow on underside.';
-
-                  result = name
-                    ? result.replace(/\{\{SUBJECT_NAME\}\}/g, name)
-                    : result.replace(/\{\{SUBJECT_NAME\}\}/g, '');
-
-                  result = origin
-                    ? result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, ` from ${origin}`)
-                    : result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, '');
-
-                  result = manufacturer
-                    ? result.replace(/\{\{MANUFACTURER_REF\}\}/g, `Manufactured by ${manufacturer}.`)
-                    : result.replace(/\{\{MANUFACTURER_REF\}\}/g, '');
-
-                  result = roleInstruction
-                    ? result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, roleInstruction)
-                    : result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, '');
-
-                  result = result.replace(
-                    /\{\{PRIMER_SHADING_INSTRUCTION\}\}/g,
-                    primerInstruction
-                  );
-
-                  onPromptChange(result);
-                }}
+                onClick={() => setInjectTick(t => t + 1)}
                 disabled={!activePrompt}
                 variant="secondary"
                 size="sm"

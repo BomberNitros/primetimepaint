@@ -32,6 +32,7 @@ const initialState: PrimetimeState = {
   anatomyRegions: [],
   initialRepaintImage: null,
   customRepaintImage: null,
+  repaintMap: {},
   activePrompt: null,
   geminiHistory: [],
   repaintLog: [],
@@ -208,6 +209,10 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, sharedSliderIndex: v }));
   }, []);
 
+  const setRepaintMapEntry = useCallback((index: number, value: string) => {
+    setState(s => ({ ...s, repaintMap: { ...s.repaintMap, [index]: value } }));
+  }, []);
+
   const setRepaintHistory = useCallback((v: RepaintHistoryEntry[] | ((prev: RepaintHistoryEntry[]) => RepaintHistoryEntry[])) => {
     setState(s => ({
       ...s,
@@ -249,6 +254,7 @@ export function usePrimetimeState() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setRepaintMapEntry,
     setRepaintHistory,
   };
 }

@@ -132,6 +132,8 @@ export function PrimingZenithalPanel({
           mainImages={mainImages}
           sliderIndex={sliderIndex}
           onSliderIndexChange={onSliderIndexChange}
+          leftLabel="Primed"
+          rightLabel="AI Repaint"
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />

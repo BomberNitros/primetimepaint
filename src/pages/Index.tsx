@@ -111,6 +111,7 @@ export default function Index() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setRepaintMapEntry,
     setRepaintHistory,
   } = usePrimetimeState();
 
@@ -230,6 +231,7 @@ export default function Index() {
       const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', state.referenceBase64s);
       setInitialRepaintImage(image);
       setCustomRepaintImage(image);
+      setRepaintMapEntry(state.sharedSliderIndex, image);
       setActivePrompt(prompt);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
@@ -266,6 +268,7 @@ export default function Index() {
       const base64 = await toBase64(mainImage.file);
       const result = await submitCustomRepaint(base64, state.activePrompt, state.referenceBase64s);
       setCustomRepaintImage(result);
+      setRepaintMapEntry(state.sharedSliderIndex, result);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       const imageTurns = state.geminiHistory.filter(t => t.hasImage);
@@ -338,7 +341,7 @@ export default function Index() {
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
             originalImage={originalImage}
-            customRepaintImage={state.customRepaintImage}
+            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
           />
@@ -366,7 +369,7 @@ export default function Index() {
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
             originalImage={originalImage}
-            customRepaintImage={state.customRepaintImage}
+            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
             zenithalEnabled={state.zenithalEnabled}
