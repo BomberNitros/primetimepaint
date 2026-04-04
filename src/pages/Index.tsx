@@ -113,6 +113,7 @@ export default function Index() {
     setSharedSliderIndex,
     setRepaintMapEntry,
     setRepaintHistory,
+    appendReferenceBase64s,
   } = usePrimetimeState();
 
   const [submitError, setSubmitError] = useState<string | null>(null);
