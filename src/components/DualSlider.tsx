@@ -1,26 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { UploadedImage } from '@/types/primetime';
 
 interface DualSliderProps {
   originalImage: string | null;
   customRepaintImage: string | null;
-  mainImages: UploadedImage[];
-  sliderIndex: number;
-  onSliderIndexChange: (i: number) => void;
   leftLabel?: string;
   rightLabel?: string;
-  allImages?: { label: string; src: string }[];
+  leftImages: { src: string; label: string }[];
+  rightImages: { src: string; label: string }[];
 }
 
 export function DualSlider({
   originalImage,
   customRepaintImage,
-  mainImages,
-  sliderIndex,
-  onSliderIndexChange,
-  leftLabel,
-  rightLabel,
+  leftLabel = 'Original',
+  rightLabel = 'AI Repaint',
+  leftImages,
+  rightImages,
 }: DualSliderProps) {
+  const [leftIndex, setLeftIndex] = useState(0);
+  const [rightIndex, setRightIndex] = useState(0);
   const [zoomImage, setZoomImage] = useState<{ src: string; label: string } | null>(null);
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomOffset, setZoomOffset] = useState({ x: 0, y: 0 });
@@ -81,12 +79,14 @@ export function DualSlider({
     setZoomOffset({ x: 0, y: 0 });
   }, []);
 
-  const leftLbl = leftLabel ?? 'Original';
-  const rightLbl = rightLabel ?? 'AI Repaint';
+  const leftSrc = leftImages[leftIndex]?.src ?? originalImage;
+  const leftLbl = leftImages[leftIndex]?.label ?? leftLabel;
+  const rightSrc = rightImages[rightIndex]?.src ?? customRepaintImage;
+  const rightLbl = rightImages[rightIndex]?.label ?? rightLabel;
 
   const downloadable = [
-    originalImage ? { label: leftLbl, src: originalImage } : null,
-    customRepaintImage ? { label: rightLbl, src: customRepaintImage } : null,
+    leftSrc ? { label: leftLbl, src: leftSrc } : null,
+    rightSrc ? { label: rightLbl, src: rightSrc } : null,
   ].filter(Boolean) as { label: string; src: string }[];
 
   return (
@@ -96,10 +96,10 @@ export function DualSlider({
         <div>
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-medium text-muted-foreground">{leftLbl}</p>
-            {originalImage && (
+            {leftSrc && (
               <button
                 type="button"
-                onClick={() => openZoom(originalImage, leftLbl)}
+                onClick={() => openZoom(leftSrc, leftLbl)}
                 className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
               >
                 Zoom
@@ -107,12 +107,12 @@ export function DualSlider({
             )}
           </div>
           <div className="relative rounded-md overflow-hidden border border-border bg-muted/20" style={{ height: '320px' }}>
-            {originalImage ? (
+            {leftSrc ? (
               <img
-                src={originalImage}
+                src={leftSrc}
                 alt={leftLbl}
                 className="w-full h-full object-contain cursor-zoom-in"
-                onClick={() => openZoom(originalImage, leftLbl)}
+                onClick={() => openZoom(leftSrc, leftLbl)}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
@@ -120,16 +120,39 @@ export function DualSlider({
               </div>
             )}
           </div>
+          {leftImages.length > 1 && (
+            <div className="flex items-center justify-between mt-1">
+              <button
+                type="button"
+                disabled={leftIndex === 0}
+                onClick={() => setLeftIndex(i => i - 1)}
+                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
+              >
+                ←
+              </button>
+              <span className="text-xs text-muted-foreground">
+                {leftIndex + 1} / {leftImages.length}
+              </span>
+              <button
+                type="button"
+                disabled={leftIndex === leftImages.length - 1}
+                onClick={() => setLeftIndex(i => i + 1)}
+                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
+              >
+                →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right */}
         <div>
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-medium text-muted-foreground">{rightLbl}</p>
-            {customRepaintImage && (
+            {rightSrc && (
               <button
                 type="button"
-                onClick={() => openZoom(customRepaintImage, rightLbl)}
+                onClick={() => openZoom(rightSrc, rightLbl)}
                 className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
               >
                 Zoom
@@ -137,12 +160,12 @@ export function DualSlider({
             )}
           </div>
           <div className="relative rounded-md overflow-hidden border border-border bg-muted/20" style={{ height: '320px' }}>
-            {customRepaintImage ? (
+            {rightSrc ? (
               <img
-                src={customRepaintImage}
+                src={rightSrc}
                 alt={rightLbl}
                 className="w-full h-full object-contain cursor-zoom-in"
-                onClick={() => openZoom(customRepaintImage, rightLbl)}
+                onClick={() => openZoom(rightSrc, rightLbl)}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
@@ -150,32 +173,30 @@ export function DualSlider({
               </div>
             )}
           </div>
+          {rightImages.length > 1 && (
+            <div className="flex items-center justify-between mt-1">
+              <button
+                type="button"
+                disabled={rightIndex === 0}
+                onClick={() => setRightIndex(i => i - 1)}
+                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
+              >
+                ←
+              </button>
+              <span className="text-xs text-muted-foreground">
+                {rightIndex + 1} / {rightImages.length}
+              </span>
+              <button
+                type="button"
+                disabled={rightIndex === rightImages.length - 1}
+                onClick={() => setRightIndex(i => i + 1)}
+                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
+              >
+                →
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Navigation */}
-        {mainImages.length > 1 && (
-          <div className="col-span-2 flex items-center justify-center gap-3 mt-2">
-            <button
-              type="button"
-              onClick={() => onSliderIndexChange(sliderIndex - 1)}
-              disabled={sliderIndex === 0}
-              className="px-3 py-1 text-xs rounded-md border border-border disabled:opacity-30"
-            >
-              ← Prev
-            </button>
-            <span className="text-xs text-muted-foreground">
-              {sliderIndex + 1} / {mainImages.length}
-            </span>
-            <button
-              type="button"
-              onClick={() => onSliderIndexChange(sliderIndex + 1)}
-              disabled={sliderIndex === mainImages.length - 1}
-              className="px-3 py-1 text-xs rounded-md border border-border disabled:opacity-30"
-            >
-              Next →
-            </button>
-          </div>
-        )}
 
         {/* Batch download */}
         {downloadable.length > 0 && (
@@ -222,7 +243,7 @@ export function DualSlider({
 
           {/* Zoom percentage + reset */}
           <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
-            <span className="text-white/70 text-sm font-mono">
+            <span className="text-sm font-bold bg-black/70 px-3 py-1.5 rounded-md text-white shadow-lg font-mono">
               {Math.round(zoomScale * 100)}%
             </span>
             {zoomScale !== 1 && (
@@ -237,7 +258,7 @@ export function DualSlider({
           </div>
 
           {/* Hint */}
-          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-xs z-10">
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/90 text-sm font-medium bg-black/50 px-4 py-2 rounded-full shadow-md z-10">
             Scroll to zoom · drag to pan · Esc to close
           </p>
 
