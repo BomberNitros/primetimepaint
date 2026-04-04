@@ -369,6 +369,8 @@ export default function Index() {
             customRepaintImage={state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
+            zenithalEnabled={state.zenithalEnabled}
+            primeColor={state.primeColor}
           />
         );
       case 'brush-guide':
