@@ -23,44 +23,6 @@ const ROLE_OPTIONS = [
   { value: 'other', label: 'Something else →' },
 ];
 
-function getRoleInstruction(role: string, customRole: string): string {
-  switch (role) {
-    case 'Boss / Major Enemy':
-    case 'Hero / Champion':
-    case 'Villain / Antagonist':
-      return 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.';
-    case 'Monster / Creature':
-    case 'Daemon / Otherworldly Entity':
-    case 'Undead / Construct':
-      return 'Organic emphasis. Wet textures, deep recesses, biological colour variation.';
-    case 'Vehicle / War Machine':
-    case 'Terrain / Structure':
-      return 'Hard surface priority. Panel shading, wear and weathering appropriate.';
-    case 'Infantry / Foot Soldier':
-    case 'Swarm / Horde Unit':
-      return 'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.';
-    case 'other':
-      return customRole.trim() || '';
-    case '':
-      return '';
-    default:
-      return 'Standard centrepiece treatment.';
-  }
-}
-
-function getPrimerInstruction(zenithalEnabled: boolean, primeColor: string): string {
-  if (zenithalEnabled) {
-    return 'Zenithal gradient present — light from directly above, shadow below. Preserve it. Work with it, do not flatten it.';
-  }
-  if (primeColor === 'white') {
-    return 'White primer. Surface reads bright. Push shadows hard into recesses to create depth.';
-  }
-  if (primeColor === 'black') {
-    return 'Black primer. Surface reads dark. Highlights on raised upper surfaces must be strong and deliberate. Let recesses stay near-black.';
-  }
-  return 'Neutral grey primer. Build shading from scratch — light from 45° above. Highlights on upper/forward surfaces, shadow on underside.';
-}
-
 interface PaintDirectivePanelProps {
   activePrompt: string | null;
   onPromptChange: (prompt: string) => void;
@@ -101,23 +63,6 @@ export function PaintDirectivePanel({
     : primeColor === 'white' ? 'Primed — white'
     : primeColor === 'black' ? 'Primed — black'
     : 'Primed — neutral grey';
-
-  const handleInject = () => {
-    if (!activePrompt) return;
-    let result = activePrompt;
-
-    result = result.replace(/\{\{SUBJECT_NAME\}\}/g, name.trim() || '');
-    result = result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, origin.trim() ? ` from ${origin.trim()}` : '');
-    result = result.replace(/\{\{MANUFACTURER_REF\}\}/g, manufacturer.trim() ? `Manufactured by ${manufacturer.trim()}.` : '');
-
-    const roleText = getRoleInstruction(role, customRole);
-    result = result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, roleText);
-
-    const primerText = getPrimerInstruction(zenithalEnabled, primeColor);
-    result = result.replace(/\{\{PRIMER_SHADING_INSTRUCTION\}\}/g, primerText);
-
-    onPromptChange(result);
-  };
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -205,7 +150,67 @@ export function PaintDirectivePanel({
                 {condition}
               </span>
               <Button
-                onClick={handleInject}
+                onClick={() => {
+                  let result = activePrompt ?? '';
+
+                  const roleMap: Record<string, string> = {
+                    'Boss / Major Enemy':
+                      'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+                    'Hero / Champion':
+                      'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+                    'Villain / Antagonist':
+                      'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+                    'Monster / Creature':
+                      'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+                    'Daemon / Otherworldly Entity':
+                      'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+                    'Undead / Construct':
+                      'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+                    'Vehicle / War Machine':
+                      'Hard surface priority. Panel shading, wear and weathering appropriate.',
+                    'Terrain / Structure':
+                      'Hard surface priority. Panel shading, wear and weathering appropriate.',
+                    'Infantry / Foot Soldier':
+                      'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+                    'Swarm / Horde Unit':
+                      'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+                  };
+
+                  const roleInstruction = role === 'other'
+                    ? (customRole || null)
+                    : (roleMap[role] ?? (role ? 'Standard centrepiece treatment.' : null));
+
+                  const primerInstruction = zenithalEnabled
+                    ? 'Zenithal gradient present — light from directly above, shadow below. Preserve it. Work with it, do not flatten it.'
+                    : primeColor === 'white'
+                      ? 'White primer. Surface reads bright. Push shadows hard into recesses to create depth.'
+                      : primeColor === 'black'
+                        ? 'Black primer. Surface reads dark. Highlights on raised upper surfaces must be strong and deliberate. Let recesses stay near-black.'
+                        : 'Neutral grey primer. Build shading from scratch — light from 45° above. Highlights on upper/forward surfaces, shadow on underside.';
+
+                  result = name
+                    ? result.replace(/\{\{SUBJECT_NAME\}\}/g, name)
+                    : result.replace(/\{\{SUBJECT_NAME\}\}/g, '');
+
+                  result = origin
+                    ? result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, ` from ${origin}`)
+                    : result.replace(/\{\{ORIGIN_CLAUSE\}\}/g, '');
+
+                  result = manufacturer
+                    ? result.replace(/\{\{MANUFACTURER_REF\}\}/g, `Manufactured by ${manufacturer}.`)
+                    : result.replace(/\{\{MANUFACTURER_REF\}\}/g, '');
+
+                  result = roleInstruction
+                    ? result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, roleInstruction)
+                    : result.replace(/\{\{ROLE_INSTRUCTION\}\}/g, '');
+
+                  result = result.replace(
+                    /\{\{PRIMER_SHADING_INSTRUCTION\}\}/g,
+                    primerInstruction
+                  );
+
+                  onPromptChange(result);
+                }}
                 disabled={!activePrompt}
                 variant="secondary"
                 size="sm"
