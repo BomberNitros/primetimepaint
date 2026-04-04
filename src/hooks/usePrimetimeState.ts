@@ -62,6 +62,13 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, referenceBase64s: v }));
   }, []);
 
+  const appendReferenceBase64s = useCallback((incoming: string[]) => {
+    setState(s => ({
+      ...s,
+      referenceBase64s: [...(s.referenceBase64s ?? []), ...incoming]
+    }));
+  }, []);
+
   const addMainImages = useCallback((files: File[]) => {
     setState(s => {
       const newImages: UploadedImage[] = files.map(file => ({
