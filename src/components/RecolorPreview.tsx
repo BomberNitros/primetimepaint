@@ -220,7 +220,7 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
         <h4 className="text-sm font-medium text-muted-foreground">Quick preview</h4>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Timer className="h-3.5 w-3.5" />
-          <span>Colour approximation — AI recolour in progress</span>
+          <span>Color approximation — AI recolor in progress</span>
         </div>
         <canvas ref={canvasRef} className="rounded-lg max-w-full" />
         <p className="text-[10px] text-muted-foreground/60 italic">
