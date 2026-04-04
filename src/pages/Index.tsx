@@ -14,6 +14,12 @@ import { extractDominantColors } from '@/lib/color-extraction';
 import { processZenithalPreview } from '@/lib/zenithal-preview';
 import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
 import { ColorScheme, ThemeId } from '@/types/primetime';
+import {
+  toBase64,
+  analyseAnatomy,
+  generateRepaint,
+  submitCustomRepaint,
+} from '@/lib/gemini-pipeline';
 
 function generateSchemes(
   extractedColors: string[],
@@ -93,10 +99,24 @@ export default function Index() {
     setSprayOverride,
     setExtractedColors,
     setColorSchemes,
+    setAnatomyRegions,
+    setInitialRepaintImage,
+    setCustomRepaintImage,
+    setActivePrompt,
+    setGeminiHistory,
+    setRepaintLog,
+    setCurrentlyRepainting,
+    setRepaintStartTime,
+    setPipelineComplete,
+    setPipelineError,
+    setSharedSliderIndex,
   } = usePrimetimeState();
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const mainImages = state.uploadedImages.filter(i => i.type === 'main');
   const refImages = state.uploadedImages.filter(i => i.type === 'reference');
+  const mainImage = mainImages[0] ?? null;
 
   const getOverrideHex = (name: string | null) => {
     if (!name) return null;
@@ -128,7 +148,7 @@ export default function Index() {
   const previewMid2 = getOverrideHex(state.midtoneOverrides[1]) || activeScheme?.midtone2?.hex || null;
   const previewHigh = getOverrideHex(state.highlightOverride) || activeScheme?.highlight.hex || null;
 
-  // Recolor ALL images for colour plan
+  // Recolor ALL images for color plan
   const recolorMap = useRecolorMap(state.uploadedImages, {
     baseColor: previewBase,
     midtone1Color: previewMid1,
@@ -191,6 +211,87 @@ export default function Index() {
     if (state.activeStep !== 'color-plan') setActiveStep('color-plan');
   }, [state.activeStep]);
 
+  // Pipeline: Analyse & Repaint
+  const handleAnalyseAndRepaint = useCallback(async () => {
+    if (!mainImage || state.currentlyRepainting) return;
+    setPipelineError(null);
+    setCurrentlyRepainting(true);
+    setRepaintStartTime(new Date());
+    const startTime = Date.now();
+
+    try {
+      const base64 = await toBase64(mainImage.file);
+      const regions = await analyseAnatomy(base64);
+      setAnatomyRegions(regions);
+
+      const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure');
+      setInitialRepaintImage(image);
+      setCustomRepaintImage(image);
+      setActivePrompt(prompt);
+
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      setGeminiHistory([
+        { role: 'user', textContent: 'Anatomy analysis', hasImage: true },
+        { role: 'model', textContent: JSON.stringify(regions), hasImage: false },
+        { role: 'user', textContent: prompt, hasImage: true },
+        { role: 'model', imageContent: image, hasImage: true },
+      ]);
+      setRepaintLog(prev => [...prev, {
+        section: 'initial',
+        timestamp: new Date(),
+        elapsedSeconds: elapsed,
+      }]);
+      setPipelineComplete(true);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Pipeline failed.';
+      setPipelineError(message);
+    } finally {
+      setCurrentlyRepainting(false);
+    }
+  }, [mainImage, state.currentlyRepainting]);
+
+  // Submit custom repaint from PaintDirectivePanel
+  const handleSubmitRepaint = useCallback(async () => {
+    if (!mainImage || state.currentlyRepainting || !state.activePrompt) return;
+    setSubmitError(null);
+    setCurrentlyRepainting(true);
+    setRepaintStartTime(new Date());
+    const startTime = Date.now();
+
+    try {
+      const base64 = await toBase64(mainImage.file);
+      const result = await submitCustomRepaint(base64, state.activePrompt);
+      setCustomRepaintImage(result);
+
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      const imageTurns = state.geminiHistory.filter(t => t.hasImage);
+      const trimmed = imageTurns.length >= 5
+        ? state.geminiHistory.filter(t =>
+            !t.hasImage || t !== state.geminiHistory.filter(x => x.hasImage)[0])
+        : state.geminiHistory;
+
+      setGeminiHistory([
+        ...trimmed,
+        { role: 'user', textContent: state.activePrompt, hasImage: false },
+        { role: 'model', imageContent: result, hasImage: true },
+      ]);
+      setRepaintLog(prev => [...prev, {
+        section: 'colorPlan',
+        timestamp: new Date(),
+        elapsedSeconds: elapsed,
+      }]);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Repaint failed.';
+      setSubmitError(message);
+    } finally {
+      setCurrentlyRepainting(false);
+    }
+  }, [mainImage, state.currentlyRepainting, state.activePrompt]);
+
+  const handlePromptChange = useCallback((prompt: string) => {
+    setActivePrompt(prompt);
+  }, []);
+
   const renderWorkspace = () => {
     switch (state.activeStep) {
       case 'upload':
@@ -199,7 +300,11 @@ export default function Index() {
             onUpload={addImages}
             mainCount={mainImages.length}
             refCount={refImages.length}
-            onContinue={() => setActiveStep('priming')}
+            onAnalyseAndRepaint={handleAnalyseAndRepaint}
+            pipelineComplete={state.pipelineComplete}
+            pipelineError={state.pipelineError}
+            currentlyRepainting={state.currentlyRepainting}
+            initialRepaintImage={state.initialRepaintImage}
           />
         );
       case 'priming':
@@ -220,6 +325,16 @@ export default function Index() {
             onZenithalMethodChange={setZenithalMethod}
             onZenithalDirectionChange={setZenithalDirection}
             onManualTempChange={setManualTempInput}
+            activePrompt={state.activePrompt}
+            onPromptChange={handlePromptChange}
+            onSubmitRepaint={handleSubmitRepaint}
+            currentlyRepainting={state.currentlyRepainting}
+            submitError={submitError}
+            pipelineComplete={state.pipelineComplete}
+            initialRepaintImage={state.initialRepaintImage}
+            customRepaintImage={state.customRepaintImage}
+            sliderIndex={state.sharedSliderIndex}
+            onSliderIndexChange={setSharedSliderIndex}
           />
         );
       case 'color-plan':
@@ -237,6 +352,16 @@ export default function Index() {
             onHighlightChange={setHighlightOverride}
             images={state.uploadedImages}
             recolorMap={recolorMap}
+            activePrompt={state.activePrompt}
+            onPromptChange={handlePromptChange}
+            onSubmitRepaint={handleSubmitRepaint}
+            currentlyRepainting={state.currentlyRepainting}
+            submitError={submitError}
+            pipelineComplete={state.pipelineComplete}
+            initialRepaintImage={state.initialRepaintImage}
+            customRepaintImage={state.customRepaintImage}
+            sliderIndex={state.sharedSliderIndex}
+            onSliderIndexChange={setSharedSliderIndex}
           />
         );
       case 'brush-guide':
@@ -256,6 +381,10 @@ export default function Index() {
         activeStep={state.activeStep}
         onStepChange={setActiveStep}
         hasImages={mainImages.length > 0}
+        pipelineComplete={state.pipelineComplete}
+        currentlyRepainting={state.currentlyRepainting}
+        repaintStartTime={state.repaintStartTime}
+        repaintLog={state.repaintLog}
       />
 
       <div className="flex-1 flex flex-col min-w-0">

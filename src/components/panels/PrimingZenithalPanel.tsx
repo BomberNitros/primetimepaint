@@ -1,6 +1,8 @@
 import { ToggleOption } from '@/components/ToggleOption';
 import { SprayViabilityBadge } from '@/components/SprayViabilityBadge';
 import { ImageSlider, SliderImage } from '@/components/ImageSlider';
+import { DualSlider } from '@/components/DualSlider';
+import { PaintDirectivePanel } from '@/components/PaintDirectivePanel';
 import { PrimeColor, ZenithalScheme, ZenithalMethod, ZenithalDirection, UploadedImage } from '@/types/primetime';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -24,6 +26,17 @@ interface PrimingZenithalPanelProps {
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
   onManualTempChange: (v: number | null) => void;
+  // Sprint 2 props
+  activePrompt: string | null;
+  onPromptChange: (prompt: string) => void;
+  onSubmitRepaint: () => void;
+  currentlyRepainting: boolean;
+  submitError: string | null;
+  pipelineComplete: boolean;
+  initialRepaintImage: string | null;
+  customRepaintImage: string | null;
+  sliderIndex: number;
+  onSliderIndexChange: (i: number) => void;
 }
 
 function OptionButtons<T extends string>({
@@ -57,8 +70,8 @@ function OptionButtons<T extends string>({
 
 function getPrimedBadgeRight(primeColor: PrimeColor, zenithalEnabled: boolean, zenithalScheme: ZenithalScheme): string {
   if (!zenithalEnabled || zenithalScheme === 'flat') {
-    const colourLabel = primeColor.charAt(0).toUpperCase() + primeColor.slice(1);
-    return `Primed · ${colourLabel}`;
+    const colorLabel = primeColor.charAt(0).toUpperCase() + primeColor.slice(1);
+    return `Primed · ${colorLabel}`;
   }
   const schemeLabel = zenithalScheme === '2tone' ? '2T' : '3T';
   return `Primed · Zenithal ${schemeLabel}`;
@@ -71,16 +84,18 @@ export function PrimingZenithalPanel({
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
   onManualTempChange,
+  activePrompt, onPromptChange, onSubmitRepaint,
+  currentlyRepainting, submitError,
+  pipelineComplete, initialRepaintImage, customRepaintImage,
+  sliderIndex, onSliderIndexChange,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
-  const isAbove15 = currentTemp !== null && currentTemp > 15;
 
   const mainImages = images.filter(i => i.type === 'main');
 
   const slides: SliderImage[] = useMemo(() => {
     const result: SliderImage[] = [];
     for (const img of mainImages) {
-      // Original slide
       result.push({
         id: `${img.id}-original`,
         src: img.objectUrl,
@@ -88,7 +103,6 @@ export function PrimingZenithalPanel({
         badgeRight: 'Unprimed',
         badgeRightAccent: true,
       });
-      // Primed slide
       const primedSrc = primingResultMap[img.id];
       result.push({
         id: `${img.id}-primed`,
@@ -110,8 +124,28 @@ export function PrimingZenithalPanel({
         <p className="text-sm text-muted-foreground">Set up your undercoat strategy.</p>
       </div>
 
-      {/* Slider */}
-      {slides.length > 0 && <ImageSlider slides={slides} />}
+      {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
+      {pipelineComplete ? (
+        <DualSlider
+          initialRepaintImage={initialRepaintImage}
+          customRepaintImage={customRepaintImage}
+          sliderIndex={sliderIndex}
+          onSliderIndexChange={onSliderIndexChange}
+        />
+      ) : (
+        slides.length > 0 && <ImageSlider slides={slides} />
+      )}
+
+      {/* Paint Directive */}
+      {pipelineComplete && (
+        <PaintDirectivePanel
+          activePrompt={activePrompt}
+          onPromptChange={onPromptChange}
+          onSubmit={onSubmitRepaint}
+          currentlyRepainting={currentlyRepainting}
+          submitError={submitError}
+        />
+      )}
 
       {/* Surface Prep — collapsible, open by default */}
       <Collapsible open={surfacePrepOpen} onOpenChange={setSurfacePrepOpen}>
@@ -120,7 +154,6 @@ export function PrimingZenithalPanel({
           <ChevronDown className={cn('w-4 h-4 text-muted-foreground transition-transform', surfacePrepOpen && 'rotate-180')} />
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 space-y-4 p-4 rounded-xl bg-card/50 border border-border">
-          {/* TODO: Replace with Open-Meteo integration in Phase 3 */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">Current temperature (°C)</label>
             <input
@@ -150,7 +183,7 @@ export function PrimingZenithalPanel({
       </Collapsible>
 
       <OptionButtons
-        label="Prime colour"
+        label="Prime color"
         options={[
           { value: 'black' as PrimeColor, label: 'Black' },
           { value: 'grey' as PrimeColor, label: 'Grey' },
@@ -213,7 +246,7 @@ export function PrimingZenithalPanel({
 
           <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-xs text-muted-foreground">
-              The zenithal direction influences how the colour preview reads — brighter on the lit side, deeper shadows on the opposite side.
+              The zenithal direction influences how the color preview reads — brighter on the lit side, deeper shadows on the opposite side.
             </p>
           </div>
         </>
