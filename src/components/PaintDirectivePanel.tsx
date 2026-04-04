@@ -150,6 +150,7 @@ export function PaintDirectivePanel({
                 {condition}
               </span>
               <Button
+                type="button"
                 onClick={() => {
                   let result = activePrompt ?? '';
 
