@@ -1,37 +1,50 @@
 import { useCallback, useRef, useState } from 'react';
 import { Upload, Image as ImageIcon, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ImageType } from '@/types/primetime';
+import { UploadedImage } from '@/types/primetime';
 import { randomFont } from '@/components/ControlRail';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 interface ImageUploaderProps {
-  onUpload: (files: File[], type: ImageType) => void;
-  mainCount: number;
-  refCount: number;
+  mainImages: UploadedImage[];
+  referenceImages: UploadedImage[];
+  onMainImagesChange: (files: File[]) => void;
+  onReferenceImagesChange: (files: File[]) => void;
+  repaintStartTime: Date | null;
   onAnalyseAndRepaint: () => void;
   pipelineComplete: boolean;
   pipelineError: string | null;
   currentlyRepainting: boolean;
-  initialRepaintImage: string | null;
 }
 
 export function ImageUploader({
-  onUpload,
-  mainCount,
-  refCount,
+  mainImages,
+  referenceImages,
+  onMainImagesChange,
+  onReferenceImagesChange,
+  repaintStartTime,
   onAnalyseAndRepaint,
   pipelineComplete,
   pipelineError,
   currentlyRepainting,
-  initialRepaintImage,
 }: ImageUploaderProps) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploadType, setUploadType] = useState<ImageType>('main');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDraggingMain, setIsDraggingMain] = useState(false);
+  const [isDraggingRef, setIsDraggingRef] = useState(false);
+  const mainInputRef = useRef<HTMLInputElement>(null);
+  const refInputRef = useRef<HTMLInputElement>(null);
+  const [elapsed, setElapsed] = useState(0);
 
-  const handleFiles = useCallback((files: FileList | null) => {
+  // Timer for repainting state
+  useState(() => {
+    if (!currentlyRepainting || !repaintStartTime) return;
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - repaintStartTime.getTime()) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  });
+
+  const handleFiles = useCallback((files: FileList | null, isMain: boolean) => {
     if (!files) return;
     const all = Array.from(files);
     const valid = all.filter(f => f.type.startsWith('image/'));
@@ -42,17 +55,16 @@ export function ImageUploader({
     }
     if (valid.length === 0) return;
 
-    onUpload(valid, uploadType);
+    if (isMain) {
+      onMainImagesChange(valid);
+    } else {
+      onReferenceImagesChange(valid);
+    }
     toast.success('Image uploaded successfully.', { duration: 3000 });
-  }, [onUpload, uploadType]);
+  }, [onMainImagesChange, onReferenceImagesChange]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    handleFiles(e.dataTransfer.files);
-  }, [handleFiles]);
-
-  const hasImages = mainCount > 0 || refCount > 0;
+  const mainCount = mainImages.length;
+  const refCount = referenceImages.length;
 
   return (
     <div className="flex flex-col items-center gap-6 p-8">
@@ -61,83 +73,76 @@ export function ImageUploader({
         <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
       </div>
 
-      <div className="flex items-center gap-2 mb-2">
-        <button
-          onClick={() => setUploadType('main')}
-          className={cn(
-            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-            uploadType === 'main' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-          )}
-        >
-          Main Photos
-        </button>
-        <button
-          onClick={() => setUploadType('reference')}
-          className={cn(
-            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-            uploadType === 'reference' ? 'bg-warning text-warning-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-          )}
-        >
-          Reference Photos
-        </button>
-      </div>
-
       <p className="text-xs text-muted-foreground text-center">
         Recommended: 4 main photos and up to 2 reference images for best results.
       </p>
 
-      <div
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-        className={cn(
-          'w-full max-w-lg aspect-[4/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-colors',
-          isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/50'
-        )}
-      >
-        {hasImages ? (
-          <>
-            <CheckCircle className="w-10 h-10 text-primary" />
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground">
-                {mainCount} main {mainCount === 1 ? 'photo' : 'photos'}{refCount > 0 ? `, ${refCount} reference` : ''}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Drop or click to add more
-              </p>
-            </div>
-          </>
-        ) : (
-          <>
-            {uploadType === 'main' ? (
-              <Upload className="w-10 h-10 text-muted-foreground" />
-            ) : (
-              <ImageIcon className="w-10 h-10 text-muted-foreground" />
+      {/* Dual dropzones */}
+      <div className="w-full max-w-2xl grid grid-cols-2 gap-4">
+        {/* Main images zone */}
+        <div className="space-y-2">
+          <span className="text-xs font-medium text-foreground">Main photos</span>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDraggingMain(true); }}
+            onDragLeave={() => setIsDraggingMain(false)}
+            onDrop={(e) => { e.preventDefault(); setIsDraggingMain(false); handleFiles(e.dataTransfer.files, true); }}
+            onClick={() => mainInputRef.current?.click()}
+            className={cn(
+              'aspect-[4/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors',
+              isDraggingMain ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/50'
             )}
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground">
-                Drop {uploadType === 'main' ? 'miniature photos' : 'reference images'} here
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {uploadType === 'main'
-                  ? 'Click or drag to upload'
-                  : 'Optional inspiration references'
-                }
-              </p>
-            </div>
-          </>
-        )}
-      </div>
+          >
+            {mainCount > 0 ? (
+              <>
+                <CheckCircle className="w-8 h-8 text-primary" />
+                <p className="text-sm font-medium text-foreground">
+                  {mainCount} {mainCount === 1 ? 'photo' : 'photos'}
+                </p>
+                <p className="text-xs text-muted-foreground">Drop or click to add more</p>
+              </>
+            ) : (
+              <>
+                <Upload className="w-8 h-8 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Drop miniature photos</p>
+                <p className="text-xs text-muted-foreground">Click or drag to upload</p>
+              </>
+            )}
+          </div>
+          <input ref={mainInputRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files, true)} className="hidden" />
+        </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={(e) => handleFiles(e.target.files)}
-        className="hidden"
-      />
+        {/* Reference images zone */}
+        <div className="space-y-2">
+          <span className="text-xs font-medium text-foreground">Reference images</span>
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDraggingRef(true); }}
+            onDragLeave={() => setIsDraggingRef(false)}
+            onDrop={(e) => { e.preventDefault(); setIsDraggingRef(false); handleFiles(e.dataTransfer.files, false); }}
+            onClick={() => refInputRef.current?.click()}
+            className={cn(
+              'aspect-[4/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors',
+              isDraggingRef ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/50'
+            )}
+          >
+            {refCount > 0 ? (
+              <>
+                <CheckCircle className="w-8 h-8 text-primary" />
+                <p className="text-sm font-medium text-foreground">
+                  {refCount} {refCount === 1 ? 'reference' : 'references'}
+                </p>
+                <p className="text-xs text-muted-foreground">Drop or click to add more</p>
+              </>
+            ) : (
+              <>
+                <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Drop reference images</p>
+                <p className="text-xs text-muted-foreground">Optional inspiration references</p>
+              </>
+            )}
+          </div>
+          <input ref={refInputRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files, false)} className="hidden" />
+        </div>
+      </div>
 
       {/* Pipeline button */}
       {!pipelineComplete && (
@@ -182,19 +187,6 @@ export function ImageUploader({
       {/* Pipeline error */}
       {pipelineError && (
         <p className="text-xs text-destructive">{pipelineError}</p>
-      )}
-
-      {/* Initial repaint image */}
-      {initialRepaintImage && (
-        <div className="w-full max-w-lg mt-4">
-          <p className="text-xs text-muted-foreground mb-1">Initial repaint</p>
-          <p className="text-xs text-muted-foreground/60 mb-2">Priming section now unlocked.</p>
-          <img
-            src={initialRepaintImage}
-            alt="Initial repaint"
-            className="w-full rounded-md"
-          />
-        </div>
       )}
     </div>
   );
