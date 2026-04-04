@@ -102,6 +102,7 @@ export function ColorPlanPanel({
         <DualSlider
           originalImage={originalImage}
           customRepaintImage={customRepaintImage}
+          mainImages={mainImages}
           sliderIndex={sliderIndex}
           onSliderIndexChange={onSliderIndexChange}
         />
