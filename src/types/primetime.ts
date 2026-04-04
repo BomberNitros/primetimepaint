@@ -53,6 +53,28 @@ export interface BrushRecommendation {
   brushType: BrushType;
 }
 
+export interface AnatomyRegion {
+  region: string;
+  description: string;
+  baseColor: { name: string; hex: string };
+  shadowColor: { name: string; hex: string };
+  highlightColor: { name: string; hex: string };
+  surfaceNote: string;
+}
+
+export interface GeminiTurn {
+  role: 'user' | 'model';
+  textContent?: string;
+  imageContent?: string;
+  hasImage: boolean;
+}
+
+export interface RepaintEntry {
+  section: 'initial' | 'primer' | 'zenithal' | 'lighting' | 'colorPlan';
+  timestamp: Date;
+  elapsedSeconds: number;
+}
+
 export interface PrimetimeState {
   // Images
   uploadedImages: UploadedImage[];
@@ -75,13 +97,26 @@ export interface PrimetimeState {
   zenithalMethod: ZenithalMethod;
   zenithalDirection: ZenithalDirection;
 
-  // Colour Plan
+  // Color Plan
   extractedColors: string[];
   selectedTheme: ThemeId | null;
   colorSchemes: ColorScheme[];
 
-  // Colour-Role Overrides
+  // Color-Role Overrides
   baseOverride: string | null;
   midtoneOverrides: string[];
   highlightOverride: string | null;
+
+  // Gemini pipeline
+  anatomyRegions: AnatomyRegion[];
+  initialRepaintImage: string | null;
+  customRepaintImage: string | null;
+  activePrompt: string | null;
+  geminiHistory: GeminiTurn[];
+  repaintLog: RepaintEntry[];
+  currentlyRepainting: boolean;
+  repaintStartTime: Date | null;
+  pipelineComplete: boolean;
+  pipelineError: string | null;
+  sharedSliderIndex: number;
 }
