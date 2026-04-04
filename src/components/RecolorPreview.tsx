@@ -228,11 +228,11 @@ export const RecolorPreview = forwardRef<HTMLCanvasElement, RecolorPreviewProps>
         </p>
       </div>
 
-      {/* Right panel — AI recolour (STATE A: no API key) */}
+      {/* Right panel — AI recolor (STATE A: no API key) */}
       <div className="rounded-xl border border-border bg-muted/30 p-3 flex flex-col items-center justify-center text-center gap-3 min-h-[200px]">
         <Sparkles className="h-8 w-8 text-muted-foreground/60" />
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-foreground">AI recolour</p>
+          <p className="text-sm font-semibold text-foreground">AI recolor</p>
           <p className="text-xs text-muted-foreground">Connect Gemini to enable high-quality AI repainting</p>
         </div>
         <Button variant="secondary" size="sm" onClick={() => {}}>
