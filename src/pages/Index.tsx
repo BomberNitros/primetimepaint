@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { usePrimetimeState } from '@/hooks/usePrimetimeState';
 import { useRecolorMap } from '@/hooks/useRecolorMap';
 import { ControlRail } from '@/components/ControlRail';
@@ -83,7 +83,8 @@ export default function Index() {
   const {
     state,
     setActiveStep,
-    addImages,
+    addMainImages,
+    addReferenceImages,
     removeImage,
     setSelectedImageIndex,
     setPrimeColor,
@@ -110,13 +111,16 @@ export default function Index() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setRepaintHistory,
   } = usePrimetimeState();
 
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const mainImages = state.uploadedImages.filter(i => i.type === 'main');
-  const refImages = state.uploadedImages.filter(i => i.type === 'reference');
+  const mainImages = state.mainImages;
+  const refImages = state.referenceImages;
   const mainImage = mainImages[0] ?? null;
+  const originalImage = mainImages[state.sharedSliderIndex]?.objectUrl ?? null;
+  const allImages = [...mainImages, ...refImages];
 
   const getOverrideHex = (name: string | null) => {
     if (!name) return null;
@@ -148,8 +152,7 @@ export default function Index() {
   const previewMid2 = getOverrideHex(state.midtoneOverrides[1]) || activeScheme?.midtone2?.hex || null;
   const previewHigh = getOverrideHex(state.highlightOverride) || activeScheme?.highlight.hex || null;
 
-  // Recolor ALL images for color plan
-  const recolorMap = useRecolorMap(state.uploadedImages, {
+  const recolorMap = useRecolorMap(mainImages, {
     baseColor: previewBase,
     midtone1Color: previewMid1,
     midtone2Color: previewMid2,
@@ -241,6 +244,7 @@ export default function Index() {
         timestamp: new Date(),
         elapsedSeconds: elapsed,
       }]);
+      setRepaintHistory(prev => [...prev, { label: 'Initial repaint', image }]);
       setPipelineComplete(true);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Pipeline failed.';
@@ -280,6 +284,7 @@ export default function Index() {
         timestamp: new Date(),
         elapsedSeconds: elapsed,
       }]);
+      setRepaintHistory(prev => [...prev, { label: 'Custom repaint', image: result }]);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Repaint failed.';
       setSubmitError(message);
@@ -297,14 +302,15 @@ export default function Index() {
       case 'upload':
         return (
           <ImageUploader
-            onUpload={addImages}
-            mainCount={mainImages.length}
-            refCount={refImages.length}
+            mainImages={state.mainImages}
+            referenceImages={state.referenceImages}
+            onMainImagesChange={files => addMainImages(files)}
+            onReferenceImagesChange={files => addReferenceImages(files)}
+            repaintStartTime={state.repaintStartTime}
             onAnalyseAndRepaint={handleAnalyseAndRepaint}
             pipelineComplete={state.pipelineComplete}
             pipelineError={state.pipelineError}
             currentlyRepainting={state.currentlyRepainting}
-            initialRepaintImage={state.initialRepaintImage}
           />
         );
       case 'priming':
@@ -317,7 +323,7 @@ export default function Index() {
             zenithalDirection={state.zenithalDirection}
             currentTemp={state.currentTemp}
             manualTempInput={state.manualTempInput}
-            images={state.uploadedImages}
+            images={mainImages}
             primingResultMap={primingResultMap}
             onPrimeColorChange={setPrimeColor}
             onZenithalEnabledChange={setZenithalEnabled}
@@ -331,7 +337,7 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
-            initialRepaintImage={state.initialRepaintImage}
+            originalImage={originalImage}
             customRepaintImage={state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
@@ -350,7 +356,7 @@ export default function Index() {
             onBaseChange={setBaseOverride}
             onMidtoneChange={setMidtoneOverrides}
             onHighlightChange={setHighlightOverride}
-            images={state.uploadedImages}
+            images={mainImages}
             recolorMap={recolorMap}
             activePrompt={state.activePrompt}
             onPromptChange={handlePromptChange}
@@ -358,7 +364,7 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
-            initialRepaintImage={state.initialRepaintImage}
+            originalImage={originalImage}
             customRepaintImage={state.customRepaintImage}
             sliderIndex={state.sharedSliderIndex}
             onSliderIndexChange={setSharedSliderIndex}
@@ -395,7 +401,7 @@ export default function Index() {
         </div>
 
         <BottomBar
-          images={state.uploadedImages}
+          images={allImages}
           selectedIndex={state.selectedImageIndex}
           onSelect={setSelectedImageIndex}
           onRemove={removeImage}
