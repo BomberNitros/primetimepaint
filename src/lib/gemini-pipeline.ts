@@ -60,7 +60,6 @@ export async function generateRepaint(
 
   const constructedPrompt = `You are digitally repainting a physical tabletop miniature. The subject is ${subjectName}.
 It is primed in neutral grey.
-Build shading with light from above and slightly in front at 45°. Highlights on upper and forward-facing surfaces. Shadow deepens on undersides and into recesses.
 
 ---
 ANATOMY — repaint each region as described:
