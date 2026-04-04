@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { ThemeSelector } from '@/components/ThemeSelector';
-import { ColourRoleSelector } from '@/components/ColourRoleSelector';
-import { ColourTheoryHelper } from '@/components/ColourTheoryHelper';
+import { ColorRoleSelector } from '@/components/ColorRoleSelector';
+import { ColorTheoryHelper } from '@/components/ColorTheoryHelper';
 import { SchemeCard } from '@/components/SchemeCard';
 import { ImageSlider, SliderImage } from '@/components/ImageSlider';
+import { DualSlider } from '@/components/DualSlider';
+import { PaintDirectivePanel } from '@/components/PaintDirectivePanel';
 import { ThemeId, ColorScheme, UploadedImage } from '@/types/primetime';
 import { Layers, SlidersHorizontal } from 'lucide-react';
 import { randomFont } from '@/components/ControlRail';
@@ -21,6 +23,17 @@ interface ColorPlanPanelProps {
   onHighlightChange: (v: string | null) => void;
   images: UploadedImage[];
   recolorMap: Record<string, string | null>;
+  // Sprint 2 props
+  activePrompt: string | null;
+  onPromptChange: (prompt: string) => void;
+  onSubmitRepaint: () => void;
+  currentlyRepainting: boolean;
+  submitError: string | null;
+  pipelineComplete: boolean;
+  initialRepaintImage: string | null;
+  customRepaintImage: string | null;
+  sliderIndex: number;
+  onSliderIndexChange: (i: number) => void;
 }
 
 const columnLabelStyle: React.CSSProperties = {
@@ -44,6 +57,16 @@ export function ColorPlanPanel({
   onHighlightChange,
   images,
   recolorMap,
+  activePrompt,
+  onPromptChange,
+  onSubmitRepaint,
+  currentlyRepainting,
+  submitError,
+  pipelineComplete,
+  initialRepaintImage,
+  customRepaintImage,
+  sliderIndex,
+  onSliderIndexChange,
 }: ColorPlanPanelProps) {
   const primaryHex = extractedColors[0] || '#666666';
 
@@ -56,7 +79,7 @@ export function ColorPlanPanel({
         id: img.id,
         src: recolored || img.objectUrl,
         badgeLeft: 'Main',
-        badgeRight: recolored ? 'Recoloured' : 'Awaiting scheme',
+        badgeRight: recolored ? 'Recolored' : 'Awaiting scheme',
         badgeRightAccent: !!recolored,
       };
     });
@@ -66,12 +89,32 @@ export function ColorPlanPanel({
     <div className="space-y-6">
       {/* Heading */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Colour plan</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Color plan</h2>
         <p className="text-sm text-muted-foreground">Choose a mood and build your palette.</p>
       </div>
 
-      {/* Image slider — full width */}
-      {slides.length > 0 && <ImageSlider slides={slides} />}
+      {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
+      {pipelineComplete ? (
+        <DualSlider
+          initialRepaintImage={initialRepaintImage}
+          customRepaintImage={customRepaintImage}
+          sliderIndex={sliderIndex}
+          onSliderIndexChange={onSliderIndexChange}
+        />
+      ) : (
+        slides.length > 0 && <ImageSlider slides={slides} />
+      )}
+
+      {/* Paint Directive */}
+      {pipelineComplete && (
+        <PaintDirectivePanel
+          activePrompt={activePrompt}
+          onPromptChange={onPromptChange}
+          onSubmit={onSubmitRepaint}
+          currentlyRepainting={currentlyRepainting}
+          submitError={submitError}
+        />
+      )}
 
       {/* Two-column grid */}
       <div className="grid grid-cols-2 gap-6 items-start">
@@ -82,10 +125,10 @@ export function ColorPlanPanel({
             <span>Palette &amp; analysis</span>
           </div>
 
-          {/* Extracted colours */}
+          {/* Extracted colors */}
           {extractedColors.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Extracted colours</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Extracted colors</h3>
               <div className="flex gap-1.5">
                 {extractedColors.map((c, i) => (
                   <div key={i} className="w-8 h-8 rounded-md border border-border" style={{ backgroundColor: c }} title={c} />
@@ -108,18 +151,18 @@ export function ColorPlanPanel({
           )}
         </div>
 
-        {/* RIGHT — Colour & Theory */}
+        {/* RIGHT — Color & Theory */}
         <div className="space-y-5">
           <div className="flex items-center gap-1.5 text-muted-foreground" style={columnLabelStyle}>
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Colour &amp; theory</span>
+            <span>Color &amp; theory</span>
           </div>
 
-          {/* Colour theory FIRST */}
-          <ColourTheoryHelper baseHex={primaryHex} />
+          {/* Color theory FIRST */}
+          <ColorTheoryHelper baseHex={primaryHex} />
 
           {/* Role overrides SECOND */}
-          <ColourRoleSelector
+          <ColorRoleSelector
             baseOverride={baseOverride}
             midtoneOverrides={midtoneOverrides}
             highlightOverride={highlightOverride}

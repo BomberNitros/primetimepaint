@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { StepId } from '@/types/primetime';
+import { StepId, RepaintEntry } from '@/types/primetime';
 import { Upload, Sun, Palette, Paintbrush, Droplets, ClipboardList, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { RepaintTimer } from '@/components/RepaintTimer';
+import { RepaintTicker } from '@/components/RepaintTicker';
 
 interface Step {
   id: StepId;
@@ -34,9 +36,21 @@ interface ControlRailProps {
   activeStep: StepId;
   onStepChange: (step: StepId) => void;
   hasImages: boolean;
+  pipelineComplete: boolean;
+  currentlyRepainting: boolean;
+  repaintStartTime: Date | null;
+  repaintLog: RepaintEntry[];
 }
 
-export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRailProps) {
+export function ControlRail({
+  activeStep,
+  onStepChange,
+  hasImages,
+  pipelineComplete,
+  currentlyRepainting,
+  repaintStartTime,
+  repaintLog,
+}: ControlRailProps) {
   return (
     <nav className="w-[168px] min-w-[168px] bg-sidebar border-r border-sidebar-border flex flex-col h-full">
       {/* Brand */}
@@ -50,7 +64,10 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
       <div className="flex-1 overflow-y-auto py-1">
         {STEPS.map((step) => {
           const isActive = activeStep === step.id;
-          const isDisabled = step.id !== 'upload' && !hasImages;
+          // Upload step uses hasImages gate; other steps use pipelineComplete gate
+          const isDisabled = step.id === 'upload'
+            ? false
+            : !pipelineComplete;
           const Icon = step.icon;
 
           return (
@@ -62,7 +79,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
                 'w-full flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium transition-colors text-left',
                 isActive && 'bg-sidebar-accent text-sidebar-primary border-r-2 border-primary',
                 !isActive && !isDisabled && 'text-sidebar-foreground hover:bg-sidebar-accent/50',
-                isDisabled && 'text-muted-foreground/40 cursor-not-allowed'
+                isDisabled && 'opacity-40 pointer-events-none cursor-default'
               )}
             >
               <Icon className={cn('w-3.5 h-3.5 flex-shrink-0', isActive ? 'text-primary' : '')} />
@@ -70,6 +87,17 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
             </button>
           );
         })}
+      </div>
+
+      {/* Bottom: Timer + Ticker */}
+      <div className="mt-auto">
+        <div className="border-t border-border">
+          <RepaintTimer
+            currentlyRepainting={currentlyRepainting}
+            repaintStartTime={repaintStartTime}
+          />
+          <RepaintTicker repaintLog={repaintLog} />
+        </div>
       </div>
     </nav>
   );
@@ -94,15 +122,10 @@ function PaintBottleLogo() {
       </defs>
 
       <g className="primetime-bottle-group">
-        {/* Bottle body */}
         <rect x="10" y="52" width="60" height="66" rx="10" fill="currentColor" />
-        {/* Bottle neck */}
         <rect x="28" y="38" width="24" height="18" fill="currentColor" />
-        {/* Cap (starts open — rotated and offset) */}
         <rect className="primetime-cap" x="22" y="14" width="36" height="28" rx="6" fill="currentColor" />
-        {/* Dropper hole cutout */}
         <circle cx="40" cy="10" r="4" fill="hsl(var(--sidebar-background))" />
-        {/* P letter cutout */}
         <text
           x="40" y="84"
           textAnchor="middle"
@@ -115,7 +138,6 @@ function PaintBottleLogo() {
           P
         </text>
 
-        {/* Fill rect — rises up */}
         <rect
           className="primetime-fill"
           x="10" y="52" width="60" height="66"
@@ -124,7 +146,6 @@ function PaintBottleLogo() {
           clipPath="url(#bottleClip)"
         />
 
-        {/* Wave layer */}
         <g className="primetime-wave-riser">
           <g className="primetime-wave-oscillator">
             <path
@@ -137,7 +158,6 @@ function PaintBottleLogo() {
           </g>
         </g>
 
-        {/* Ink drop */}
         <ellipse
           className="primetime-inkdrop"
           cx="40" cy="10" rx="4" ry="6"

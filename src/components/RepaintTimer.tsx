@@ -48,7 +48,7 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
     ? {}
     : {
         transition: 'transform 200ms ease-out',
-        transform: status === 'idle' ? 'translateY(100%)' : 'translateY(0)',
+        transform: 'translateY(0)',
       };
 
   return (
