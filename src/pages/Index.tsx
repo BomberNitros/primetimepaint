@@ -232,7 +232,7 @@ export default function Index() {
       const regions = await analyseAnatomy(base64, refBase64s);
       setAnatomyRegions(regions);
 
-      const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', state.referenceBase64s);
+      const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', refBase64s);
       setInitialRepaintImage(image);
       setCustomRepaintImage(image);
       setRepaintMapEntry(state.sharedSliderIndex, image);
