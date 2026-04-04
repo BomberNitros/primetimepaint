@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Server misconfiguration: missing API key.' }, 500);
     }
 
-    const { type, image, prompt } = await req.json();
+    const { type, image, prompt, referenceImages } = await req.json();
 
     if (!type || (type !== 'anatomy' && type !== 'repaint')) {
       return jsonResponse({ error: 'Invalid request type' }, 400);
@@ -35,8 +35,45 @@ Deno.serve(async (req) => {
     }
 
     const gatewayBase = 'https://ai.gateway.lovable.dev/v1';
+    const hasRefs = Array.isArray(referenceImages) && referenceImages.length > 0;
 
     if (type === 'anatomy') {
+      const anatomyPrompt = `You are a master miniature painter planning a vibrant, exciting color scheme for an unpainted figure. The miniature is currently primed grey — the grey you see is primer, NOT the intended paint scheme. DO NOT describe the grey primer color. PROPOSE the colors you would RECOMMEND painting each distinct region, as a professional painter creating an interesting scheme from scratch.
+
+Identify every paintable region on the figure only — ignore the base, groundwork, and background.
+
+For each region PROPOSE:
+- region: string (e.g. 'Scales', 'Wing Membrane')
+- description: string (what surface this covers)
+- baseColor: { name: string, hex: string }
+  Your recommended mid-tone base coat.
+  Use rich, saturated colors — not grey.
+- shadowColor: { name: string, hex: string }
+  A darker, cooler shade for recesses.
+- highlightColor: { name: string, hex: string }
+  A lighter, warmer tone for raised surfaces.
+- surfaceNote: string (texture and technique note)
+
+Color theory guidance:
+- Vary hue across regions for visual interest
+- Use warm highlights on cool bases and vice versa
+- Consider complementary accent colors
+- Bold choices are better than safe grey-adjacent ones
+
+Return only a valid JSON array. No prose. No explanation. No markdown.` +
+        (hasRefs
+          ? '\n\nREFERENCE IMAGES PROVIDED ABOVE:\nThese show painted miniatures or color references.\nExtract their palette, mood, contrast level, and technique. Apply what you learn to your color recommendations.'
+          : '');
+
+      const content: unknown[] = [];
+      if (hasRefs) {
+        for (const ref of referenceImages) {
+          content.push({ type: 'image_url', image_url: { url: ref } });
+        }
+      }
+      content.push({ type: 'image_url', image_url: { url: image } });
+      content.push({ type: 'text', text: anatomyPrompt });
+
       const res = await fetch(`${gatewayBase}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -45,26 +82,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image_url', image_url: { url: image } },
-              {
-                type: 'text',
-                text: `You are analysing a physical tabletop miniature to help a painter plan a color scheme. Identify every distinct paintable region on this figure. For each region return:
-- region: string (e.g. 'Outer flesh body')
-- description: string (surface it covers)
-- baseColor: { name: string, hex: string }
-- shadowColor: { name: string, hex: string }
-- highlightColor: { name: string, hex: string }
-- surfaceNote: string (texture and treatment note)
-
-Sample colors only from the miniature figure itself — not from the base, groundwork, background, or any scenic elements. Ignore environmental colors.
-
-Return only a valid JSON array. No prose. No explanation.`
-              }
-            ]
-          }],
+          messages: [{ role: 'user', content }],
           stream: false,
         }),
       });
@@ -86,6 +104,21 @@ Return only a valid JSON array. No prose. No explanation.`
     }
 
     // type === 'repaint'
+    const repaintPrompt = prompt +
+      (hasRefs
+        ? '\n\nREFERENCE IMAGES PROVIDED ABOVE:\nMatch their palette, contrast level, brushwork character, and atmosphere in the repaint.'
+        : '');
+
+    const content: unknown[] = [
+      { type: 'image_url', image_url: { url: image } },
+    ];
+    if (hasRefs) {
+      for (const ref of referenceImages) {
+        content.push({ type: 'image_url', image_url: { url: ref } });
+      }
+    }
+    content.push({ type: 'text', text: repaintPrompt });
+
     const res = await fetch(`${gatewayBase}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -94,13 +127,7 @@ Return only a valid JSON array. No prose. No explanation.`
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-image-preview',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: { url: image } },
-            { type: 'text', text: prompt }
-          ]
-        }],
+        messages: [{ role: 'user', content }],
         modalities: ['image'],
         stream: false,
       }),

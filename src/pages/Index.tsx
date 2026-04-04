@@ -224,10 +224,10 @@ export default function Index() {
 
     try {
       const base64 = await toBase64(mainImage.file);
-      const regions = await analyseAnatomy(base64);
+      const regions = await analyseAnatomy(base64, state.referenceBase64s);
       setAnatomyRegions(regions);
 
-      const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure');
+      const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', state.referenceBase64s);
       setInitialRepaintImage(image);
       setCustomRepaintImage(image);
       setActivePrompt(prompt);
@@ -264,7 +264,7 @@ export default function Index() {
 
     try {
       const base64 = await toBase64(mainImage.file);
-      const result = await submitCustomRepaint(base64, state.activePrompt);
+      const result = await submitCustomRepaint(base64, state.activePrompt, state.referenceBase64s);
       setCustomRepaintImage(result);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
