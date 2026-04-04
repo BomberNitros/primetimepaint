@@ -32,8 +32,7 @@ interface ColorPlanPanelProps {
   pipelineComplete: boolean;
   originalImage: string | null;
   customRepaintImage: string | null;
-  sliderIndex: number;
-  onSliderIndexChange: (i: number) => void;
+  repaintMap: Record<number, string>;
   zenithalEnabled: boolean;
   primeColor: string;
 }
