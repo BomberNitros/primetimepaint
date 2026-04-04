@@ -12,11 +12,11 @@ interface Step {
 const STEPS: Step[] = [
   { id: 'upload', label: 'Miniature', icon: Upload },
   { id: 'priming', label: 'Priming', icon: Sun },
-  { id: 'color-plan', label: 'Colour plan', icon: Palette },
-  { id: 'brush-guide', label: 'Brush guide', icon: Paintbrush },
+  { id: 'color-plan', label: 'Coloring', icon: Palette },
+  { id: 'brush-guide', label: 'Brush Guide', icon: Paintbrush },
   { id: 'paint-handling', label: 'Handling', icon: Droplets },
-  { id: 'thinning-plan', label: 'Thinning & application', icon: ClipboardList },
-  { id: 'finish', label: 'Finish & varnish', icon: Shield },
+  { id: 'thinning-plan', label: 'Application & Thinning', icon: ClipboardList },
+  { id: 'finish', label: 'Varnish', icon: Shield },
 ];
 
 // ---- Font pool (18 fonts) ----
@@ -43,7 +43,7 @@ export function ControlRail({ activeStep, onStepChange, hasImages }: ControlRail
       <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-start">
         <PaintBottleLogo />
         <PrimetimeTitle />
-        <p className="text-[10px] text-muted-foreground mt-0.5 tracking-wide">Scheme first. Paint later.</p>
+        <p className="text-muted-foreground mt-0.5 tracking-wide text-xs">Scheme first. Paint later.</p>
       </div>
 
       {/* Steps */}
