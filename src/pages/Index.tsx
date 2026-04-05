@@ -384,11 +384,12 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
-            originalImage={originalImage}
-            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
-            repaintMap={state.repaintMap}
             zenithalEnabled={state.zenithalEnabled}
             primeColor={state.primeColor}
+            sharedSliderIndex={state.sharedSliderIndex}
+            onSliderIndexChange={setSharedSliderIndex}
+            primingRepaintMap={state.primingRepaintMap}
+            colorRepaintMap={state.colorRepaintMap}
           />
         );
       case 'brush-guide':

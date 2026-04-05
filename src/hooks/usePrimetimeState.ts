@@ -267,7 +267,8 @@ export function usePrimetimeState() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
-    setRepaintMapEntry,
+    setPrimingRepaintEntry,
+    setColorRepaintEntry,
     setRepaintHistory,
   };
 }
