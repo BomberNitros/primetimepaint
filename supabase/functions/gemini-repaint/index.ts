@@ -1,4 +1,4 @@
-// v2 — reference images + diagnostic logs
+// v3 — reference images with data URI prefix + size filter
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
     }
 
     const { type, image, prompt, referenceImages } = await req.json();
-    console.log('[edge] referenceImages count:', Array.isArray(referenceImages) ? referenceImages.length : 0);
 
     if (!type || (type !== 'anatomy' && type !== 'repaint')) {
       return jsonResponse({ error: 'Invalid request type' }, 400);
@@ -37,7 +36,17 @@ Deno.serve(async (req) => {
     }
 
     const gatewayBase = 'https://ai.gateway.lovable.dev/v1';
-    const hasRefs = Array.isArray(referenceImages) && referenceImages.length > 0;
+
+    const refParts = Array.isArray(referenceImages) && referenceImages.length > 0
+      ? referenceImages
+          .filter((r: unknown) => typeof r === 'string' && (r as string).length < 800_000)
+          .map((r: string) => ({
+            type: 'image_url',
+            image_url: {
+              url: r.startsWith('data:') ? r : `data:image/jpeg;base64,${r}`
+            }
+          }))
+      : [];
 
     if (type === 'anatomy') {
       const anatomyPrompt = `You are a master miniature painter planning a vibrant, exciting color scheme for an unpainted figure. The miniature is currently primed grey — the grey you see is primer, NOT the intended paint scheme. DO NOT describe the grey primer color. PROPOSE the colors you would RECOMMEND painting each distinct region, as a professional painter creating an interesting scheme from scratch.
@@ -62,19 +71,16 @@ Color theory guidance:
 - Consider complementary accent colors
 - Bold choices are better than safe grey-adjacent ones
 
-Return only a valid JSON array. No prose. No explanation. No markdown.` +
-        (hasRefs
-          ? '\n\nREFERENCE IMAGES PROVIDED ABOVE:\nThese show painted miniatures or color references.\nExtract their palette, mood, contrast level, and technique. Apply what you learn to your color recommendations.'
-          : '');
+Return only a valid JSON array. No prose. No explanation. No markdown.`;
 
-      const content: unknown[] = [];
-      if (hasRefs) {
-        for (const ref of referenceImages) {
-          content.push({ type: 'image_url', image_url: { url: ref } });
-        }
-      }
-      content.push({ type: 'image_url', image_url: { url: image } });
-      content.push({ type: 'text', text: anatomyPrompt });
+      const content: unknown[] = [
+        ...refParts,
+        { type: 'image_url', image_url: { url: image } },
+        { type: 'text', text: anatomyPrompt
+          + (refParts.length > 0
+            ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Extract their palette, mood, contrast level, and technique. Apply what you learn to your color recommendations.'
+            : '') }
+      ];
 
       const res = await fetch(`${gatewayBase}/chat/completions`, {
         method: 'POST',
@@ -106,20 +112,14 @@ Return only a valid JSON array. No prose. No explanation. No markdown.` +
     }
 
     // type === 'repaint'
-    const repaintPrompt = prompt +
-      (hasRefs
-        ? '\n\nREFERENCE IMAGES PROVIDED ABOVE:\nMatch their palette, contrast level, brushwork character, and atmosphere in the repaint.'
-        : '');
-
     const content: unknown[] = [
       { type: 'image_url', image_url: { url: image } },
+      ...refParts,
+      { type: 'text', text: prompt
+        + (refParts.length > 0
+          ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Match their palette, contrast level, brushwork character, and atmosphere in the repaint.'
+          : '') }
     ];
-    if (hasRefs) {
-      for (const ref of referenceImages) {
-        content.push({ type: 'image_url', image_url: { url: ref } });
-      }
-    }
-    content.push({ type: 'text', text: repaintPrompt });
 
     const res = await fetch(`${gatewayBase}/chat/completions`, {
       method: 'POST',
