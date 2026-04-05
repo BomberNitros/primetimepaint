@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface DualSliderProps {
   leftImages: { src: string; label: string }[];
@@ -8,6 +8,8 @@ interface DualSliderProps {
   primingHint?: string;
 }
 
+type ZoomState = { src: string; label: string; slot: 'left' | 'right'; index: number } | null;
+
 export function DualSlider({
   leftImages,
   rightImages,
@@ -15,7 +17,7 @@ export function DualSlider({
   onIndexChange,
   primingHint,
 }: DualSliderProps) {
-  const [zoomImage, setZoomImage] = useState<{ src: string; label: string } | null>(null);
+  const [zoomImage, setZoomImage] = useState<ZoomState>(null);
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomOffset, setZoomOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -36,6 +38,17 @@ export function DualSlider({
   };
 
   const maxCount = Math.max(leftImages.length, rightImages.length);
+
+  const zoomNavigate = useCallback((newSlot: 'left' | 'right', newIndex: number) => {
+    if (newIndex < 0 || newIndex >= maxCount) return;
+    const images = newSlot === 'left' ? leftImages : rightImages;
+    const item = images[newIndex];
+    if (!item) return;
+    setZoomScale(1);
+    setZoomOffset({ x: 0, y: 0 });
+    setZoomImage({ src: item.src, label: item.label, slot: newSlot, index: newIndex });
+    onIndexChange(newIndex);
+  }, [maxCount, leftImages, rightImages, onIndexChange]);
 
   // Imperative wheel zoom
   useEffect(() => {
@@ -66,14 +79,32 @@ export function DualSlider({
     };
   }, [isDragging, dragStart, zoomScale]);
 
-  // Escape key
+  // Keyboard navigation
   useEffect(() => {
+    if (!zoomImage) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setZoomImage(null);
+      switch (e.key) {
+        case 'Escape':
+          setZoomImage(null);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          zoomNavigate(zoomImage.slot, zoomImage.index - 1);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          zoomNavigate(zoomImage.slot, zoomImage.index + 1);
+          break;
+        case 'ArrowUp':
+        case 'ArrowDown':
+          e.preventDefault();
+          zoomNavigate(zoomImage.slot === 'left' ? 'right' : 'left', zoomImage.index);
+          break;
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [zoomImage, zoomNavigate]);
 
   const leftItem = leftImages[sharedIndex];
   const rightItem = rightImages[sharedIndex];
@@ -106,7 +137,7 @@ export function DualSlider({
                 src={leftItem.src}
                 alt={leftItem.label}
                 style={{ width: '100%', height: '320px', objectFit: 'contain', cursor: 'zoom-in' }}
-                onClick={() => setZoomImage(leftItem)}
+                onClick={() => setZoomImage({ ...leftItem, slot: 'left', index: sharedIndex })}
               />
             ) : (
               <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
@@ -127,7 +158,7 @@ export function DualSlider({
                 src={rightItem.src}
                 alt={rightItem.label}
                 style={{ width: '100%', height: '320px', objectFit: 'contain', cursor: 'zoom-in' }}
-                onClick={() => setZoomImage(rightItem)}
+                onClick={() => setZoomImage({ ...rightItem, slot: 'right', index: sharedIndex })}
               />
             ) : (
               <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
@@ -193,11 +224,40 @@ export function DualSlider({
             </button>
           </div>
 
+          {/* Nav strip */}
           <div style={{
             position: 'absolute', bottom: '1.25rem', left: '50%', transform: 'translateX(-50%)', zIndex: 10,
-            ...glowStyle, fontSize: '0.8rem', padding: '6px 18px',
+            display: 'flex', gap: '0.5rem', alignItems: 'center',
           }}>
-            Scroll to zoom · Drag to pan · Esc to close
+            <button
+              type="button"
+              style={{ ...glowStyle, cursor: zoomImage.index === 0 ? 'not-allowed' : 'pointer', opacity: zoomImage.index === 0 ? 0.3 : 1 }}
+              onClick={e => { e.stopPropagation(); zoomNavigate(zoomImage.slot, zoomImage.index - 1); }}
+            >
+              ← Prev set
+            </button>
+            <span style={glowStyle}>{zoomImage.index + 1} / {maxCount}</span>
+            <button
+              type="button"
+              style={{ ...glowStyle, cursor: zoomImage.index >= maxCount - 1 ? 'not-allowed' : 'pointer', opacity: zoomImage.index >= maxCount - 1 ? 0.3 : 1 }}
+              onClick={e => { e.stopPropagation(); zoomNavigate(zoomImage.slot, zoomImage.index + 1); }}
+            >
+              Next set →
+            </button>
+            <button
+              type="button"
+              style={{ ...glowStyle, cursor: 'pointer' }}
+              onClick={e => { e.stopPropagation(); zoomNavigate(zoomImage.slot === 'left' ? 'right' : 'left', zoomImage.index); }}
+            >
+              {zoomImage.slot === 'left' ? 'View repaint →' : '← View original'}
+            </button>
+          </div>
+
+          <div style={{
+            position: 'absolute', bottom: '0.25rem', left: '50%', transform: 'translateX(-50%)', zIndex: 10,
+            color: '#a78bfa', fontSize: '0.6rem', opacity: 0.7, whiteSpace: 'nowrap' as const,
+          }}>
+            Scroll zoom · Drag pan · ← → images · ↑↓ toggle side · Esc close
           </div>
 
           <img
