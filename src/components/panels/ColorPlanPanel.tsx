@@ -64,11 +64,12 @@ export function ColorPlanPanel({
   currentlyRepainting,
   submitError,
   pipelineComplete,
-  originalImage,
-  customRepaintImage,
-  repaintMap,
   zenithalEnabled,
   primeColor,
+  sharedSliderIndex,
+  onSliderIndexChange,
+  primingRepaintMap,
+  colorRepaintMap,
 }: ColorPlanPanelProps) {
   const primaryHex = extractedColors[0] || '#666666';
 
