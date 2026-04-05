@@ -116,6 +116,77 @@ OUTPUT: Same photo angle and framing as input. Miniature repainted as described 
   return { image, prompt: constructedPrompt };
 }
 
+function buildPrimingSettingsBlock(
+  primeColor: PrimeColor,
+  zenithalEnabled: boolean,
+  zenithalScheme: ZenithalScheme,
+  zenithalMethod: ZenithalMethod,
+  zenithalDirection: ZenithalDirection,
+): string {
+  const lines: string[] = [];
+  const colourName = primeColor === 'white' ? 'Pure white' : primeColor === 'black' ? 'Black' : 'Neutral grey';
+  lines.push(`Primer colour: ${colourName}`);
+
+  if (zenithalEnabled) {
+    lines.push('Zenithal highlight: enabled');
+    lines.push(`  Scheme: ${zenithalScheme}`);
+    lines.push(`  Method: ${zenithalMethod}`);
+    lines.push(`  Light direction: ${zenithalDirection}`);
+  } else {
+    lines.push('Zenithal highlight: disabled — flat primer coat only');
+  }
+
+  return lines.join('\n');
+}
+
+export async function generatePrimingRepaint(
+  imageBase64: string,
+  subjectName: string,
+  primeColor: PrimeColor,
+  zenithalEnabled: boolean,
+  zenithalScheme: ZenithalScheme,
+  zenithalMethod: ZenithalMethod,
+  zenithalDirection: ZenithalDirection,
+  referenceImages?: string[],
+): Promise<{ image: string; prompt: string }> {
+  const settingsBlock = buildPrimingSettingsBlock(primeColor, zenithalEnabled, zenithalScheme, zenithalMethod, zenithalDirection);
+
+  const prompt = `You are digitally applying a primer coat to a physical tabletop miniature. The subject is ${subjectName}.
+
+PRIMING SETTINGS:
+${settingsBlock}
+
+TECHNIQUE:
+- If zenithal is enabled: apply directional highlight from the specified direction using the specified method.
+- If zenithal is disabled: apply a flat, even primer coat in the specified colour.
+- Primer only — no colour, no paint, no pigment beyond the primer tone.
+
+PAINTING STYLE:
+- Hand-applied primer texture. Not airbrush-smooth unless method is airbrush.
+- Subtle surface variation is expected and desirable.
+
+DO NOT:
+- Add, remove, or reshape any sculpted surface features.
+- Repaint the base, groundwork, or scenic elements.
+- Add backgrounds, glow, bloom, lens flare, or atmospheric effects.
+- Change the photo angle or framing.
+- Add any colour — this is primer only.
+
+OUTPUT: Same photo angle and framing as input. Miniature with primer applied as described above.`;
+
+  const { data, error } = await supabase.functions.invoke("gemini-repaint", {
+    body: { type: "repaint", image: imageBase64, prompt, referenceImages },
+  });
+
+  if (error) throw new Error(error.message ?? "Priming repaint failed.");
+  if (data?.error) throw new Error(data.error);
+
+  const prefix = "data:image/png;base64,";
+  const image = data.image.startsWith(prefix) ? data.image : `${prefix}${data.image}`;
+
+  return { image, prompt };
+}
+
 export async function submitCustomRepaint(
   imageBase64: string,
   prompt: string,
