@@ -1,62 +1,65 @@
 
 
-# Fix — Edge function reference image format
+# Slider fix — six files, one architectural change
 
-## Problem
-Reference images are pushed into the content array without size filtering or data URI prefix guarantee. Raw base64 strings without `data:` prefix fail at the gateway.
+## Summary
+Split `repaintMap` into `primingRepaintMap` and `colorRepaintMap`, fully rewrite `DualSlider` with purple glow styling and shared index navigation, and update both panel callers.
 
-## Changes — `supabase/functions/gemini-repaint/index.ts`
+## Changes
 
-1. **Delete line 27** — remove `console.log` diagnostic
-2. **Replace lines 40–41** (`hasRefs` variable) with `refParts` builder:
-   ```typescript
-   const refParts = Array.isArray(referenceImages) && referenceImages.length > 0
-     ? referenceImages
-         .filter((r: unknown) => typeof r === 'string' && (r as string).length < 800_000)
-         .map((r: string) => ({
-           type: 'image_url',
-           image_url: {
-             url: r.startsWith('data:') ? r : `data:image/jpeg;base64,${r}`
-           }
-         }))
-     : [];
-   ```
+### 1. `src/types/primetime.ts` (line 124)
+Replace `repaintMap: Record<number, string>` with:
+```
+primingRepaintMap: Record<number, string>
+colorRepaintMap: Record<number, string>
+```
 
-3. **Anatomy branch (lines 65–77)** — Merge prompt suffix into the text part, build content array in one shot:
-   ```typescript
-   const content: unknown[] = [
-     ...refParts,
-     { type: 'image_url', image_url: { url: image } },
-     { type: 'text', text: anatomyPrompt
-       + (refParts.length > 0
-         ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Extract their palette, mood, contrast level, and technique. Apply what you learn to your color recommendations.'
-         : '') }
-   ];
-   ```
-   The old `hasRefs` check on lines 65–68 and the loop on lines 70–77 are both replaced.
+### 2. `src/hooks/usePrimetimeState.ts`
+- Replace `repaintMap: {}` in initialState with `primingRepaintMap: {}` and `colorRepaintMap: {}`
+- Remove `setRepaintMapEntry`. Add `setPrimingRepaintEntry` and `setColorRepaintEntry` (both `(index: number, value: string)` merging into respective map)
+- Update return object
 
-4. **Repaint branch (lines 109–122)** — Same pattern:
-   ```typescript
-   const content: unknown[] = [
-     { type: 'image_url', image_url: { url: image } },
-     ...refParts,
-     { type: 'text', text: prompt
-       + (refParts.length > 0
-         ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Match their palette, contrast level, brushwork character, and atmosphere in the repaint.'
-         : '') }
-   ];
-   ```
-   Delete the old `repaintPrompt` variable (lines 109–112) — the suffix is now inline.
+### 3. `src/pages/Index.tsx`
+- Destructure `setPrimingRepaintEntry` and `setColorRepaintEntry` instead of `setRepaintMapEntry`
+- Line 239: `setRepaintMapEntry(...)` → `setPrimingRepaintEntry(state.sharedSliderIndex, image)`
+- Line 280: `setRepaintMapEntry(...)` → `setColorRepaintEntry(state.sharedSliderIndex, result)`
+- **PrimingZenithalPanel call** (lines 337–362): Remove `originalImage`, `customRepaintImage`, `repaintMap`. Add `sharedSliderIndex`, `onSliderIndexChange`, `primingRepaintMap`
+- **ColorPlanPanel call** (lines 367–391): Remove `originalImage`, `customRepaintImage`, `repaintMap`. Add `sharedSliderIndex`, `onSliderIndexChange`, `primingRepaintMap`, `colorRepaintMap` (keep existing `zenithalEnabled`, `primeColor`)
 
-5. **Redeploy** and confirm deployment succeeds.
+### 4. `src/components/DualSlider.tsx` — full rewrite
+- **Props**: `leftImages`, `rightImages`, `sharedIndex`, `onIndexChange`, `primingHint?`
+- **Local state**: `zoomImage`, `zoomScale`, `zoomOffset`, `isDragging`, `dragStart`
+- **Purple glow style** const for all badges
+- **Layout**: 2-col CSS grid. Each side: glow-labelled header + 320px image container (click to zoom). Right side placeholder: "Repaint pending"
+- **Navigation**: col-span-2 shared ← Prev / glow counter / Next → (only when max count > 1). Inline styles for buttons (no Tailwind classes per user spec)
+- **Lightbox**: Fixed overlay with glow-styled ✕, label + zoom% + Reset badges, hint bar at bottom centre. Imperative wheel zoom, drag-to-pan, Escape key — three useEffects as specified
 
-## What is NOT changed
-- Model names, gateway URL, auth headers, response parsing
-- No other files
+### 5. `src/components/panels/PrimingZenithalPanel.tsx`
+- Update interface: remove `originalImage`, `customRepaintImage`, `repaintMap`. Add `sharedSliderIndex: number`, `onSliderIndexChange: (i: number) => void`, `primingRepaintMap: Record<number, string>`
+- DualSlider call (replacing current lines 128–141):
+  - `leftImages` = mainImages mapped to `{ src: img.objectUrl, label: 'Unprimed' }`
+  - `rightImages` = mainImages mapped through `primingRepaintMap[i]` — keep all entries, empty src shows placeholder
+  - `sharedIndex` / `onIndexChange` from props
+
+### 6. `src/components/panels/ColorPlanPanel.tsx`
+- Update interface: remove `originalImage`, `customRepaintImage`, `repaintMap`. Add `sharedSliderIndex: number`, `onSliderIndexChange: (i: number) => void`, `primingRepaintMap: Record<number, string>`, `colorRepaintMap: Record<number, string>`
+- DualSlider call:
+  - `leftImages` = mainImages mapped through `primingRepaintMap[i]` — keep all entries
+  - `rightImages` = mainImages mapped through `colorRepaintMap[i]` — keep all entries
+  - `primingHint` = zenithal/prime colour summary string
+  - `sharedIndex` / `onIndexChange` from props
+
+### Critical constraint
+Do NOT filter rightImages arrays — keep all entries including empty `src` to preserve index alignment. DualSlider shows "Repaint pending" for empty src.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `supabase/functions/gemini-repaint/index.ts` | `refParts` builder with size filter + data URI prefix, simplified content arrays, remove console.log |
+| `src/types/primetime.ts` | Split `repaintMap` → two maps |
+| `src/hooks/usePrimetimeState.ts` | Two entry setters, remove old one |
+| `src/pages/Index.tsx` | Wire new setters + new panel props |
+| `src/components/DualSlider.tsx` | Full rewrite with shared index, glow, lightbox |
+| `src/components/panels/PrimingZenithalPanel.tsx` | New DualSlider props |
+| `src/components/panels/ColorPlanPanel.tsx` | New DualSlider props |
 
