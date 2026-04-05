@@ -111,7 +111,8 @@ export default function Index() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
-    setRepaintMapEntry,
+    setPrimingRepaintEntry,
+    setColorRepaintEntry,
     setRepaintHistory,
     appendReferenceBase64s,
   } = usePrimetimeState();
