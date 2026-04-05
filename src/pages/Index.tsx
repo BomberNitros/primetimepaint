@@ -22,7 +22,6 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
-import { useRef } from "react";
 
 function generateSchemes(
   extractedColors: string[],
@@ -293,7 +292,7 @@ export default function Index() {
         setRepaintLog((prev) => [
           ...prev,
           {
-            section: "priming",
+            section: "primer",
             timestamp: new Date(),
             elapsedSeconds: elapsed,
           },
@@ -346,7 +345,7 @@ export default function Index() {
         );
         setPrimingRepaintEntry(i, primingImage);
 
-        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", refBase64s);
+        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
         setColorRepaintEntry(i, image);
 
         if (i === 0) {
