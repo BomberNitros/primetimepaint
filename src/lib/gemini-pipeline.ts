@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { AnatomyRegion, ColorScheme } from '@/types/primetime';
+import { AnatomyRegion, ColorScheme, PrimeColor, ZenithalScheme, ZenithalMethod, ZenithalDirection } from '@/types/primetime';
 
 export function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
