@@ -220,40 +220,56 @@ export default function Index() {
 
   // Pipeline: Analyse & Repaint
   const handleAnalyseAndRepaint = useCallback(async () => {
-    if (!mainImage || state.currentlyRepainting) return;
+    if (mainImages.length === 0 || state.currentlyRepainting) return;
     setPipelineError(null);
     setCurrentlyRepainting(true);
     setRepaintStartTime(new Date());
     const startTime = Date.now();
 
     try {
-      const base64 = await toBase64(mainImage.file);
       const refBase64s = await Promise.all(
         state.referenceImages.map(img => toBase64(img.file))
       );
-      console.log('[index] referenceBase64s:', refBase64s.length);
-      const regions = await analyseAnatomy(base64, refBase64s);
-      setAnatomyRegions(regions);
 
-      const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', refBase64s);
-      setInitialRepaintImage(image);
-      setCustomRepaintImage(image);
-      setPrimingRepaintEntry(state.sharedSliderIndex, image);
-      setActivePrompt(prompt);
+      for (let i = 0; i < mainImages.length; i++) {
+        setSharedSliderIndex(i);
+        const base64 = await toBase64(mainImages[i].file);
 
-      const elapsed = Math.round((Date.now() - startTime) / 1000);
-      setGeminiHistory([
-        { role: 'user', textContent: 'Anatomy analysis', hasImage: true },
-        { role: 'model', textContent: JSON.stringify(regions), hasImage: false },
-        { role: 'user', textContent: prompt, hasImage: true },
-        { role: 'model', imageContent: image, hasImage: true },
-      ]);
-      setRepaintLog(prev => [...prev, {
-        section: 'initial',
-        timestamp: new Date(),
-        elapsedSeconds: elapsed,
-      }]);
-      setRepaintHistory(prev => [...prev, { label: 'Initial repaint', image }]);
+        const regions = await analyseAnatomy(base64, refBase64s);
+
+        const { image: primingImage } = await generatePrimingRepaint(
+          base64, 'miniature figure', refBase64s
+        );
+        setPrimingRepaintEntry(i, primingImage);
+
+        const { image, prompt } = await generateRepaint(
+          base64, regions, 'miniature figure', refBase64s
+        );
+        setColorRepaintEntry(i, image);
+
+        if (i === 0) {
+          setAnatomyRegions(regions);
+          setInitialRepaintImage(image);
+          setCustomRepaintImage(image);
+          setActivePrompt(prompt);
+
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          setGeminiHistory([
+            { role: 'user', textContent: 'Anatomy analysis', hasImage: true },
+            { role: 'model', textContent: JSON.stringify(regions), hasImage: false },
+            { role: 'user', textContent: prompt, hasImage: true },
+            { role: 'model', imageContent: image, hasImage: true },
+          ]);
+          setRepaintLog(prev => [...prev, {
+            section: 'initial',
+            timestamp: new Date(),
+            elapsedSeconds: elapsed,
+          }]);
+          setRepaintHistory(prev => [...prev, { label: 'Initial repaint', image }]);
+        }
+      }
+
+      setSharedSliderIndex(0);
       setPipelineComplete(true);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Pipeline failed.';
@@ -261,7 +277,7 @@ export default function Index() {
     } finally {
       setCurrentlyRepainting(false);
     }
-  }, [mainImage, state.currentlyRepainting]);
+  }, [mainImages, state.currentlyRepainting, state.referenceImages]);
 
   // Submit custom repaint from PaintDirectivePanel
   const handleSubmitRepaint = useCallback(async () => {

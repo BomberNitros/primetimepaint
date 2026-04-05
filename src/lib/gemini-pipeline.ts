@@ -109,6 +109,44 @@ OUTPUT: Same photo angle and framing as input. Miniature repainted as described 
   return { image, prompt: constructedPrompt };
 }
 
+export async function generatePrimingRepaint(
+  imageBase64: string,
+  subjectName: string,
+  referenceImages?: string[]
+): Promise<{ image: string; prompt: string }> {
+  const prompt = `You are digitally applying a zenithal primer coat to a physical tabletop miniature. The subject is ${subjectName}.
+
+ZENITHAL PRIMING TECHNIQUE:
+- Pure white from directly above (top of model, raised surfaces, highest points)
+- Mid-grey on sides and angled surfaces receiving less light
+- Deep shadow grey to near-black in recesses, undercuts, and lowest points
+- No colour whatsoever — this is monochrome undercoat only
+
+PAINTING STYLE:
+- Hand-primed tabletop miniature. Not a render. Not a digital illustration.
+- Subtle spray texture visible. No airbrushed smoothness.
+
+DO NOT:
+- Add, remove, or reshape any sculpted surface features.
+- Repaint the base, groundwork, or scenic elements.
+- Add backgrounds, glow, bloom, lens flare, or atmospheric effects.
+- Change the photo angle or framing.
+- Add any colour — this is primer only.
+
+OUTPUT: Same photo angle and framing as input. Miniature with zenithal primer applied as described above.`;
+
+  const { data, error } = await supabase.functions.invoke('gemini-repaint', {
+    body: { type: 'repaint', image: imageBase64, prompt, referenceImages },
+  });
+
+  if (error) throw new Error(error.message ?? 'Priming repaint failed.');
+  if (data?.error) throw new Error(data.error);
+
+  const prefix = 'data:image/png;base64,';
+  const image = data.image.startsWith(prefix) ? data.image : `${prefix}${data.image}`;
+  return { image, prompt };
+}
+
 export async function submitCustomRepaint(
   imageBase64: string,
   prompt: string,
