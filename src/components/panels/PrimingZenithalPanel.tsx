@@ -26,16 +26,15 @@ interface PrimingZenithalPanelProps {
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
   onManualTempChange: (v: number | null) => void;
-  // Sprint 2 props
   activePrompt: string | null;
   onPromptChange: (prompt: string) => void;
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  originalImage: string | null;
-  customRepaintImage: string | null;
-  repaintMap: Record<number, string>;
+  sharedSliderIndex: number;
+  onSliderIndexChange: (i: number) => void;
+  primingRepaintMap: Record<number, string>;
 }
 
 function OptionButtons<T extends string>({
@@ -85,8 +84,8 @@ export function PrimingZenithalPanel({
   onManualTempChange,
   activePrompt, onPromptChange, onSubmitRepaint,
   currentlyRepainting, submitError,
-  pipelineComplete, originalImage, customRepaintImage,
-  repaintMap,
+  pipelineComplete, sharedSliderIndex, onSliderIndexChange,
+  primingRepaintMap,
 }: PrimingZenithalPanelProps) {
   const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
 
@@ -126,18 +125,16 @@ export function PrimingZenithalPanel({
       {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
       {pipelineComplete ? (
         <DualSlider
-          originalImage={originalImage}
-          customRepaintImage={customRepaintImage}
-          leftLabel="Primed"
-          rightLabel="AI Repaint"
-          leftImages={mainImages.map((img, i) => ({
+          leftImages={mainImages.map(img => ({
             src: img.objectUrl,
-            label: `Primed ${i + 1}`,
+            label: 'Unprimed',
           }))}
-          rightImages={Object.entries(repaintMap).map(([k, v]) => ({
-            src: v,
-            label: `Repaint ${parseInt(k) + 1}`,
+          rightImages={mainImages.map((_, i) => ({
+            src: primingRepaintMap[i] ?? '',
+            label: 'Primed',
           }))}
+          sharedIndex={sharedSliderIndex}
+          onIndexChange={onSliderIndexChange}
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />

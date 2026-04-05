@@ -111,7 +111,8 @@ export default function Index() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
-    setRepaintMapEntry,
+    setPrimingRepaintEntry,
+    setColorRepaintEntry,
     setRepaintHistory,
     appendReferenceBase64s,
   } = usePrimetimeState();
@@ -236,7 +237,7 @@ export default function Index() {
       const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', refBase64s);
       setInitialRepaintImage(image);
       setCustomRepaintImage(image);
-      setRepaintMapEntry(state.sharedSliderIndex, image);
+      setPrimingRepaintEntry(state.sharedSliderIndex, image);
       setActivePrompt(prompt);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
@@ -277,7 +278,7 @@ export default function Index() {
       console.log('[index] referenceBase64s:', refBase64s.length);
       const result = await submitCustomRepaint(base64, state.activePrompt, refBase64s);
       setCustomRepaintImage(result);
-      setRepaintMapEntry(state.sharedSliderIndex, result);
+      setColorRepaintEntry(state.sharedSliderIndex, result);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       const imageTurns = state.geminiHistory.filter(t => t.hasImage);
@@ -356,9 +357,9 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
-            originalImage={originalImage}
-            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
-            repaintMap={state.repaintMap}
+            sharedSliderIndex={state.sharedSliderIndex}
+            onSliderIndexChange={setSharedSliderIndex}
+            primingRepaintMap={state.primingRepaintMap}
           />
         );
       case 'color-plan':
@@ -383,11 +384,12 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
-            originalImage={originalImage}
-            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
-            repaintMap={state.repaintMap}
             zenithalEnabled={state.zenithalEnabled}
             primeColor={state.primeColor}
+            sharedSliderIndex={state.sharedSliderIndex}
+            onSliderIndexChange={setSharedSliderIndex}
+            primingRepaintMap={state.primingRepaintMap}
+            colorRepaintMap={state.colorRepaintMap}
           />
         );
       case 'brush-guide':

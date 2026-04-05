@@ -23,18 +23,18 @@ interface ColorPlanPanelProps {
   onHighlightChange: (v: string | null) => void;
   images: UploadedImage[];
   recolorMap: Record<string, string | null>;
-  // Sprint 2 props
   activePrompt: string | null;
   onPromptChange: (prompt: string) => void;
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  originalImage: string | null;
-  customRepaintImage: string | null;
-  repaintMap: Record<number, string>;
   zenithalEnabled: boolean;
   primeColor: string;
+  sharedSliderIndex: number;
+  onSliderIndexChange: (i: number) => void;
+  primingRepaintMap: Record<number, string>;
+  colorRepaintMap: Record<number, string>;
 }
 
 const columnLabelStyle: React.CSSProperties = {
@@ -64,11 +64,12 @@ export function ColorPlanPanel({
   currentlyRepainting,
   submitError,
   pipelineComplete,
-  originalImage,
-  customRepaintImage,
-  repaintMap,
   zenithalEnabled,
   primeColor,
+  sharedSliderIndex,
+  onSliderIndexChange,
+  primingRepaintMap,
+  colorRepaintMap,
 }: ColorPlanPanelProps) {
   const primaryHex = extractedColors[0] || '#666666';
 
@@ -98,18 +99,20 @@ export function ColorPlanPanel({
       {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
       {pipelineComplete ? (
         <DualSlider
-          originalImage={originalImage}
-          customRepaintImage={customRepaintImage}
-          leftLabel="Original"
-          rightLabel="AI Repaint"
-          leftImages={mainImages.map((img, i) => ({
-            src: img.objectUrl,
-            label: `Original ${i + 1}`,
+          leftImages={mainImages.map((_, i) => ({
+            src: primingRepaintMap[i] ?? '',
+            label: 'Primed',
           }))}
-          rightImages={Object.entries(repaintMap).map(([k, v]) => ({
-            src: v,
-            label: `Repaint ${parseInt(k) + 1}`,
+          rightImages={mainImages.map((_, i) => ({
+            src: colorRepaintMap[i] ?? '',
+            label: 'Recoloured',
           }))}
+          sharedIndex={sharedSliderIndex}
+          onIndexChange={onSliderIndexChange}
+          primingHint={
+            (zenithalEnabled ? 'Zenithal · ' : '') +
+            (primeColor === 'white' ? 'White' : primeColor === 'black' ? 'Black' : 'Grey')
+          }
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />
