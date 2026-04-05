@@ -23,18 +23,18 @@ interface ColorPlanPanelProps {
   onHighlightChange: (v: string | null) => void;
   images: UploadedImage[];
   recolorMap: Record<string, string | null>;
-  // Sprint 2 props
   activePrompt: string | null;
   onPromptChange: (prompt: string) => void;
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  originalImage: string | null;
-  customRepaintImage: string | null;
-  repaintMap: Record<number, string>;
   zenithalEnabled: boolean;
   primeColor: string;
+  sharedSliderIndex: number;
+  onSliderIndexChange: (i: number) => void;
+  primingRepaintMap: Record<number, string>;
+  colorRepaintMap: Record<number, string>;
 }
 
 const columnLabelStyle: React.CSSProperties = {
