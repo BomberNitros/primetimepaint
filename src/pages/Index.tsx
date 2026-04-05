@@ -22,7 +22,6 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
-import { useRef } from "react";
 
 function generateSchemes(
   extractedColors: string[],
