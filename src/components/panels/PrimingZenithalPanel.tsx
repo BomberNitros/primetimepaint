@@ -26,16 +26,15 @@ interface PrimingZenithalPanelProps {
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
   onManualTempChange: (v: number | null) => void;
-  // Sprint 2 props
   activePrompt: string | null;
   onPromptChange: (prompt: string) => void;
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
   pipelineComplete: boolean;
-  originalImage: string | null;
-  customRepaintImage: string | null;
-  repaintMap: Record<number, string>;
+  sharedSliderIndex: number;
+  onSliderIndexChange: (i: number) => void;
+  primingRepaintMap: Record<number, string>;
 }
 
 function OptionButtons<T extends string>({
