@@ -56,6 +56,7 @@ export async function generateRepaint(
   imageBase64: string,
   regions: AnatomyRegion[],
   subjectName: string,
+  primeColor: PrimeColor,
   referenceImages?: string[],
 ): Promise<{ image: string; prompt: string }> {
   const regionBlock = regions
@@ -65,8 +66,14 @@ export async function generateRepaint(
     )
     .join("\n\n");
 
+  const primerDesc: Record<PrimeColor, string> = {
+    black: 'It is primed in black.',
+    grey:  'It is primed in neutral grey.',
+    white: 'It is primed in white.',
+  };
+
   const constructedPrompt = `You are digitally repainting a physical tabletop miniature. The subject is ${subjectName}.
-It is primed in neutral grey.
+${primerDesc[primeColor]}
 
 ---
 ANATOMY — repaint each region as described:
