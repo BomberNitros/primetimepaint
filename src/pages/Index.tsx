@@ -357,9 +357,9 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
             pipelineComplete={state.pipelineComplete}
-            originalImage={originalImage}
-            customRepaintImage={state.repaintMap[state.sharedSliderIndex] ?? state.customRepaintImage}
-            repaintMap={state.repaintMap}
+            sharedSliderIndex={state.sharedSliderIndex}
+            onSliderIndexChange={setSharedSliderIndex}
+            primingRepaintMap={state.primingRepaintMap}
           />
         );
       case 'color-plan':
