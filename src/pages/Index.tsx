@@ -14,7 +14,7 @@ import { extractDominantColors } from "@/lib/color-extraction";
 import { processZenithalPreview } from "@/lib/zenithal-preview";
 import { SPEEDPAINT_MOST_WANTED } from "@/data/speedpaints";
 import { ColorScheme, ThemeId } from "@/types/primetime";
-import { toBase64, analyseAnatomy, generateRepaint, submitCustomRepaint } from "@/lib/gemini-pipeline";
+import { toBase64, analyseAnatomy, generateRepaint, generatePrimingRepaint, submitCustomRepaint } from "@/lib/gemini-pipeline";
 
 function generateSchemes(
   extractedColors: string[],
