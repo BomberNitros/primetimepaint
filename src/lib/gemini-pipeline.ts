@@ -109,22 +109,60 @@ OUTPUT: Same photo angle and framing as input. Miniature repainted as described 
   return { image, prompt: constructedPrompt };
 }
 
+function buildPrimingSettingsBlock(
+  primeColor: PrimeColor,
+  zenithalEnabled: boolean,
+  zenithalScheme: ZenithalScheme,
+  zenithalMethod: ZenithalMethod,
+  zenithalDirection: ZenithalDirection,
+): string {
+  const base: Record<PrimeColor, string> = {
+    black: 'Base coat: black primer. Deepest recesses and shadow areas remain pure black.',
+    grey:  'Base coat: neutral grey primer. Mid-tone starting point across all surfaces.',
+    white: 'Base coat: white primer. All surfaces start bright; shadows are applied over white.',
+  };
+  if (!zenithalEnabled) {
+    return `${base[primeColor]}\nNo zenithal highlight — flat prime coat only. Uniform value across entire model.`;
+  }
+  const scheme: Record<ZenithalScheme, string> = {
+    flat:    'Zenithal style: flat — minimal graduation, soft even highlight from above.',
+    '2tone': 'Zenithal style: two-tone — dark base, lighter highlight from above. Clear separation between lit and shadow.',
+    '3tone': 'Zenithal style: three-tone — dark base, mid-grey transition zone, bright near-white highlight on highest points.',
+  };
+  const method: Record<ZenithalMethod, string> = {
+    drybrush: 'Application: drybrushed. Paint texture visible on raised edges, chalky catch on details.',
+    spray:    'Application: airbrushed/spray. Smooth gradient transitions, no brush texture.',
+  };
+  const direction: Record<ZenithalDirection, string> = {
+    'top':       'Light direction: directly overhead. Highlights on all upward-facing surfaces equally.',
+    'top-left':  'Light direction: top-left. Highlights favour left-facing and upward surfaces; right side darker.',
+    'top-right': 'Light direction: top-right. Highlights favour right-facing and upward surfaces; left side darker.',
+  };
+  return [base[primeColor], scheme[zenithalScheme], method[zenithalMethod], direction[zenithalDirection]].join('\n');
+}
+
 export async function generatePrimingRepaint(
   imageBase64: string,
   subjectName: string,
+  primeColor: PrimeColor,
+  zenithalEnabled: boolean,
+  zenithalScheme: ZenithalScheme,
+  zenithalMethod: ZenithalMethod,
+  zenithalDirection: ZenithalDirection,
   referenceImages?: string[]
 ): Promise<{ image: string; prompt: string }> {
-  const prompt = `You are digitally applying a zenithal primer coat to a physical tabletop miniature. The subject is ${subjectName}.
+  const settingsBlock = buildPrimingSettingsBlock(
+    primeColor, zenithalEnabled, zenithalScheme, zenithalMethod, zenithalDirection
+  );
+  const prompt = `You are digitally applying a primer coat to a physical tabletop miniature. The subject is ${subjectName}.
 
-ZENITHAL PRIMING TECHNIQUE:
-- Pure white from directly above (top of model, raised surfaces, highest points)
-- Mid-grey on sides and angled surfaces receiving less light
-- Deep shadow grey to near-black in recesses, undercuts, and lowest points
-- No colour whatsoever — this is monochrome undercoat only
+PRIMING SETTINGS:
+${settingsBlock}
 
-PAINTING STYLE:
+GENERAL RULES:
+- Monochrome only — no colour whatsoever.
 - Hand-primed tabletop miniature. Not a render. Not a digital illustration.
-- Subtle spray texture visible. No airbrushed smoothness.
+- Subtle texture visible matching the application method above.
 
 DO NOT:
 - Add, remove, or reshape any sculpted surface features.
@@ -133,15 +171,13 @@ DO NOT:
 - Change the photo angle or framing.
 - Add any colour — this is primer only.
 
-OUTPUT: Same photo angle and framing as input. Miniature with zenithal primer applied as described above.`;
+OUTPUT: Same photo angle and framing as input. Miniature with primer applied as described above.`;
 
   const { data, error } = await supabase.functions.invoke('gemini-repaint', {
     body: { type: 'repaint', image: imageBase64, prompt, referenceImages },
   });
-
   if (error) throw new Error(error.message ?? 'Priming repaint failed.');
   if (data?.error) throw new Error(data.error);
-
   const prefix = 'data:image/png;base64,';
   const image = data.image.startsWith(prefix) ? data.image : `${prefix}${data.image}`;
   return { image, prompt };

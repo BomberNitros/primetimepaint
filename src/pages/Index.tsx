@@ -238,7 +238,14 @@ export default function Index() {
         const regions = await analyseAnatomy(base64, refBase64s);
 
         const { image: primingImage } = await generatePrimingRepaint(
-          base64, 'miniature figure', refBase64s
+          base64,
+          'miniature figure',
+          state.primeColor,
+          state.zenithalEnabled,
+          state.zenithalScheme,
+          state.zenithalMethod,
+          state.zenithalDirection,
+          refBase64s
         );
         setPrimingRepaintEntry(i, primingImage);
 
