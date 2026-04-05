@@ -105,7 +105,7 @@ export function ColorPlanPanel({
           }))}
           rightImages={mainImages.map((_, i) => ({
             src: colorRepaintMap[i] ?? '',
-            label: 'Recoloured',
+            label: 'Repainted',,
           }))}
           sharedIndex={sharedSliderIndex}
           onIndexChange={onSliderIndexChange}
