@@ -217,8 +217,12 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, sharedSliderIndex: v }));
   }, []);
 
-  const setRepaintMapEntry = useCallback((index: number, value: string) => {
-    setState(s => ({ ...s, repaintMap: { ...s.repaintMap, [index]: value } }));
+  const setPrimingRepaintEntry = useCallback((index: number, value: string) => {
+    setState(s => ({ ...s, primingRepaintMap: { ...s.primingRepaintMap, [index]: value } }));
+  }, []);
+
+  const setColorRepaintEntry = useCallback((index: number, value: string) => {
+    setState(s => ({ ...s, colorRepaintMap: { ...s.colorRepaintMap, [index]: value } }));
   }, []);
 
   const setRepaintHistory = useCallback((v: RepaintHistoryEntry[] | ((prev: RepaintHistoryEntry[]) => RepaintHistoryEntry[])) => {
