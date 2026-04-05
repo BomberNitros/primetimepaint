@@ -99,18 +99,20 @@ export function ColorPlanPanel({
       {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
       {pipelineComplete ? (
         <DualSlider
-          originalImage={originalImage}
-          customRepaintImage={customRepaintImage}
-          leftLabel="Original"
-          rightLabel="AI Repaint"
-          leftImages={mainImages.map((img, i) => ({
-            src: img.objectUrl,
-            label: `Original ${i + 1}`,
+          leftImages={mainImages.map((_, i) => ({
+            src: primingRepaintMap[i] ?? '',
+            label: 'Primed',
           }))}
-          rightImages={Object.entries(repaintMap).map(([k, v]) => ({
-            src: v,
-            label: `Repaint ${parseInt(k) + 1}`,
+          rightImages={mainImages.map((_, i) => ({
+            src: colorRepaintMap[i] ?? '',
+            label: 'Recoloured',
           }))}
+          sharedIndex={sharedSliderIndex}
+          onIndexChange={onSliderIndexChange}
+          primingHint={
+            (zenithalEnabled ? 'Zenithal · ' : '') +
+            (primeColor === 'white' ? 'White' : primeColor === 'black' ? 'Black' : 'Grey')
+          }
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />
