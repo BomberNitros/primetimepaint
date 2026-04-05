@@ -1,26 +1,20 @@
-import { useEffect, useState, useCallback } from 'react';
-import { usePrimetimeState } from '@/hooks/usePrimetimeState';
-import { useRecolorMap } from '@/hooks/useRecolorMap';
-import { ControlRail } from '@/components/ControlRail';
-import { BottomBar } from '@/components/BottomBar';
-import { ImageUploader } from '@/components/ImageUploader';
-import { PrimingZenithalPanel } from '@/components/panels/PrimingZenithalPanel';
-import { ColorPlanPanel } from '@/components/panels/ColorPlanPanel';
-import { BrushGuidePanel } from '@/components/panels/BrushGuidePanel';
-import { PaintHandlingPanel } from '@/components/panels/PaintHandlingPanel';
-import { PaintPlanPanel } from '@/components/panels/PaintPlanPanel';
-import { FinishVarnishPanel } from '@/components/panels/FinishVarnishPanel';
-import { extractDominantColors } from '@/lib/color-extraction';
-import { processZenithalPreview } from '@/lib/zenithal-preview';
-import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
-import { ColorScheme, ThemeId } from '@/types/primetime';
-import {
-  toBase64,
-  analyseAnatomy,
-  generateRepaint,
-  generatePrimingRepaint,
-  submitCustomRepaint,
-} from '@/lib/gemini-pipeline';
+import { useEffect, useState, useCallback } from "react";
+import { usePrimetimeState } from "@/hooks/usePrimetimeState";
+import { useRecolorMap } from "@/hooks/useRecolorMap";
+import { ControlRail } from "@/components/ControlRail";
+import { BottomBar } from "@/components/BottomBar";
+import { ImageUploader } from "@/components/ImageUploader";
+import { PrimingZenithalPanel } from "@/components/panels/PrimingZenithalPanel";
+import { ColorPlanPanel } from "@/components/panels/ColorPlanPanel";
+import { BrushGuidePanel } from "@/components/panels/BrushGuidePanel";
+import { PaintHandlingPanel } from "@/components/panels/PaintHandlingPanel";
+import { PaintPlanPanel } from "@/components/panels/PaintPlanPanel";
+import { FinishVarnishPanel } from "@/components/panels/FinishVarnishPanel";
+import { extractDominantColors } from "@/lib/color-extraction";
+import { processZenithalPreview } from "@/lib/zenithal-preview";
+import { SPEEDPAINT_MOST_WANTED } from "@/data/speedpaints";
+import { ColorScheme, ThemeId } from "@/types/primetime";
+import { toBase64, analyseAnatomy, generateRepaint, submitCustomRepaint } from "@/lib/gemini-pipeline";
 
 function generateSchemes(
   extractedColors: string[],
@@ -36,41 +30,70 @@ function generateSchemes(
     let bestDist = Infinity;
     const [r, g, b] = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
     for (const p of paints) {
-      const [pr, pg, pb] = [parseInt(p.hex.slice(1, 3), 16), parseInt(p.hex.slice(3, 5), 16), parseInt(p.hex.slice(5, 7), 16)];
+      const [pr, pg, pb] = [
+        parseInt(p.hex.slice(1, 3), 16),
+        parseInt(p.hex.slice(3, 5), 16),
+        parseInt(p.hex.slice(5, 7), 16),
+      ];
       const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
-      if (dist < bestDist) { best = p; bestDist = dist; }
+      if (dist < bestDist) {
+        best = p;
+        bestDist = dist;
+      }
     }
     return best;
   }
 
-  const getBase = () => baseOverride ? paints.find(p => p.name === baseOverride) || paints[8] : (extractedColors[0] ? closestPaint(extractedColors[0]) : paints[8]);
-  const getMid1 = () => midtoneOverrides[0] ? paints.find(p => p.name === midtoneOverrides[0]) || paints[7] : (extractedColors[1] ? closestPaint(extractedColors[1]) : paints[7]);
-  const getMid2 = () => midtoneOverrides[1] ? paints.find(p => p.name === midtoneOverrides[1]) || null : (extractedColors[2] ? closestPaint(extractedColors[2]) : null);
-  const getHigh = () => highlightOverride ? paints.find(p => p.name === highlightOverride) || paints[23] : (extractedColors[3] ? closestPaint(extractedColors[3]) : paints[23]);
+  const getBase = () =>
+    baseOverride
+      ? paints.find((p) => p.name === baseOverride) || paints[8]
+      : extractedColors[0]
+        ? closestPaint(extractedColors[0])
+        : paints[8];
+  const getMid1 = () =>
+    midtoneOverrides[0]
+      ? paints.find((p) => p.name === midtoneOverrides[0]) || paints[7]
+      : extractedColors[1]
+        ? closestPaint(extractedColors[1])
+        : paints[7];
+  const getMid2 = () =>
+    midtoneOverrides[1]
+      ? paints.find((p) => p.name === midtoneOverrides[1]) || null
+      : extractedColors[2]
+        ? closestPaint(extractedColors[2])
+        : null;
+  const getHigh = () =>
+    highlightOverride
+      ? paints.find((p) => p.name === highlightOverride) || paints[23]
+      : extractedColors[3]
+        ? closestPaint(extractedColors[3])
+        : paints[23];
 
   const s1: ColorScheme = {
-    name: 'Closest match',
-    type: 'speedpaint-led',
+    name: "Closest match",
+    type: "speedpaint-led",
     base: getBase(),
     midtone1: getMid1(),
     midtone2: getMid2(),
     highlight: getHigh(),
   };
 
-  const themeShift = theme === 'grimdark' ? 0 : theme === 'vibrant' ? 6 : theme === 'natural' ? 3 : 9;
+  const themeShift = theme === "grimdark" ? 0 : theme === "vibrant" ? 6 : theme === "natural" ? 3 : 9;
   const s2Base = baseOverride ? s1.base : paints[(paints.indexOf(s1.base) + themeShift) % paints.length];
   const s2: ColorScheme = {
-    name: 'Theme variation',
-    type: 'speedpaint-led',
+    name: "Theme variation",
+    type: "speedpaint-led",
     base: s2Base,
     midtone1: paints[(paints.indexOf(s1.midtone1) + themeShift + 2) % paints.length],
     midtone2: s1.midtone2 ? paints[(paints.indexOf(s1.midtone2) + themeShift + 4) % paints.length] : null,
-    highlight: highlightOverride ? s1.highlight : paints[(paints.indexOf(s1.highlight) + themeShift + 1) % paints.length],
+    highlight: highlightOverride
+      ? s1.highlight
+      : paints[(paints.indexOf(s1.highlight) + themeShift + 1) % paints.length],
   };
 
   const s3: ColorScheme = {
-    name: 'Mix approach',
-    type: 'mix-based',
+    name: "Mix approach",
+    type: "mix-based",
     base: s1.base,
     midtone1: paints[(paints.indexOf(s1.midtone1) + 12) % paints.length],
     midtone2: s1.midtone2 ? paints[(paints.indexOf(s1.midtone2) + 8) % paints.length] : null,
@@ -128,13 +151,16 @@ export default function Index() {
 
   const getOverrideHex = (name: string | null) => {
     if (!name) return null;
-    return SPEEDPAINT_MOST_WANTED.find(p => p.name === name)?.hex || null;
+    return SPEEDPAINT_MOST_WANTED.find((p) => p.name === name)?.hex || null;
   };
 
   useEffect(() => {
-    if (mainImages.length === 0) { setExtractedColors([]); return; }
+    if (mainImages.length === 0) {
+      setExtractedColors([]);
+      return;
+    }
     const img = mainImages[0];
-    extractDominantColors(img.objectUrl).then(colors => {
+    extractDominantColors(img.objectUrl).then((colors) => {
       setExtractedColors(colors);
     });
   }, [mainImages.length]);
@@ -181,12 +207,15 @@ export default function Index() {
       for (const img of mainImages) {
         if (cancelled) return;
         const el = new Image();
-        el.crossOrigin = 'anonymous';
+        el.crossOrigin = "anonymous";
         el.src = img.objectUrl;
-        await new Promise<void>(r => { el.onload = () => r(); el.onerror = () => r(); });
+        await new Promise<void>((r) => {
+          el.onload = () => r();
+          el.onerror = () => r();
+        });
         if (cancelled) return;
 
-        await new Promise<void>(r => requestAnimationFrame(() => r()));
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
         const result = processZenithalPreview(el, {
           zenithalEnabled: state.zenithalEnabled,
@@ -195,7 +224,7 @@ export default function Index() {
           primeColour: state.primeColor,
         });
 
-        const blob = await new Promise<Blob | null>(r => result.toBlob(r, 'image/png'));
+        const blob = await new Promise<Blob | null>((r) => result.toBlob(r, "image/png"));
         if (cancelled || !blob) return;
 
         const url = URL.createObjectURL(blob);
@@ -213,12 +242,14 @@ export default function Index() {
     };
   }, [mainImages.length, state.primeColor, state.zenithalEnabled, state.zenithalScheme, state.zenithalDirection]);
 
-  const handleThemeSelect = useCallback((t: ThemeId) => {
-    setSelectedTheme(t);
-    if (state.activeStep !== 'color-plan') setActiveStep('color-plan');
-  }, [state.activeStep]);
+  const handleThemeSelect = useCallback(
+    (t: ThemeId) => {
+      setSelectedTheme(t);
+      if (state.activeStep !== "color-plan") setActiveStep("color-plan");
+    },
+    [state.activeStep],
+  );
 
-  // Pipeline: Analyse & Repaint
   const handleAnalyseAndRepaint = useCallback(async () => {
     if (mainImages.length === 0 || state.currentlyRepainting) return;
     setPipelineError(null);
@@ -227,31 +258,26 @@ export default function Index() {
     const startTime = Date.now();
 
     try {
-      const refBase64s = await Promise.all(
-        state.referenceImages.map(img => toBase64(img.file))
-      );
+      const refBase64s = await Promise.all(state.referenceImages.map((img) => toBase64(img.file)));
 
       for (let i = 0; i < mainImages.length; i++) {
         setSharedSliderIndex(i);
         const base64 = await toBase64(mainImages[i].file);
-
         const regions = await analyseAnatomy(base64, refBase64s);
 
         const { image: primingImage } = await generatePrimingRepaint(
           base64,
-          'miniature figure',
+          "miniature figure",
           state.primeColor,
           state.zenithalEnabled,
           state.zenithalScheme,
           state.zenithalMethod,
           state.zenithalDirection,
-          refBase64s
+          refBase64s,
         );
         setPrimingRepaintEntry(i, primingImage);
 
-        const { image, prompt } = await generateRepaint(
-          base64, regions, 'miniature figure', refBase64s
-        );
+        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", refBase64s);
         setColorRepaintEntry(i, image);
 
         if (i === 0) {
@@ -259,27 +285,29 @@ export default function Index() {
           setInitialRepaintImage(image);
           setCustomRepaintImage(image);
           setActivePrompt(prompt);
-
           const elapsed = Math.round((Date.now() - startTime) / 1000);
           setGeminiHistory([
-            { role: 'user', textContent: 'Anatomy analysis', hasImage: true },
-            { role: 'model', textContent: JSON.stringify(regions), hasImage: false },
-            { role: 'user', textContent: prompt, hasImage: true },
-            { role: 'model', imageContent: image, hasImage: true },
+            { role: "user", textContent: "Anatomy analysis", hasImage: true },
+            { role: "model", textContent: JSON.stringify(regions), hasImage: false },
+            { role: "user", textContent: prompt, hasImage: true },
+            { role: "model", imageContent: image, hasImage: true },
           ]);
-          setRepaintLog(prev => [...prev, {
-            section: 'initial',
-            timestamp: new Date(),
-            elapsedSeconds: elapsed,
-          }]);
-          setRepaintHistory(prev => [...prev, { label: 'Initial repaint', image }]);
+          setRepaintLog((prev) => [
+            ...prev,
+            {
+              section: "initial",
+              timestamp: new Date(),
+              elapsedSeconds: elapsed,
+            },
+          ]);
+          setRepaintHistory((prev) => [...prev, { label: "Initial repaint", image }]);
         }
       }
 
       setSharedSliderIndex(0);
       setPipelineComplete(true);
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Pipeline failed.';
+      const message = e instanceof Error ? e.message : "Pipeline failed.";
       setPipelineError(message);
     } finally {
       setCurrentlyRepainting(false);
@@ -296,34 +324,35 @@ export default function Index() {
 
     try {
       const base64 = await toBase64(mainImage.file);
-      const refBase64s = await Promise.all(
-        state.referenceImages.map(img => toBase64(img.file))
-      );
-      console.log('[index] referenceBase64s:', refBase64s.length);
+      const refBase64s = await Promise.all(state.referenceImages.map((img) => toBase64(img.file)));
+      console.log("[index] referenceBase64s:", refBase64s.length);
       const result = await submitCustomRepaint(base64, state.activePrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
-      const imageTurns = state.geminiHistory.filter(t => t.hasImage);
-      const trimmed = imageTurns.length >= 5
-        ? state.geminiHistory.filter(t =>
-            !t.hasImage || t !== state.geminiHistory.filter(x => x.hasImage)[0])
-        : state.geminiHistory;
+      const imageTurns = state.geminiHistory.filter((t) => t.hasImage);
+      const trimmed =
+        imageTurns.length >= 5
+          ? state.geminiHistory.filter((t) => !t.hasImage || t !== state.geminiHistory.filter((x) => x.hasImage)[0])
+          : state.geminiHistory;
 
       setGeminiHistory([
         ...trimmed,
-        { role: 'user', textContent: state.activePrompt, hasImage: false },
-        { role: 'model', imageContent: result, hasImage: true },
+        { role: "user", textContent: state.activePrompt, hasImage: false },
+        { role: "model", imageContent: result, hasImage: true },
       ]);
-      setRepaintLog(prev => [...prev, {
-        section: 'colorPlan',
-        timestamp: new Date(),
-        elapsedSeconds: elapsed,
-      }]);
-      setRepaintHistory(prev => [...prev, { label: 'Custom repaint', image: result }]);
+      setRepaintLog((prev) => [
+        ...prev,
+        {
+          section: "colorPlan",
+          timestamp: new Date(),
+          elapsedSeconds: elapsed,
+        },
+      ]);
+      setRepaintHistory((prev) => [...prev, { label: "Custom repaint", image: result }]);
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Repaint failed.';
+      const message = e instanceof Error ? e.message : "Repaint failed.";
       setSubmitError(message);
     } finally {
       setCurrentlyRepainting(false);
@@ -336,19 +365,19 @@ export default function Index() {
 
   const renderWorkspace = () => {
     switch (state.activeStep) {
-      case 'upload':
+      case "upload":
         return (
           <ImageUploader
             mainImages={state.mainImages}
             referenceImages={state.referenceImages}
-            onMainImagesChange={files => addMainImages(files)}
+            onMainImagesChange={(files) => addMainImages(files)}
             onReferenceImagesChange={async (files) => {
               addReferenceImages(files);
               const base64s = await Promise.all(
-                files.map(f => toBase64(f instanceof File ? f : (f as unknown as { file: File }).file))
+                files.map((f) => toBase64(f instanceof File ? f : (f as unknown as { file: File }).file)),
               );
               appendReferenceBase64s(base64s);
-              console.log('[upload] referenceBase64s stored:', base64s.length);
+              console.log("[upload] referenceBase64s stored:", base64s.length);
             }}
             repaintStartTime={state.repaintStartTime}
             onAnalyseAndRepaint={handleAnalyseAndRepaint}
@@ -357,7 +386,7 @@ export default function Index() {
             currentlyRepainting={state.currentlyRepainting}
           />
         );
-      case 'priming':
+      case "priming":
         return (
           <PrimingZenithalPanel
             primeColor={state.primeColor}
@@ -386,8 +415,7 @@ export default function Index() {
             primingRepaintMap={state.primingRepaintMap}
           />
         );
-      case 'color-plan':
-
+      case "color-plan":
         return (
           <ColorPlanPanel
             extractedColors={state.extractedColors}
@@ -416,19 +444,22 @@ export default function Index() {
             colorRepaintMap={state.colorRepaintMap}
           />
         );
-      case 'brush-guide':
+      case "brush-guide":
         return <BrushGuidePanel />;
-      case 'paint-handling':
+      case "paint-handling":
         return <PaintHandlingPanel />;
-      case 'thinning-plan':
+      case "thinning-plan":
         return <PaintPlanPanel />;
-      case 'finish':
+      case "finish":
         return <FinishVarnishPanel />;
     }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundImage: 'linear-gradient(65deg, #13131a 0%, #1e1b2e 100%)' }}>
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ backgroundImage: "linear-gradient(65deg, #13131a 0%, #1e1b2e 100%)" }}
+    >
       <ControlRail
         activeStep={state.activeStep}
         onStepChange={setActiveStep}
@@ -441,9 +472,7 @@ export default function Index() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
-            {renderWorkspace()}
-          </div>
+          <div className="p-6">{renderWorkspace()}</div>
         </div>
 
         <BottomBar
