@@ -237,7 +237,7 @@ export default function Index() {
       const { image, prompt } = await generateRepaint(base64, regions, 'miniature figure', refBase64s);
       setInitialRepaintImage(image);
       setCustomRepaintImage(image);
-      setRepaintMapEntry(state.sharedSliderIndex, image);
+      setPrimingRepaintEntry(state.sharedSliderIndex, image);
       setActivePrompt(prompt);
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
