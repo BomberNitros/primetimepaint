@@ -1,46 +1,62 @@
 
 
-# Fix — Reference image base64 append on upload
+# Fix — Edge function reference image format
 
-Two files, two changes.
+## Problem
+Reference images are pushed into the content array without size filtering or data URI prefix guarantee. Raw base64 strings without `data:` prefix fail at the gateway.
 
-## FIX 1 — `src/hooks/usePrimetimeState.ts`
+## Changes — `supabase/functions/gemini-repaint/index.ts`
 
-After line 63 (after `setReferenceBase64s`), add:
+1. **Delete line 27** — remove `console.log` diagnostic
+2. **Replace lines 40–41** (`hasRefs` variable) with `refParts` builder:
+   ```typescript
+   const refParts = Array.isArray(referenceImages) && referenceImages.length > 0
+     ? referenceImages
+         .filter((r: unknown) => typeof r === 'string' && (r as string).length < 800_000)
+         .map((r: string) => ({
+           type: 'image_url',
+           image_url: {
+             url: r.startsWith('data:') ? r : `data:image/jpeg;base64,${r}`
+           }
+         }))
+     : [];
+   ```
 
-```typescript
-const appendReferenceBase64s = useCallback((incoming: string[]) => {
-  setState(s => ({
-    ...s,
-    referenceBase64s: [...(s.referenceBase64s ?? []), ...incoming]
-  }));
-}, []);
-```
+3. **Anatomy branch (lines 65–77)** — Merge prompt suffix into the text part, build content array in one shot:
+   ```typescript
+   const content: unknown[] = [
+     ...refParts,
+     { type: 'image_url', image_url: { url: image } },
+     { type: 'text', text: anatomyPrompt
+       + (refParts.length > 0
+         ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Extract their palette, mood, contrast level, and technique. Apply what you learn to your color recommendations.'
+         : '') }
+   ];
+   ```
+   The old `hasRefs` check on lines 65–68 and the loop on lines 70–77 are both replaced.
 
-Add `appendReferenceBase64s` to the return object (line ~228 area).
+4. **Repaint branch (lines 109–122)** — Same pattern:
+   ```typescript
+   const content: unknown[] = [
+     { type: 'image_url', image_url: { url: image } },
+     ...refParts,
+     { type: 'text', text: prompt
+       + (refParts.length > 0
+         ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Match their palette, contrast level, brushwork character, and atmosphere in the repaint.'
+         : '') }
+   ];
+   ```
+   Delete the old `repaintPrompt` variable (lines 109–112) — the suffix is now inline.
 
-## FIX 2 — `src/pages/Index.tsx`
+5. **Redeploy** and confirm deployment succeeds.
 
-1. **Line 115** — add `appendReferenceBase64s` to the destructuring block
-2. **Line 319** — replace `onReferenceImagesChange={files => addReferenceImages(files)}` with:
-
-```typescript
-onReferenceImagesChange={async (files) => {
-  addReferenceImages(files);
-  const base64s = await Promise.all(
-    files.map(f => toBase64(f instanceof File ? f : f.file))
-  );
-  appendReferenceBase64s(base64s);
-  console.log('[upload] referenceBase64s stored:', base64s.length);
-}}
-```
-
-`toBase64` is already imported from `@/lib/gemini-pipeline` (line 18).
+## What is NOT changed
+- Model names, gateway URL, auth headers, response parsing
+- No other files
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `src/hooks/usePrimetimeState.ts` | Add `appendReferenceBase64s` helper + expose |
-| `src/pages/Index.tsx` | Destructure helper, convert refs to base64 on upload |
+| `supabase/functions/gemini-repaint/index.ts` | `refParts` builder with size filter + data URI prefix, simplified content arrays, remove console.log |
 
