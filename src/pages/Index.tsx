@@ -22,6 +22,7 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 function generateSchemes(
   extractedColors: string[],
@@ -269,8 +270,6 @@ export default function Index() {
       if (!img) return;
 
       toast("Updating priming preview…", { duration: 2000 });
-      setRepaintStartTime(new Date());
-      setCurrentlyRepainting(true);
       const startTime = Date.now();
 
       try {
@@ -292,7 +291,7 @@ export default function Index() {
         setRepaintLog((prev) => [
           ...prev,
           {
-            section: "primer",
+            section: "priming",
             timestamp: new Date(),
             elapsedSeconds: elapsed,
           },
@@ -301,8 +300,6 @@ export default function Index() {
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Priming update failed.";
         toast.error(message, { duration: 4000 });
-      } finally {
-        setCurrentlyRepainting(false);
       }
     }, 2000);
 
@@ -345,7 +342,7 @@ export default function Index() {
         );
         setPrimingRepaintEntry(i, primingImage);
 
-        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
+        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", refBase64s);
         setColorRepaintEntry(i, image);
 
         if (i === 0) {
