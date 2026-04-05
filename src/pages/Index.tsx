@@ -18,6 +18,7 @@ import {
   toBase64,
   analyseAnatomy,
   generateRepaint,
+  generatePrimingRepaint,
   submitCustomRepaint,
 } from '@/lib/gemini-pipeline';
 
