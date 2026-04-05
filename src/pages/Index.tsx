@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { usePrimetimeState } from "@/hooks/usePrimetimeState";
 import { useRecolorMap } from "@/hooks/useRecolorMap";
 import { ControlRail } from "@/components/ControlRail";
@@ -14,7 +14,15 @@ import { extractDominantColors } from "@/lib/color-extraction";
 import { processZenithalPreview } from "@/lib/zenithal-preview";
 import { SPEEDPAINT_MOST_WANTED } from "@/data/speedpaints";
 import { ColorScheme, ThemeId } from "@/types/primetime";
-import { toBase64, analyseAnatomy, generateRepaint, generatePrimingRepaint, submitCustomRepaint } from "@/lib/gemini-pipeline";
+import {
+  toBase64,
+  analyseAnatomy,
+  generateRepaint,
+  generatePrimingRepaint,
+  submitCustomRepaint,
+} from "@/lib/gemini-pipeline";
+import { toast } from "sonner";
+import { useRef } from "react";
 
 function generateSchemes(
   extractedColors: string[],
@@ -250,6 +258,67 @@ export default function Index() {
     [state.activeStep],
   );
 
+  // Background priming regeneration on settings change
+  const primingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!state.pipelineComplete || mainImages.length === 0) return;
+    if (primingDebounceRef.current) clearTimeout(primingDebounceRef.current);
+
+    primingDebounceRef.current = setTimeout(async () => {
+      const img = mainImages[state.sharedSliderIndex];
+      if (!img) return;
+
+      toast("Updating priming preview…", { duration: 2000 });
+      setRepaintStartTime(new Date());
+      setCurrentlyRepainting(true);
+      const startTime = Date.now();
+
+      try {
+        const base64 = await toBase64(img.file);
+        const refBase64s = await Promise.all(state.referenceImages.map((i) => toBase64(i.file)));
+        const { image: primingImage } = await generatePrimingRepaint(
+          base64,
+          "miniature figure",
+          state.primeColor,
+          state.zenithalEnabled,
+          state.zenithalScheme,
+          state.zenithalMethod,
+          state.zenithalDirection,
+          refBase64s,
+        );
+        setPrimingRepaintEntry(state.sharedSliderIndex, primingImage);
+
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        setRepaintLog((prev) => [
+          ...prev,
+          {
+            section: "priming",
+            timestamp: new Date(),
+            elapsedSeconds: elapsed,
+          },
+        ]);
+        toast.success("Priming preview updated.", { duration: 3000 });
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Priming update failed.";
+        toast.error(message, { duration: 4000 });
+      } finally {
+        setCurrentlyRepainting(false);
+      }
+    }, 2000);
+
+    return () => {
+      if (primingDebounceRef.current) clearTimeout(primingDebounceRef.current);
+    };
+  }, [
+    state.primeColor,
+    state.zenithalEnabled,
+    state.zenithalScheme,
+    state.zenithalMethod,
+    state.zenithalDirection,
+    state.sharedSliderIndex,
+  ]);
+
   const handleAnalyseAndRepaint = useCallback(async () => {
     if (mainImages.length === 0 || state.currentlyRepainting) return;
     setPipelineError(null);
@@ -277,7 +346,7 @@ export default function Index() {
         );
         setPrimingRepaintEntry(i, primingImage);
 
-        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
+        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", refBase64s);
         setColorRepaintEntry(i, image);
 
         if (i === 0) {
