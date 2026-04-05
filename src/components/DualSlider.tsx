@@ -1,42 +1,41 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface DualSliderProps {
-  originalImage: string | null;
-  customRepaintImage: string | null;
-  leftLabel?: string;
-  rightLabel?: string;
   leftImages: { src: string; label: string }[];
   rightImages: { src: string; label: string }[];
+  sharedIndex: number;
+  onIndexChange: (i: number) => void;
+  primingHint?: string;
 }
 
 export function DualSlider({
-  originalImage,
-  customRepaintImage,
-  leftLabel = 'Original',
-  rightLabel = 'AI Repaint',
   leftImages,
   rightImages,
+  sharedIndex,
+  onIndexChange,
+  primingHint,
 }: DualSliderProps) {
-  const [leftIndex, setLeftIndex] = useState(0);
-  const [rightIndex, setRightIndex] = useState(0);
   const [zoomImage, setZoomImage] = useState<{ src: string; label: string } | null>(null);
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomOffset, setZoomOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, ox: 0, oy: 0 });
 
-  // Escape key
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setZoomImage(null);
-        setZoomScale(1);
-        setZoomOffset({ x: 0, y: 0 });
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  const glowStyle: React.CSSProperties = {
+    background: 'rgba(168, 85, 247, 0.12)',
+    border: '1px solid #a855f7',
+    boxShadow: '0 0 8px #a855f7, 0 0 16px rgba(168,85,247,0.35)',
+    borderRadius: '0.375rem',
+    padding: '2px 10px',
+    color: '#e9d5ff',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    display: 'inline-flex',
+    alignItems: 'center',
+    whiteSpace: 'nowrap' as const,
+  };
+
+  const maxCount = Math.max(leftImages.length, rightImages.length);
 
   // Imperative wheel zoom
   useEffect(() => {
@@ -49,171 +48,116 @@ export function DualSlider({
     return () => window.removeEventListener('wheel', handler);
   }, [zoomImage]);
 
-  // Drag to pan
+  // Drag pan
   useEffect(() => {
-    if (!zoomImage || !isDragging) return;
-    const handleMove = (e: MouseEvent) => {
-      setZoomOffset(prev => ({
-        x: prev.x + e.clientX - dragStart.x,
-        y: prev.y + e.clientY - dragStart.y,
-      }));
-      setDragStart({ x: e.clientX, y: e.clientY });
+    const onMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      setZoomOffset({
+        x: dragStart.ox + (e.clientX - dragStart.x) / zoomScale,
+        y: dragStart.oy + (e.clientY - dragStart.y) / zoomScale,
+      });
     };
-    const handleUp = () => setIsDragging(false);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
+    const onUp = () => setIsDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
     return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
     };
-  }, [zoomImage, isDragging, dragStart]);
+  }, [isDragging, dragStart, zoomScale]);
 
-  const openZoom = useCallback((src: string, label: string) => {
-    setZoomImage({ src, label });
-    setZoomScale(1);
-    setZoomOffset({ x: 0, y: 0 });
+  // Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setZoomImage(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  const resetZoom = useCallback(() => {
-    setZoomScale(1);
-    setZoomOffset({ x: 0, y: 0 });
-  }, []);
+  const leftItem = leftImages[sharedIndex];
+  const rightItem = rightImages[sharedIndex];
 
-  const leftSrc = leftImages[leftIndex]?.src ?? originalImage;
-  const leftLbl = leftImages[leftIndex]?.label ?? leftLabel;
-  const rightSrc = rightImages[rightIndex]?.src ?? customRepaintImage;
-  const rightLbl = rightImages[rightIndex]?.label ?? rightLabel;
-
-  const downloadable = [
-    leftSrc ? { label: leftLbl, src: leftSrc } : null,
-    rightSrc ? { label: rightLbl, src: rightSrc } : null,
-  ].filter(Boolean) as { label: string; src: string }[];
+  const navBtnStyle = (disabled: boolean): React.CSSProperties => ({
+    padding: '2px 12px',
+    fontSize: '0.75rem',
+    borderRadius: '0.375rem',
+    border: '1px solid var(--color-border)',
+    opacity: disabled ? 0.3 : 1,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    background: 'transparent',
+    color: 'inherit',
+  });
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'stretch' }} className="w-full">
-        {/* Left */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'stretch' }}>
+        {/* Left panel */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-medium text-muted-foreground">{leftLbl}</p>
-            {leftSrc && (
-              <button
-                type="button"
-                onClick={() => openZoom(leftSrc, leftLbl)}
-                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-              >
-                Zoom
-              </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={glowStyle}>{leftItem?.label ?? 'Image'}</span>
+            {primingHint && (
+              <span style={{ ...glowStyle, fontSize: '0.65rem', opacity: 0.8 }}>{primingHint}</span>
             )}
           </div>
-          <div className="relative rounded-md overflow-hidden border border-border bg-muted/20" style={{ height: '320px' }}>
-            {leftSrc ? (
+          <div style={{ height: '320px', overflow: 'hidden', borderRadius: '0.375rem', border: '1px solid var(--color-border)' }}>
+            {leftItem?.src ? (
               <img
-                src={leftSrc}
-                alt={leftLbl}
-                className="w-full h-full object-contain cursor-zoom-in"
-                onClick={() => openZoom(leftSrc, leftLbl)}
+                src={leftItem.src}
+                alt={leftItem.label}
+                style={{ width: '100%', height: '320px', objectFit: 'contain', cursor: 'zoom-in' }}
+                onClick={() => setZoomImage(leftItem)}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+              <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
                 No image
               </div>
             )}
           </div>
-          {leftImages.length > 1 && (
-            <div className="flex items-center justify-between mt-1">
-              <button
-                type="button"
-                disabled={leftIndex === 0}
-                onClick={() => setLeftIndex(i => i - 1)}
-                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
-              >
-                ←
-              </button>
-              <span className="text-xs text-muted-foreground">
-                {leftIndex + 1} / {leftImages.length}
-              </span>
-              <button
-                type="button"
-                disabled={leftIndex === leftImages.length - 1}
-                onClick={() => setLeftIndex(i => i + 1)}
-                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
-              >
-                →
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Right */}
+        {/* Right panel */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-medium text-muted-foreground">{rightLbl}</p>
-            {rightSrc && (
-              <button
-                type="button"
-                onClick={() => openZoom(rightSrc, rightLbl)}
-                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-              >
-                Zoom
-              </button>
-            )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={glowStyle}>{rightItem?.label ?? 'Repaint'}</span>
           </div>
-          <div className="relative rounded-md overflow-hidden border border-border bg-muted/20" style={{ height: '320px' }}>
-            {rightSrc ? (
+          <div style={{ height: '320px', overflow: 'hidden', borderRadius: '0.375rem', border: '1px solid var(--color-border)' }}>
+            {rightItem?.src ? (
               <img
-                src={rightSrc}
-                alt={rightLbl}
-                className="w-full h-full object-contain cursor-zoom-in"
-                onClick={() => openZoom(rightSrc, rightLbl)}
+                src={rightItem.src}
+                alt={rightItem.label}
+                style={{ width: '100%', height: '320px', objectFit: 'contain', cursor: 'zoom-in' }}
+                onClick={() => setZoomImage(rightItem)}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
-                Repaint will appear here
+              <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+                Repaint pending
               </div>
             )}
           </div>
-          {rightImages.length > 1 && (
-            <div className="flex items-center justify-between mt-1">
-              <button
-                type="button"
-                disabled={rightIndex === 0}
-                onClick={() => setRightIndex(i => i - 1)}
-                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
-              >
-                ←
-              </button>
-              <span className="text-xs text-muted-foreground">
-                {rightIndex + 1} / {rightImages.length}
-              </span>
-              <button
-                type="button"
-                disabled={rightIndex === rightImages.length - 1}
-                onClick={() => setRightIndex(i => i + 1)}
-                className="px-2 py-0.5 text-xs rounded border border-border disabled:opacity-30"
-              >
-                →
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Batch download */}
-        {downloadable.length > 0 && (
-          <div className="col-span-2 flex justify-end mt-2">
+        {/* Navigation */}
+        {maxCount > 1 && (
+          <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
             <button
               type="button"
-              className="px-3 py-1.5 text-xs rounded-md border border-border hover:bg-muted/40 transition-colors"
-              onClick={() => {
-                downloadable.forEach(item => {
-                  const a = document.createElement('a');
-                  a.href = item.src;
-                  a.download = item.label + '.png';
-                  a.click();
-                });
-              }}
+              disabled={sharedIndex === 0}
+              onClick={() => onIndexChange(sharedIndex - 1)}
+              style={navBtnStyle(sharedIndex === 0)}
             >
-              ↓ Download all
+              ← Prev
+            </button>
+            <span style={glowStyle}>
+              {sharedIndex + 1} / {maxCount}
+            </span>
+            <button
+              type="button"
+              disabled={sharedIndex >= maxCount - 1}
+              onClick={() => onIndexChange(sharedIndex + 1)}
+              style={navBtnStyle(sharedIndex >= maxCount - 1)}
+            >
+              Next →
             </button>
           </div>
         )}
@@ -222,60 +166,60 @@ export function DualSlider({
       {/* Lightbox */}
       {zoomImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-          onClick={() => {
-            setZoomImage(null);
-            setZoomScale(1);
-            setZoomOffset({ x: 0, y: 0 });
-          }}
+          style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)' }}
+          onClick={() => setZoomImage(null)}
         >
           <button
             type="button"
-            className="absolute top-4 right-4 text-white text-xl font-bold z-10"
-            onClick={() => {
-              setZoomImage(null);
-              setZoomScale(1);
-              setZoomOffset({ x: 0, y: 0 });
-            }}
+            style={{ ...glowStyle, position: 'absolute', top: '1rem', right: '1rem', zIndex: 10, cursor: 'pointer', fontSize: '1rem', padding: '4px 14px' }}
+            onClick={() => setZoomImage(null)}
           >
             ✕
           </button>
 
-          {/* Zoom percentage + reset */}
-          <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
-            <span className="text-sm font-bold bg-black/70 px-3 py-1.5 rounded-md text-white shadow-lg font-mono">
-              {Math.round(zoomScale * 100)}%
-            </span>
-            {zoomScale !== 1 && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); resetZoom(); }}
-                className="text-white/70 text-xs hover:text-white underline"
-              >
-                Reset zoom
-              </button>
-            )}
+          <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <span style={glowStyle}>{zoomImage.label}</span>
+            <span style={glowStyle}>{Math.round(zoomScale * 100)}%</span>
+            <button
+              type="button"
+              style={{ ...glowStyle, cursor: 'pointer' }}
+              onClick={e => {
+                e.stopPropagation();
+                setZoomScale(1);
+                setZoomOffset({ x: 0, y: 0 });
+              }}
+            >
+              Reset
+            </button>
           </div>
 
-          {/* Hint */}
-          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/90 text-sm font-medium bg-black/50 px-4 py-2 rounded-full shadow-md z-10">
-            Scroll to zoom · drag to pan · Esc to close
-          </p>
+          <div style={{
+            position: 'absolute', bottom: '1.25rem', left: '50%', transform: 'translateX(-50%)', zIndex: 10,
+            ...glowStyle, fontSize: '0.8rem', padding: '6px 18px',
+          }}>
+            Scroll to zoom · Drag to pan · Esc to close
+          </div>
 
           <img
             src={zoomImage.src}
-            alt={zoomImage.label}
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-md select-none"
-            style={{
-              transform: `scale(${zoomScale}) translate(${zoomOffset.x / zoomScale}px, ${zoomOffset.y / zoomScale}px)`,
-              cursor: isDragging ? 'grabbing' : 'grab',
-            }}
+            alt="Zoomed"
             draggable={false}
+            style={{
+              transform: `scale(${zoomScale}) translate(${zoomOffset.x}px,${zoomOffset.y}px)`,
+              transformOrigin: 'center center',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              objectFit: 'contain',
+              cursor: zoomScale > 1 ? 'grab' : 'zoom-in',
+              userSelect: 'none',
+              transition: isDragging ? 'none' : 'transform 0.1s ease',
+            }}
             onClick={e => e.stopPropagation()}
             onMouseDown={e => {
-              e.stopPropagation();
+              if (zoomScale <= 1) return;
+              e.preventDefault();
               setIsDragging(true);
-              setDragStart({ x: e.clientX, y: e.clientY });
+              setDragStart({ x: e.clientX, y: e.clientY, ox: zoomOffset.x, oy: zoomOffset.y });
             }}
           />
         </div>
