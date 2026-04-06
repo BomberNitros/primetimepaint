@@ -31,7 +31,7 @@ export function RepaintTicker({ repaintLog }: RepaintTickerProps) {
         {count} / {FREE_TIER_CEILING}
       </div>
 
-      <div className="h-1 rounded-full bg-muted overflow-hidden">
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all', barColor)}
           style={{ width: `${Math.min(pct, 100)}%` }}
