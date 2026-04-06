@@ -3,8 +3,7 @@ import { cn } from '@/lib/utils';
 
 const FREE_TIER_CEILING = 100;
 const FREE_TIER_ACTIVE = true;
-- const COST_PER_REPAINT = 0.036;
-+ const COST_PER_REPAINT = 0.072;
+const COST_PER_REPAINT = 0.072;
 
 const DOT_COLORS: Record<RepaintEntry['section'], string> = {
   initial: 'bg-purple-500',
