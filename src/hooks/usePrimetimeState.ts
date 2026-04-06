@@ -203,6 +203,10 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, currentlyRepainting: v }));
   }, []);
 
+  const setBackgroundRepainting = useCallback((v: boolean) => {
+    setState(s => ({ ...s, backgroundRepainting: v }));
+  }, []);
+
   const setRepaintStartTime = useCallback((v: Date | null) => {
     setState(s => ({ ...s, repaintStartTime: v }));
   }, []);
