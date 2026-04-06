@@ -131,4 +131,5 @@ export interface PrimetimeState {
   pipelineComplete: boolean;
   pipelineError: string | null;
   sharedSliderIndex: number;
+  backgroundRepainting: boolean;
 }

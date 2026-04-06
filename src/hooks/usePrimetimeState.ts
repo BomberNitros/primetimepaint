@@ -43,6 +43,7 @@ const initialState: PrimetimeState = {
   pipelineComplete: false,
   pipelineError: null,
   sharedSliderIndex: 0,
+  backgroundRepainting: false,
 };
 
 export function usePrimetimeState() {
@@ -233,6 +234,10 @@ export function usePrimetimeState() {
     }));
   }, []);
 
+  const setBackgroundRepainting = useCallback((v: boolean) => {
+    setState(s => ({ ...s, backgroundRepainting: v }));
+  }, []);
+
   return {
     state,
     setActiveStep,
@@ -271,5 +276,6 @@ export function usePrimetimeState() {
     setPrimingRepaintEntry,
     setColorRepaintEntry,
     setRepaintHistory,
+    setBackgroundRepainting,
   };
 }
