@@ -7,10 +7,8 @@ const COST_PER_REPAINT = 0.072;
 
 const DOT_COLORS: Record<RepaintEntry['section'], string> = {
   initial: 'bg-purple-500',
+  priming: 'bg-blue-500',
   colorPlan: 'bg-purple-500',
-  primer: 'bg-blue-500',
-  zenithal: 'bg-indigo-500',
-  lighting: 'bg-amber-500',
 };
 
 interface RepaintTickerProps {
