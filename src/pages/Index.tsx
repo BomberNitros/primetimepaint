@@ -23,6 +23,29 @@ import {
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
 
+async function compressBase64Image(
+  base64: string,
+  maxDimension = 1024,
+  quality = 0.85,
+): Promise<{ data: string; mimeType: string }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/webp', quality);
+      resolve({
+        data: dataUrl.split(',')[1],
+        mimeType: 'image/webp',
+      });
+    };
+    img.src = `data:image/png;base64,${base64}`;
+  });
+}
+
 
 function generateSchemes(
   extractedColors: string[],
@@ -344,10 +367,11 @@ export default function Index() {
       }
 
       try {
-        const base64 = await toBase64(img.file);
+        const { data: compressedData, mimeType } = await compressBase64Image(primingImage);
+        const compressedDataUri = `data:${mimeType};base64,${compressedData}`;
         const refBase64s = await Promise.all(state.referenceImages.map((i) => toBase64(i.file)));
         const { image } = await generateRepaint(
-          base64,
+          compressedDataUri,
           state.anatomyRegions,
           "miniature figure",
           state.primeColor,
