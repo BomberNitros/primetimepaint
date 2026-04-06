@@ -59,7 +59,7 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
       {status === 'active' ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin text-primary" />
-          <span className="text-xs text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <span className="text-xs text-muted-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
             Repainting · {timeStr}
           </span>
         </>
