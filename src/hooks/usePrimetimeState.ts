@@ -234,6 +234,10 @@ export function usePrimetimeState() {
     }));
   }, []);
 
+  const setBackgroundRepainting = useCallback((v: boolean) => {
+    setState(s => ({ ...s, backgroundRepainting: v }));
+  }, []);
+
   return {
     state,
     setActiveStep,
@@ -272,5 +276,6 @@ export function usePrimetimeState() {
     setPrimingRepaintEntry,
     setColorRepaintEntry,
     setRepaintHistory,
+    setBackgroundRepainting,
   };
 }
