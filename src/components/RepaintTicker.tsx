@@ -27,7 +27,7 @@ export function RepaintTicker({ repaintLog }: RepaintTickerProps) {
 
   return (
     <div className="border-t border-border bg-card p-4 space-y-2 border-l-2 border-primary">
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-muted-foreground font-semibold">
         {count} / {FREE_TIER_CEILING}
       </div>
 
