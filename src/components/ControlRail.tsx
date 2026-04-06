@@ -49,6 +49,7 @@ export function ControlRail({
   hasImages,
   pipelineComplete,
   currentlyRepainting,
+  backgroundRepainting,
   repaintStartTime,
   repaintLog,
 }: ControlRailProps) {
