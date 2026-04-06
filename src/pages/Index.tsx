@@ -390,9 +390,13 @@ export default function Index() {
           refBase64s,
         );
         setPrimingRepaintEntry(i, primingImage);
+        const primingCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
+        primingCacheRef.current.set(primingCacheKey, primingImage);
 
         const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
         setColorRepaintEntry(i, image);
+        const colorCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
+        colorCacheRef.current.set(colorCacheKey, image);
 
         if (i === 0) {
           setAnatomyRegions(regions);
