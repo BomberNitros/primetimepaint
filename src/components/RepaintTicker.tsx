@@ -38,7 +38,7 @@ export function RepaintTicker({ repaintLog }: RepaintTickerProps) {
         />
       </div>
 
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-foreground">
         €{cost}{FREE_TIER_ACTIVE ? ' (free tier)' : ''}
       </div>
 
