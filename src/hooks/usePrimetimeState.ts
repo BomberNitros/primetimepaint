@@ -39,11 +39,11 @@ const initialState: PrimetimeState = {
   geminiHistory: [],
   repaintLog: [],
   currentlyRepainting: false,
+  backgroundRepainting: false,
   repaintStartTime: null,
   pipelineComplete: false,
   pipelineError: null,
   sharedSliderIndex: 0,
-  backgroundRepainting: false,
 };
 
 export function usePrimetimeState() {

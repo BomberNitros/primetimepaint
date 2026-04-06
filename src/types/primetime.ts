@@ -127,9 +127,9 @@ export interface PrimetimeState {
   geminiHistory: GeminiTurn[];
   repaintLog: RepaintEntry[];
   currentlyRepainting: boolean;
+  backgroundRepainting: boolean;
   repaintStartTime: Date | null;
   pipelineComplete: boolean;
   pipelineError: string | null;
   sharedSliderIndex: number;
-  backgroundRepainting: boolean;
 }
