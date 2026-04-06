@@ -53,7 +53,7 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
 
   return (
     <div
-      className="w-full rounded-t-md bg-card px-3 py-2 flex items-center gap-2"
+      className="w-full rounded-t-md bg-card px-4 py-3 flex items-center gap-2 border-l-2 border-primary"
       style={transitionStyle}
     >
       {status === 'active' ? (
