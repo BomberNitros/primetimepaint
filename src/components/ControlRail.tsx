@@ -38,6 +38,7 @@ interface ControlRailProps {
   hasImages: boolean;
   pipelineComplete: boolean;
   currentlyRepainting: boolean;
+  backgroundRepainting: boolean;
   repaintStartTime: Date | null;
   repaintLog: RepaintEntry[];
 }

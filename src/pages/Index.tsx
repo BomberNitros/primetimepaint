@@ -609,6 +609,7 @@ export default function Index() {
         hasImages={mainImages.length > 0}
         pipelineComplete={state.pipelineComplete}
         currentlyRepainting={state.currentlyRepainting}
+        backgroundRepainting={state.backgroundRepainting}
         repaintStartTime={state.repaintStartTime}
         repaintLog={state.repaintLog}
       />

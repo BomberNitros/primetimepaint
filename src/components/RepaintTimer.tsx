@@ -3,6 +3,7 @@ import { Loader2, Check } from 'lucide-react';
 
 interface RepaintTimerProps {
   currentlyRepainting: boolean;
+  backgroundRepainting: boolean;
   repaintStartTime: Date | null;
 }
 
