@@ -37,7 +37,7 @@ export function RepaintTimer({ currentlyRepainting, backgroundRepainting, repain
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [currentlyRepainting]);
+  }, [currentlyRepainting, backgroundRepainting]);
 
   if (status === 'idle') return null;
 
