@@ -3,12 +3,13 @@ import { Loader2, Check } from 'lucide-react';
 
 interface RepaintTimerProps {
   currentlyRepainting: boolean;
+  backgroundRepainting: boolean;
   repaintStartTime: Date | null;
 }
 
 type Status = 'idle' | 'active' | 'complete';
 
-export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintTimerProps) {
+export function RepaintTimer({ currentlyRepainting, backgroundRepainting, repaintStartTime }: RepaintTimerProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [finalTime, setFinalTime] = useState('');
@@ -17,14 +18,14 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
-    if (currentlyRepainting && repaintStartTime) {
+    if ((currentlyRepainting || backgroundRepainting) && repaintStartTime) {
       setStatus('active');
       setElapsed(0);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
       intervalRef.current = setInterval(() => {
         setElapsed(Math.floor((Date.now() - repaintStartTime.getTime()) / 1000));
       }, 1000);
-    } else if (!currentlyRepainting && status === 'active') {
+    } else if (!currentlyRepainting && !backgroundRepainting && status === 'active') {
       if (intervalRef.current) clearInterval(intervalRef.current);
       const m = Math.floor(elapsed / 60);
       const s = elapsed % 60;
@@ -36,7 +37,7 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [currentlyRepainting]);
+  }, [currentlyRepainting, backgroundRepainting]);
 
   if (status === 'idle') return null;
 

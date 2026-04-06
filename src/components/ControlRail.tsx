@@ -38,6 +38,7 @@ interface ControlRailProps {
   hasImages: boolean;
   pipelineComplete: boolean;
   currentlyRepainting: boolean;
+  backgroundRepainting: boolean;
   repaintStartTime: Date | null;
   repaintLog: RepaintEntry[];
 }
@@ -48,6 +49,7 @@ export function ControlRail({
   hasImages,
   pipelineComplete,
   currentlyRepainting,
+  backgroundRepainting,
   repaintStartTime,
   repaintLog,
 }: ControlRailProps) {
@@ -94,6 +96,7 @@ export function ControlRail({
         <div className="border-t border-border">
           <RepaintTimer
             currentlyRepainting={currentlyRepainting}
+            backgroundRepainting={backgroundRepainting}
             repaintStartTime={repaintStartTime}
           />
           <RepaintTicker repaintLog={repaintLog} />
