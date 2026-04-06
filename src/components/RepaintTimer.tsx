@@ -53,20 +53,20 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
 
   return (
     <div
-      className="w-full rounded-t-md bg-card px-3 py-2 flex items-center gap-2"
+      className="w-full rounded-t-md bg-card px-4 py-3 flex items-center gap-2 border-l-2 border-primary"
       style={transitionStyle}
     >
       {status === 'active' ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
-          <span className="text-xs text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
             Repainting · {timeStr}
           </span>
         </>
       ) : (
         <>
-          <Check className="w-4 h-4 text-green-500" />
-          <span className="text-xs text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <Check className="w-4 h-4 text-primary" />
+          <span className="text-xs text-muted-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
             Complete · {finalTime}
           </span>
         </>
