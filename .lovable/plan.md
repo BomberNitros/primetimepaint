@@ -1,28 +1,24 @@
 
 
-# Simplify colour repaint compression input
+# Wire `backgroundRepainting` through RepaintTimer and ControlRail
 
-## Change
+Three files, prop-threading only.
 
-**`src/pages/Index.tsx`** — in the colour repaint background effect, replace three lines:
+## 1. `src/components/RepaintTimer.tsx`
 
-```typescript
-const raw64 = await toBase64(img.file);
-const rawBase64 = raw64.split(',')[1];
-const { data: compressedData, mimeType } = await compressBase64Image(rawBase64);
-```
+- **Line 5**: Add `backgroundRepainting: boolean` to `RepaintTimerProps`
+- **Line 11**: Destructure `backgroundRepainting` in the function signature
+- **Line 20**: Change condition from `currentlyRepainting && repaintStartTime` to `(currentlyRepainting || backgroundRepainting) && repaintStartTime`
+- **Line 27**: Change condition from `!currentlyRepainting && status === 'active'` to `!currentlyRepainting && !backgroundRepainting && status === 'active'`
+- **Line 39**: Update deps array from `[currentlyRepainting]` to `[currentlyRepainting, backgroundRepainting]`
 
-with one line:
+## 2. `src/components/ControlRail.tsx`
 
-```typescript
-const { data: compressedData, mimeType } = await compressBase64Image(primingImage);
-```
+- **Line 41** (ControlRailProps): Add `backgroundRepainting: boolean` after `currentlyRepainting`
+- **Line 51** (destructuring): Add `backgroundRepainting`
+- **Line 97** (RepaintTimer JSX): Add `backgroundRepainting={backgroundRepainting}` prop
 
-This feeds the already-available `primingImage` base64 string directly into compression, removing the redundant file-to-base64 conversion.
+## 3. `src/pages/Index.tsx`
 
-## Files changed
-
-| File | Change |
-|---|---|
-| `src/pages/Index.tsx` | 3 lines → 1 line in colour repaint effect |
+- **Line 613** (ControlRail JSX): Add `backgroundRepainting={state.backgroundRepainting}` prop
 
