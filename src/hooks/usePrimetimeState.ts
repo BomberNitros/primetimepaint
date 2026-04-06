@@ -39,11 +39,11 @@ const initialState: PrimetimeState = {
   geminiHistory: [],
   repaintLog: [],
   currentlyRepainting: false,
+  backgroundRepainting: false,
   repaintStartTime: null,
   pipelineComplete: false,
   pipelineError: null,
   sharedSliderIndex: 0,
-  backgroundRepainting: false,
 };
 
 export function usePrimetimeState() {
@@ -203,6 +203,10 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, currentlyRepainting: v }));
   }, []);
 
+  const setBackgroundRepainting = useCallback((v: boolean) => {
+    setState(s => ({ ...s, backgroundRepainting: v }));
+  }, []);
+
   const setRepaintStartTime = useCallback((v: Date | null) => {
     setState(s => ({ ...s, repaintStartTime: v }));
   }, []);
@@ -234,9 +238,6 @@ export function usePrimetimeState() {
     }));
   }, []);
 
-  const setBackgroundRepainting = useCallback((v: boolean) => {
-    setState(s => ({ ...s, backgroundRepainting: v }));
-  }, []);
 
   return {
     state,
@@ -269,6 +270,7 @@ export function usePrimetimeState() {
     setGeminiHistory,
     setRepaintLog,
     setCurrentlyRepainting,
+    setBackgroundRepainting,
     setRepaintStartTime,
     setPipelineComplete,
     setPipelineError,
@@ -276,6 +278,5 @@ export function usePrimetimeState() {
     setPrimingRepaintEntry,
     setColorRepaintEntry,
     setRepaintHistory,
-    setBackgroundRepainting,
   };
 }
