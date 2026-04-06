@@ -66,7 +66,7 @@ export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintT
       ) : (
         <>
           <Check className="w-4 h-4 text-primary" />
-          <span className="text-xs text-muted-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <span className="text-xs text-muted-foreground font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>
             Complete · {finalTime}
           </span>
         </>
