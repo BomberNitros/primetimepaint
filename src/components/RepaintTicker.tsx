@@ -42,7 +42,7 @@ export function RepaintTicker({ repaintLog }: RepaintTickerProps) {
         €{cost}{FREE_TIER_ACTIVE ? ' (free tier)' : ''}
       </div>
 
-      <div className="max-h-[96px] overflow-y-auto space-y-1">
+      <div className="max-h-[112px] overflow-y-auto space-y-1">
         {reversed.map((entry, i) => (
           <div key={i} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', DOT_COLORS[entry.section])} />
