@@ -344,10 +344,11 @@ export default function Index() {
       }
 
       try {
-        const base64 = await toBase64(img.file);
+        const { data: compressedData, mimeType } = await compressBase64Image(primingImage);
+        const compressedDataUri = `data:${mimeType};base64,${compressedData}`;
         const refBase64s = await Promise.all(state.referenceImages.map((i) => toBase64(i.file)));
         const { image } = await generateRepaint(
-          base64,
+          compressedDataUri,
           state.anatomyRegions,
           "miniature figure",
           state.primeColor,
