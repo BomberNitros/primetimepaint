@@ -70,7 +70,7 @@ export interface GeminiTurn {
 }
 
 export interface RepaintEntry {
-  section: 'initial' | 'primer' | 'zenithal' | 'lighting' | 'colorPlan';
+  section: 'initial' | 'priming' | 'colorPlan';
   timestamp: Date;
   elapsedSeconds: number;
 }

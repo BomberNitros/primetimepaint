@@ -291,7 +291,7 @@ export default function Index() {
         setRepaintLog((prev) => [
           ...prev,
           {
-            section: "primer",
+            section: "priming",
             timestamp: new Date(),
             elapsedSeconds: elapsed,
           },
