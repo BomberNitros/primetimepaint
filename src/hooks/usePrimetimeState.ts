@@ -270,6 +270,7 @@ export function usePrimetimeState() {
     setGeminiHistory,
     setRepaintLog,
     setCurrentlyRepainting,
+    setBackgroundRepainting,
     setRepaintStartTime,
     setPipelineComplete,
     setPipelineError,
@@ -277,6 +278,5 @@ export function usePrimetimeState() {
     setPrimingRepaintEntry,
     setColorRepaintEntry,
     setRepaintHistory,
-    setBackgroundRepainting,
   };
 }
