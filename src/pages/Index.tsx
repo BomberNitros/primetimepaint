@@ -342,7 +342,7 @@ export default function Index() {
         );
         setPrimingRepaintEntry(i, primingImage);
 
-        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", refBase64s);
+        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
         setColorRepaintEntry(i, image);
 
         if (i === 0) {
