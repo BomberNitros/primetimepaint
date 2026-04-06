@@ -238,9 +238,6 @@ export function usePrimetimeState() {
     }));
   }, []);
 
-  const setBackgroundRepainting = useCallback((v: boolean) => {
-    setState(s => ({ ...s, backgroundRepainting: v }));
-  }, []);
 
   return {
     state,
