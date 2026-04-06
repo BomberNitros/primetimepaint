@@ -307,6 +307,8 @@ export default function Index() {
         return;
       }
 
+      setBackgroundRepainting(true);
+      setRepaintStartTime(new Date());
       toast("Updating priming preview…", { duration: 2000 });
       const startTime = Date.now();
 
@@ -332,9 +334,11 @@ export default function Index() {
           { section: "priming", timestamp: new Date(), elapsedSeconds: elapsed },
         ]);
         toast.success("Priming preview updated.", { duration: 3000 });
+        setBackgroundRepainting(false);
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Priming update failed.";
         toast.error(message, { duration: 4000 });
+        setBackgroundRepainting(false);
       }
     }, 2000);
 
