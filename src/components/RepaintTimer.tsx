@@ -18,14 +18,14 @@ export function RepaintTimer({ currentlyRepainting, backgroundRepainting, repain
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
-    if (currentlyRepainting && repaintStartTime) {
+    if ((currentlyRepainting || backgroundRepainting) && repaintStartTime) {
       setStatus('active');
       setElapsed(0);
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
       intervalRef.current = setInterval(() => {
         setElapsed(Math.floor((Date.now() - repaintStartTime.getTime()) / 1000));
       }, 1000);
-    } else if (!currentlyRepainting && status === 'active') {
+    } else if (!currentlyRepainting && !backgroundRepainting && status === 'active') {
       if (intervalRef.current) clearInterval(intervalRef.current);
       const m = Math.floor(elapsed / 60);
       const s = elapsed % 60;

@@ -96,6 +96,7 @@ export function ControlRail({
         <div className="border-t border-border">
           <RepaintTimer
             currentlyRepainting={currentlyRepainting}
+            backgroundRepainting={backgroundRepainting}
             repaintStartTime={repaintStartTime}
           />
           <RepaintTicker repaintLog={repaintLog} />
