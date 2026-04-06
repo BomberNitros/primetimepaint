@@ -260,14 +260,29 @@ export default function Index() {
 
   // Background priming regeneration on settings change
   const primingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const primingCacheRef = useRef<Map<string, string>>(new Map());
+  const colorCacheRef = useRef<Map<string, string>>(new Map());
+  const colorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sliderIndexRef = useRef(state.sharedSliderIndex);
+
+  useEffect(() => {
+    sliderIndexRef.current = state.sharedSliderIndex;
+  }, [state.sharedSliderIndex]);
 
   useEffect(() => {
     if (!state.pipelineComplete || mainImages.length === 0) return;
     if (primingDebounceRef.current) clearTimeout(primingDebounceRef.current);
 
     primingDebounceRef.current = setTimeout(async () => {
-      const img = mainImages[state.sharedSliderIndex];
+      const idx = sliderIndexRef.current;
+      const img = mainImages[idx];
       if (!img) return;
+
+      const cacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
+      if (primingCacheRef.current.has(cacheKey)) {
+        setPrimingRepaintEntry(idx, primingCacheRef.current.get(cacheKey)!);
+        return;
+      }
 
       toast("Updating priming preview…", { duration: 2000 });
       const startTime = Date.now();
@@ -285,16 +300,13 @@ export default function Index() {
           state.zenithalDirection,
           refBase64s,
         );
-        setPrimingRepaintEntry(state.sharedSliderIndex, primingImage);
+        primingCacheRef.current.set(cacheKey, primingImage);
+        setPrimingRepaintEntry(idx, primingImage);
 
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         setRepaintLog((prev) => [
           ...prev,
-          {
-            section: "priming",
-            timestamp: new Date(),
-            elapsedSeconds: elapsed,
-          },
+          { section: "priming", timestamp: new Date(), elapsedSeconds: elapsed },
         ]);
         toast.success("Priming preview updated.", { duration: 3000 });
       } catch (e: unknown) {
@@ -314,6 +326,43 @@ export default function Index() {
     state.zenithalDirection,
     state.sharedSliderIndex,
   ]);
+
+  useEffect(() => {
+    if (!state.pipelineComplete || mainImages.length === 0) return;
+    const idx = state.sharedSliderIndex;
+    const img = mainImages[idx];
+    if (!img) return;
+    const primingImage = state.primingRepaintMap[idx];
+    if (!primingImage) return;
+    if (colorDebounceRef.current) clearTimeout(colorDebounceRef.current);
+
+    colorDebounceRef.current = setTimeout(async () => {
+      const colorCacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
+      if (colorCacheRef.current.has(colorCacheKey)) {
+        setColorRepaintEntry(idx, colorCacheRef.current.get(colorCacheKey)!);
+        return;
+      }
+
+      try {
+        const refBase64s = await Promise.all(state.referenceImages.map((i) => toBase64(i.file)));
+        const { image } = await generateRepaint(
+          primingImage,
+          state.anatomyRegions,
+          "miniature figure",
+          state.primeColor,
+          refBase64s,
+        );
+        colorCacheRef.current.set(colorCacheKey, image);
+        setColorRepaintEntry(idx, image);
+      } catch {
+        // silent — colour repaint is best-effort
+      }
+    }, 2500);
+
+    return () => {
+      if (colorDebounceRef.current) clearTimeout(colorDebounceRef.current);
+    };
+  }, [state.primingRepaintMap, state.sharedSliderIndex]);
 
   const handleAnalyseAndRepaint = useCallback(async () => {
     if (mainImages.length === 0 || state.currentlyRepainting) return;
