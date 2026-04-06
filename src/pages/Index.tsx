@@ -162,6 +162,7 @@ export default function Index() {
     setGeminiHistory,
     setRepaintLog,
     setCurrentlyRepainting,
+    setBackgroundRepainting,
     setRepaintStartTime,
     setPipelineComplete,
     setPipelineError,
