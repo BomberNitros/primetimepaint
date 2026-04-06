@@ -9,7 +9,7 @@ interface RepaintTimerProps {
 
 type Status = 'idle' | 'active' | 'complete';
 
-export function RepaintTimer({ currentlyRepainting, repaintStartTime }: RepaintTimerProps) {
+export function RepaintTimer({ currentlyRepainting, backgroundRepainting, repaintStartTime }: RepaintTimerProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [finalTime, setFinalTime] = useState('');
