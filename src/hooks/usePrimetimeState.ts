@@ -43,6 +43,7 @@ const initialState: PrimetimeState = {
   pipelineComplete: false,
   pipelineError: null,
   sharedSliderIndex: 0,
+  backgroundRepainting: false,
 };
 
 export function usePrimetimeState() {
