@@ -387,7 +387,7 @@ export default function Index() {
       } catch {
         // silent — colour repaint is best-effort
       }
-    }, 2500);
+    }, 6000);
 
     return () => {
       if (colorDebounceRef.current) clearTimeout(colorDebounceRef.current);
