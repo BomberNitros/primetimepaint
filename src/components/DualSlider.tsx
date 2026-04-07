@@ -6,6 +6,7 @@ interface DualSliderProps {
   sharedIndex: number;
   onIndexChange: (i: number) => void;
   primingHint?: string;
+  colorSwatches?: { label: string; hex: string; name: string }[];
 }
 
 type ZoomState = { src: string; label: string; slot: 'left' | 'right'; index: number } | null;
