@@ -75,33 +75,13 @@ function generateSchemes(
     return best;
   }
 
-  const getBase = () =>
-    baseOverride
-      ? paints.find((p) => p.name === baseOverride) || paints[8]
-      : extractedColors[0]
-        ? closestPaint(extractedColors[0])
-        : paints[8];
-  const getMid1 = () =>
-    midtoneOverrides[0]
-      ? paints.find((p) => p.name === midtoneOverrides[0]) || paints[7]
-      : extractedColors[1]
-        ? closestPaint(extractedColors[1])
-        : paints[7];
-  const getMid2 = () =>
-    midtoneOverrides[1]
-      ? paints.find((p) => p.name === midtoneOverrides[1]) || null
-      : extractedColors[2]
-        ? closestPaint(extractedColors[2])
-        : null;
-  const getHigh = () =>
-    highlightOverride
-      ? paints.find((p) => p.name === highlightOverride) || paints[23]
-      : extractedColors[3]
-        ? closestPaint(extractedColors[3])
-        : paints[23];
+  const getBase = () => extractedColors[0] ? closestPaint(extractedColors[0]) : paints[8];
+  const getMid1 = () => extractedColors[1] ? closestPaint(extractedColors[1]) : paints[7];
+  const getMid2 = () => extractedColors[2] ? closestPaint(extractedColors[2]) : null;
+  const getHigh = () => extractedColors[3] ? closestPaint(extractedColors[3]) : paints[23];
 
   const s1: ColorScheme = {
-    name: "Closest match",
+    name: "Baseline",
     type: "speedpaint-led",
     base: getBase(),
     midtone1: getMid1(),
@@ -110,25 +90,22 @@ function generateSchemes(
   };
 
   const themeShift = theme === "grimdark" ? 0 : theme === "vibrant" ? 6 : theme === "natural" ? 3 : 9;
-  const s2Base = baseOverride ? s1.base : paints[(paints.indexOf(s1.base) + themeShift) % paints.length];
   const s2: ColorScheme = {
     name: "Theme variation",
     type: "speedpaint-led",
-    base: s2Base,
+    base: paints[(paints.indexOf(s1.base) + themeShift) % paints.length],
     midtone1: paints[(paints.indexOf(s1.midtone1) + themeShift + 2) % paints.length],
     midtone2: s1.midtone2 ? paints[(paints.indexOf(s1.midtone2) + themeShift + 4) % paints.length] : null,
-    highlight: highlightOverride
-      ? s1.highlight
-      : paints[(paints.indexOf(s1.highlight) + themeShift + 1) % paints.length],
+    highlight: paints[(paints.indexOf(s1.highlight) + themeShift + 1) % paints.length],
   };
 
   const s3: ColorScheme = {
-    name: "Mix approach",
-    type: "mix-based",
-    base: s1.base,
-    midtone1: paints[(paints.indexOf(s1.midtone1) + 12) % paints.length],
-    midtone2: s1.midtone2 ? paints[(paints.indexOf(s1.midtone2) + 8) % paints.length] : null,
-    highlight: s1.highlight,
+    name: "Override variation",
+    type: "speedpaint-led",
+    base: baseOverride ? (paints.find(p => p.name === baseOverride) || s2.base) : s2.base,
+    midtone1: midtoneOverrides[0] ? (paints.find(p => p.name === midtoneOverrides[0]) || s2.midtone1) : s2.midtone1,
+    midtone2: midtoneOverrides[1] ? (paints.find(p => p.name === midtoneOverrides[1]) || s2.midtone2) : s2.midtone2,
+    highlight: highlightOverride ? (paints.find(p => p.name === highlightOverride) || s2.highlight) : s2.highlight,
   };
 
   return [s1, s2, s3];
