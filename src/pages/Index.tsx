@@ -662,8 +662,8 @@ export default function Index() {
             onHighlightChange={setHighlightOverride}
             images={mainImages}
             recolorMap={recolorMap}
-            activePrompt={state.activePrompt}
-            onPromptChange={handlePromptChange}
+            assembledPrompt={assembledPrompt}
+            miniature={miniature}
             onSubmitRepaint={handleSubmitRepaint}
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
