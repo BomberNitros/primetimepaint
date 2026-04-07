@@ -10,6 +10,7 @@ import { ThemeId, ColorScheme, UploadedImage, PrimeColor } from '@/types/primeti
 import { cn } from '@/lib/utils';
 import { Layers, SlidersHorizontal } from 'lucide-react';
 import { randomFont } from '@/components/ControlRail';
+import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
 
 interface ColorPlanPanelProps {
   extractedColors: string[];
