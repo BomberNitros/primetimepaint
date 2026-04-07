@@ -67,15 +67,17 @@ export function ImageUploader({
   const refCount = referenceImages.length;
 
   return (
-    <div className="flex flex-col items-center gap-6 p-8">
+    <div className="flex flex-col gap-6 p-8">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Miniature</h2>
         <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
-        Recommended: 4 main photos and up to 2 reference images for best results.
-      </p>
+      {refCount === 0 && !currentlyRepainting && mainCount > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Drop 4 main photos and a reference. Give the AI something to steal from.
+        </p>
+      )}
 
       {/* Dual dropzones */}
       <div className="w-full max-w-2xl grid grid-cols-2 gap-4">

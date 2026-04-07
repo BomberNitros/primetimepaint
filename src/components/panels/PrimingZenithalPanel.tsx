@@ -93,7 +93,7 @@ export function PrimingZenithalPanel({
   pipelineComplete, sharedSliderIndex, onSliderIndexChange,
   primingRepaintMap,
 }: PrimingZenithalPanelProps) {
-  const [surfacePrepOpen, setSurfacePrepOpen] = useState(true);
+  const [surfacePrepOpen, setSurfacePrepOpen] = useState(false);
 
   const mainImages = images.filter(i => i.type === 'main');
 
