@@ -133,6 +133,18 @@ function generateSchemes(
 
   return [s1, s2, s3];
 }
+function useMiniatureDetails() {
+  const [name, setName] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [manufacturer, setManufacturer] = useState('');
+  const [role, setRole] = useState('');
+  const [customRole, setCustomRole] = useState('');
+  return {
+    name, setName, origin, setOrigin,
+    manufacturer, setManufacturer,
+    role, setRole, customRole, setCustomRole,
+  };
+}
 
 export default function Index() {
   const {
