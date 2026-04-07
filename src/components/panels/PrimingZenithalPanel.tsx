@@ -150,9 +150,6 @@ export function PrimingZenithalPanel({
       {pipelineComplete && (
         <PaintDirectivePanel
           assembledPrompt={assembledPrompt}
-          onSubmit={onSubmitRepaint}
-          currentlyRepainting={currentlyRepainting}
-          submitError={submitError}
           miniature={miniature}
         />
       )}
