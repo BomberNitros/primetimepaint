@@ -235,9 +235,9 @@ export function ColorPlanPanel({
             <span>Palette</span>
           </div>
 
-          {/* Priming colour */}
+          {/* Priming color */}
           <OptionButtons<PrimeColor>
-            label="Priming colour"
+            label="Priming color"
             options={[
               { value: 'black', label: 'Black' },
               { value: 'grey', label: 'Grey' },
@@ -247,10 +247,10 @@ export function ColorPlanPanel({
             onChange={onPrimeColorChange}
           />
 
-          {/* Extracted colours */}
+          {/* Extracted colors */}
           {extractedColors.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Extracted colours</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Extracted colors</h3>
               <div className="flex gap-1.5">
                 {extractedColors.map((c, i) => (
                   <div key={i} className="w-8 h-8 rounded-md border border-border" style={{ backgroundColor: c }} title={c} />
@@ -258,6 +258,13 @@ export function ColorPlanPanel({
               </div>
             </div>
           )}
+
+          {/* Theme */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Theme</h3>
+            <p className="text-xs text-muted-foreground">Stylistic interpretation applied on top of the baseline to generate a themed variation.</p>
+            <ThemeSelector selected={selectedTheme} onSelect={onThemeSelect} />
+          </div>
         </div>
 
         {/* RIGHT — Colour & theory */}
