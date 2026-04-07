@@ -210,7 +210,7 @@ export function ColorPlanPanel({
 
       {/* 5. Disclaimer */}
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Your selections update the paint directive text. Repaint images do not refresh automatically when you change settings. Submit a new paint directive to regenerate the repainted previews.
+        Color selections are first added paint directive above. Apply a new directive to repaint images and see new paints!
       </p>
 
       {/* 6. Schemes row */}
