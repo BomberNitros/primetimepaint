@@ -1,27 +1,66 @@
 
 
-# Four UI cleanups
+# Repaint panel layout and copy cleanup
 
-## 1. `src/components/ImageUploader.tsx`
+Two files. No logic changes — layout, labels, and copy only.
 
-- **Line 70**: Remove `items-center` → `"flex flex-col gap-6 p-8"`
-- **Lines 76–78**: Delete the recommendation paragraph
-- **Before line 80** (above `{/* Dual dropzones */}`): Insert the conditional hint:
+## 1. `src/components/PaintDirectivePanel.tsx`
+
+- Remove `onSubmit`, `currentlyRepainting`, `submitError` from `PaintDirectivePanelProps` (lines 16–18)
+- Remove them from the destructured props (lines 24–26)
+- Delete the submit button (lines 123–130) and error display (lines 132–134)
+
+## 2. `src/components/panels/ColorPlanPanel.tsx`
+
+Rewrite the JSX return (lines 155–266) to this vertical order:
+
+### Position 1–2: Title + subtitle (unchanged)
+
+### Position 3: DualSlider / ImageSlider (unchanged)
+
+### Position 4: PaintDirectivePanel + external submit
+- Pass only `assembledPrompt` and `miniature` to `PaintDirectivePanel` (remove `onSubmit`, `currentlyRepainting`, `submitError`)
+- Render submit button and error directly in `ColorPlanPanel`, below the panel:
   ```tsx
-  {refCount === 0 && !currentlyRepainting && mainCount > 0 && (
-    <p className="text-xs text-muted-foreground">
-      Drop 4 main photos and a reference. Give the AI something to steal from.
-    </p>
-  )}
+  <button onClick={onSubmitRepaint} disabled={currentlyRepainting || !assembledPrompt}>
+    {currentlyRepainting ? 'Repainting…' : 'Apply paint directive'}
+  </button>
+  {submitError && <p className="text-xs text-destructive">{submitError}</p>}
   ```
 
-## 2. `src/components/panels/PrimingZenithalPanel.tsx`
+### Position 5: Schemes row (full-width)
+- Move schemes out of the left column into a standalone full-width block
+- Title: "Schemes" — description: "Extracted reference-based paint plan shown as the baseline set of colours."
+- `grid grid-cols-3 gap-4` layout, always visible
 
-- **Line 96**: `useState(true)` → `useState(false)`
+### Position 6: Disclaimer
+```
+Your selections update the paint directive text. Repaint images do not
+refresh automatically when you change settings. Submit a new paint
+directive to regenerate the repainted previews.
+```
+Style: `text-sm text-muted-foreground leading-relaxed`
 
-## 3. `src/components/ControlRail.tsx`
+### Position 7: Two-column row
 
-- **Line 17**: `label: 'Coloring'` → `label: 'Repaint'`
+**Left column** — title: "Palette"
+1. Priming colour (rename label from "Prime colour" to "Priming colour")
+2. Extracted colours
 
-Three files, five small edits. No logic changes.
+**Right column** — title: "Colour & theory"
+1. Theme — add section title "Theme" + description: "Stylistic interpretation applied on top of the baseline to generate a themed variation."
+2. Colour theory helper
+3. Colour overrides — add description above `ColorRoleSelector`: "Manual colour replacements for specific paint roles or areas."
+
+### What moves where
+| Component | From | To |
+|---|---|---|
+| Submit button + error | Inside `PaintDirectivePanel` | `ColorPlanPanel` position 4 |
+| Schemes | Left column | Full-width row position 5 |
+| ThemeSelector | Left column | Right column (with title/desc) |
+| Priming colour + Extracted colours | Left column | Left column (only remaining items) |
+
+### Props interface
+`PaintDirectivePanelProps`: remove `onSubmit`, `currentlyRepainting`, `submitError`. No new props.
+`ColorPlanPanelProps`: unchanged (already has `onSubmitRepaint`, `currentlyRepainting`, `submitError`).
 
