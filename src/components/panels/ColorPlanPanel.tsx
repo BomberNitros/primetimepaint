@@ -274,12 +274,7 @@ export function ColorPlanPanel({
             <span>Colour &amp; theory</span>
           </div>
 
-          {/* Theme */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Theme</h3>
-            <p className="text-xs text-muted-foreground">Stylistic interpretation applied on top of the baseline to generate a themed variation.</p>
-            <ThemeSelector selected={selectedTheme} onSelect={onThemeSelect} />
-          </div>
+          {/* Color theory */}
 
           {/* Colour theory */}
           <ColorTheoryHelper baseHex={primaryHex} />
