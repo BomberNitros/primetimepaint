@@ -97,6 +97,7 @@ export function ColorPlanPanel({
   pipelineComplete,
   zenithalEnabled,
   primeColor,
+  onPrimeColorChange,
   sharedSliderIndex,
   onSliderIndexChange,
   primingRepaintMap,
