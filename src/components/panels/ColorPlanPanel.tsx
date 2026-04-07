@@ -217,6 +217,18 @@ export function ColorPlanPanel({
             onMidtoneChange={onMidtoneChange}
             onHighlightChange={onHighlightChange}
           />
+
+          {/* Prime colour selector */}
+          <OptionButtons<PrimeColor>
+            label="Prime colour"
+            options={[
+              { value: 'black', label: 'Black' },
+              { value: 'grey', label: 'Grey' },
+              { value: 'white', label: 'White' },
+            ]}
+            value={primeColor as PrimeColor}
+            onChange={onPrimeColorChange}
+          />
         </div>
       </div>
     </div>
