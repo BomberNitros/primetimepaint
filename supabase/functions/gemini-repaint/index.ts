@@ -134,7 +134,7 @@ Return only a valid JSON array. No prose. No explanation. No markdown.`;
           : '') }
     ];
 
-    const res = await fetch(`${gatewayBase}/chat/completions`, {
+    const res = await fetchWithRetry(`${gatewayBase}/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
