@@ -591,6 +591,7 @@ export default function Index() {
             onSliderIndexChange={setSharedSliderIndex}
             primingRepaintMap={state.primingRepaintMap}
             colorRepaintMap={state.colorRepaintMap}
+            onPrimeColorChange={setPrimeColor}
           />
         );
       case "brush-guide":

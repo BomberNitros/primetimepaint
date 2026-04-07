@@ -1,4 +1,7 @@
 import React, { useState, useRef } from 'react';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PaintDirectivePanelProps {
   activePrompt: string | null;
@@ -19,6 +22,7 @@ export function PaintDirectivePanel({
   zenithalEnabled,
   primeColor,
 }: PaintDirectivePanelProps) {
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [origin, setOrigin] = useState('');
   const [manufacturer, setManufacturer] = useState('');
@@ -103,97 +107,122 @@ export function PaintDirectivePanel({
   }, [tick]);
 
   return (
-    <div className="space-y-3 p-3">
-      <textarea
-        className="w-full min-h-[160px] text-xs font-mono p-2 rounded border border-border bg-background resize-y"
-        value={activePrompt ?? ''}
-        onChange={e => onPromptChange(e.target.value)}
-      />
-
-      <div className="text-xs font-medium text-muted-foreground">
-        Miniature details
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-xs text-muted-foreground">Name</label>
-          <input
-            className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="e.g. Nagash"
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/40 transition-colors"
+        >
+          Paint directive
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 text-muted-foreground transition-transform',
+              open && 'rotate-180'
+            )}
           />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Origin</label>
-          <input
-            className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
-            value={origin}
-            onChange={e => setOrigin(e.target.value)}
-            placeholder="e.g. Age of Sigmar"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Manufacturer</label>
-          <input
-            className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
-            value={manufacturer}
-            onChange={e => setManufacturer(e.target.value)}
-            placeholder="e.g. Games Workshop"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Role</label>
-          <select
-            className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
-            value={role}
-            onChange={e => setRole(e.target.value)}
-          >
-            <option value="">— select —</option>
-            <option>Boss / Major Enemy</option>
-            <option>Hero / Champion</option>
-            <option>Villain / Antagonist</option>
-            <option>Monster / Creature</option>
-            <option>Daemon / Otherworldly Entity</option>
-            <option>Undead / Construct</option>
-            <option>Vehicle / War Machine</option>
-            <option>Terrain / Structure</option>
-            <option>Infantry / Foot Soldier</option>
-            <option>Swarm / Horde Unit</option>
-            <option value="other">Other…</option>
-          </select>
-        </div>
-      </div>
+        </button>
+      </CollapsibleTrigger>
 
-      {role === 'other' && (
-        <input
-          className="w-full text-xs p-1.5 rounded border border-border bg-background"
-          value={customRole}
-          onChange={e => setCustomRole(e.target.value)}
-          placeholder="Describe role…"
-        />
-      )}
+      <CollapsibleContent>
+        <div className="grid grid-cols-2 gap-4 pt-3">
+          {/* Left column — textarea */}
+          <div>
+            <textarea
+              className="w-full min-h-[220px] text-xs font-mono p-2 rounded border border-border bg-background resize-y"
+              value={activePrompt ?? ''}
+              onChange={e => onPromptChange(e.target.value)}
+            />
+          </div>
 
-      <button
-        type="button"
-        className="w-full py-2 text-xs font-medium rounded border border-border hover:bg-muted/40 transition-colors"
-        onClick={() => setTick(t => t + 1)}
-      >
-        Inject into prompt
-      </button>
+          {/* Right column — miniature details & actions */}
+          <div className="space-y-3">
+            <div className="text-xs font-medium text-muted-foreground">
+              Miniature details
+            </div>
 
-      <button
-        type="button"
-        className="w-full py-2 text-xs font-medium rounded border border-primary bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-        onClick={onSubmit}
-        disabled={currentlyRepainting || !activePrompt}
-      >
-        {currentlyRepainting ? 'Repainting…' : 'Submit to Gemini'}
-      </button>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Name</label>
+                <input
+                  className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="e.g. Nagash"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Origin</label>
+                <input
+                  className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
+                  value={origin}
+                  onChange={e => setOrigin(e.target.value)}
+                  placeholder="e.g. Age of Sigmar"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Manufacturer</label>
+                <input
+                  className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
+                  value={manufacturer}
+                  onChange={e => setManufacturer(e.target.value)}
+                  placeholder="e.g. Games Workshop"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Role</label>
+                <select
+                  className="w-full text-xs p-1.5 rounded border border-border bg-background mt-1"
+                  value={role}
+                  onChange={e => setRole(e.target.value)}
+                >
+                  <option value="">— select —</option>
+                  <option>Boss / Major Enemy</option>
+                  <option>Hero / Champion</option>
+                  <option>Villain / Antagonist</option>
+                  <option>Monster / Creature</option>
+                  <option>Daemon / Otherworldly Entity</option>
+                  <option>Undead / Construct</option>
+                  <option>Vehicle / War Machine</option>
+                  <option>Terrain / Structure</option>
+                  <option>Infantry / Foot Soldier</option>
+                  <option>Swarm / Horde Unit</option>
+                  <option value="other">Other…</option>
+                </select>
+              </div>
+            </div>
 
-      {submitError && (
-        <p className="text-xs text-destructive">{submitError}</p>
-      )}
-    </div>
+            {role === 'other' && (
+              <input
+                className="w-full text-xs p-1.5 rounded border border-border bg-background"
+                value={customRole}
+                onChange={e => setCustomRole(e.target.value)}
+                placeholder="Describe role…"
+              />
+            )}
+
+            <button
+              type="button"
+              className="w-full py-2 text-xs font-medium rounded border border-border hover:bg-muted/40 transition-colors"
+              onClick={() => setTick(t => t + 1)}
+            >
+              Inject into prompt
+            </button>
+
+            <button
+              type="button"
+              className="w-full py-2 text-xs font-medium rounded border border-primary bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              onClick={onSubmit}
+              disabled={currentlyRepainting || !activePrompt}
+            >
+              {currentlyRepainting ? 'Repainting…' : 'Submit to Gemini'}
+            </button>
+
+            {submitError && (
+              <p className="text-xs text-destructive">{submitError}</p>
+            )}
+          </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

@@ -6,7 +6,8 @@ import { SchemeCard } from '@/components/SchemeCard';
 import { ImageSlider, SliderImage } from '@/components/ImageSlider';
 import { DualSlider } from '@/components/DualSlider';
 import { PaintDirectivePanel } from '@/components/PaintDirectivePanel';
-import { ThemeId, ColorScheme, UploadedImage } from '@/types/primetime';
+import { ThemeId, ColorScheme, UploadedImage, PrimeColor } from '@/types/primetime';
+import { cn } from '@/lib/utils';
 import { Layers, SlidersHorizontal } from 'lucide-react';
 import { randomFont } from '@/components/ControlRail';
 
