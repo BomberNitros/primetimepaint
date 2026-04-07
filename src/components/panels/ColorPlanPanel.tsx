@@ -25,14 +25,17 @@ interface ColorPlanPanelProps {
   onHighlightChange: (v: string | null) => void;
   images: UploadedImage[];
   recolorMap: Record<string, string | null>;
-  activePrompt: string | null;
-  onPromptChange: (prompt: string) => void;
+  assembledPrompt: string;
+  miniature: {
+    name: string; setName: (v: string) => void;
+    origin: string; setOrigin: (v: string) => void;
+    manufacturer: string; setManufacturer: (v: string) => void;
+    role: string; setRole: (v: string) => void;
+    customRole: string; setCustomRole: (v: string) => void;
+  };
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
-  pipelineComplete: boolean;
-  zenithalEnabled: boolean;
-  primeColor: string;
   onPrimeColorChange: (v: PrimeColor) => void;
   sharedSliderIndex: number;
   onSliderIndexChange: (i: number) => void;
