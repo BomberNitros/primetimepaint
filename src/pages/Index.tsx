@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { usePrimetimeState } from "@/hooks/usePrimetimeState";
 import { useRecolorMap } from "@/hooks/useRecolorMap";
 import { ControlRail } from "@/components/ControlRail";
@@ -133,6 +133,18 @@ function generateSchemes(
 
   return [s1, s2, s3];
 }
+function useMiniatureDetails() {
+  const [name, setName] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [manufacturer, setManufacturer] = useState('');
+  const [role, setRole] = useState('');
+  const [customRole, setCustomRole] = useState('');
+  return {
+    name, setName, origin, setOrigin,
+    manufacturer, setManufacturer,
+    role, setRole, customRole, setCustomRole,
+  };
+}
 
 export default function Index() {
   const {
@@ -173,6 +185,7 @@ export default function Index() {
     appendReferenceBase64s,
   } = usePrimetimeState();
 
+  const miniature = useMiniatureDetails();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const mainImages = state.mainImages;
@@ -187,15 +200,85 @@ export default function Index() {
   };
 
   useEffect(() => {
-    if (mainImages.length === 0) {
+    if (state.referenceImages.length === 0) {
       setExtractedColors([]);
       return;
     }
-    const img = mainImages[0];
-    extractDominantColors(img.objectUrl).then((colors) => {
-      setExtractedColors(colors);
+    Promise.all(
+      state.referenceImages.map(img => extractDominantColors(img.objectUrl))
+    ).then(results => {
+      const merged = [...new Set(results.flat())];
+      setExtractedColors(merged);
     });
-  }, [mainImages.length]);
+  }, [state.referenceImages.length]);
+
+  const assembledPrompt = useMemo(() => {
+    const roleMap: Record<string, string> = {
+      'Boss / Major Enemy': 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Hero / Champion': 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Villain / Antagonist': 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Monster / Creature': 'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Daemon / Otherworldly Entity': 'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Undead / Construct': 'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Vehicle / War Machine': 'Hard surface priority. Panel shading, wear and weathering appropriate.',
+      'Terrain / Structure': 'Hard surface priority. Panel shading, wear and weathering appropriate.',
+      'Infantry / Foot Soldier': 'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+      'Swarm / Horde Unit': 'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+    };
+
+    const primerNote = state.zenithalEnabled
+      ? 'Zenithal gradient — light from above, shadow below. Preserve and build on it.'
+      : state.primeColor === 'white'
+        ? 'White primer. Push shadows hard into recesses.'
+        : state.primeColor === 'black'
+          ? 'Black primer. Drive highlights up on raised surfaces. Let recesses stay dark.'
+          : 'Grey primer. Build shading from scratch, light from 45° above.';
+
+    const activeScheme = state.colorSchemes?.[0];
+    const schemeNote = activeScheme
+      ? `Colour scheme: ${activeScheme.name}. ` +
+        `Base: ${activeScheme.base.name}. ` +
+        `Midtone: ${activeScheme.midtone1.name}${activeScheme.midtone2 ? `, ${activeScheme.midtone2.name}` : ''}. ` +
+        `Highlight: ${activeScheme.highlight.name}.`
+      : '';
+
+    const themeNote = state.selectedTheme
+      ? `Theme: ${state.selectedTheme}.`
+      : '';
+
+    const lines = [
+      state.activePrompt ?? '',
+      '',
+      '--- Miniature context ---',
+      miniature.name ? `Name: ${miniature.name}` : '',
+      miniature.origin ? `Origin: ${miniature.origin}` : '',
+      miniature.manufacturer ? `Manufacturer: ${miniature.manufacturer}` : '',
+      miniature.role && miniature.role !== 'other'
+        ? `Role: ${miniature.role}. ${roleMap[miniature.role] ?? ''}`
+        : miniature.role === 'other' && miniature.customRole
+          ? `Role: ${miniature.customRole}`
+          : '',
+      themeNote,
+      schemeNote,
+      `Primer: ${primerNote}`,
+    ].filter(Boolean);
+
+    return lines.join('\n').trim();
+  }, [
+    state.activePrompt,
+    state.primeColor,
+    state.zenithalEnabled,
+    state.selectedTheme,
+    state.colorSchemes,
+    state.baseOverride,
+    state.midtoneOverrides,
+    state.highlightOverride,
+    miniature.name,
+    miniature.origin,
+    miniature.manufacturer,
+    miniature.role,
+    miniature.customRole,
+  ]);
 
   useEffect(() => {
     const schemes = generateSchemes(
@@ -463,9 +546,8 @@ export default function Index() {
     }
   }, [mainImages, state.currentlyRepainting, state.referenceImages]);
 
-  // Submit custom repaint from PaintDirectivePanel
   const handleSubmitRepaint = useCallback(async () => {
-    if (!mainImage || state.currentlyRepainting || !state.activePrompt) return;
+    if (!assembledPrompt || !mainImage || state.currentlyRepainting) return;
     setSubmitError(null);
     setCurrentlyRepainting(true);
     setRepaintStartTime(new Date());
@@ -474,8 +556,7 @@ export default function Index() {
     try {
       const base64 = await toBase64(mainImage.file);
       const refBase64s = await Promise.all(state.referenceImages.map((img) => toBase64(img.file)));
-      console.log("[index] referenceBase64s:", refBase64s.length);
-      const result = await submitCustomRepaint(base64, state.activePrompt, refBase64s);
+      const result = await submitCustomRepaint(base64, assembledPrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
 
@@ -488,7 +569,7 @@ export default function Index() {
 
       setGeminiHistory([
         ...trimmed,
-        { role: "user", textContent: state.activePrompt, hasImage: false },
+        { role: "user", textContent: assembledPrompt, hasImage: false },
         { role: "model", imageContent: result, hasImage: true },
       ]);
       setRepaintLog((prev) => [
@@ -506,7 +587,7 @@ export default function Index() {
     } finally {
       setCurrentlyRepainting(false);
     }
-  }, [mainImage, state.currentlyRepainting, state.activePrompt]);
+  }, [mainImage, state.currentlyRepainting, assembledPrompt]);
 
   const handlePromptChange = useCallback((prompt: string) => {
     setActivePrompt(prompt);
