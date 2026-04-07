@@ -1,24 +1,35 @@
 
+# Fix `gemini-repaint` startup-safe repaint request
 
-# Wire `backgroundRepainting` through RepaintTimer and ControlRail
+## What I found
+In `supabase/functions/gemini-repaint/index.ts`, the repaint request body currently uses:
 
-Three files, prop-threading only.
+```ts
+model: 'google/gemini-2.0-flash-preview-image-generation'
+```
 
-## 1. `src/components/RepaintTimer.tsx`
+and there is no `generationConfig` block present in the live file.
 
-- **Line 5**: Add `backgroundRepainting: boolean` to `RepaintTimerProps`
-- **Line 11**: Destructure `backgroundRepainting` in the function signature
-- **Line 20**: Change condition from `currentlyRepainting && repaintStartTime` to `(currentlyRepainting || backgroundRepainting) && repaintStartTime`
-- **Line 27**: Change condition from `!currentlyRepainting && status === 'active'` to `!currentlyRepainting && !backgroundRepainting && status === 'active'`
-- **Line 39**: Update deps array from `[currentlyRepainting]` to `[currentlyRepainting, backgroundRepainting]`
+## Plan
+Update only the repaint model call in `supabase/functions/gemini-repaint/index.ts`:
 
-## 2. `src/components/ControlRail.tsx`
+```ts
+body: JSON.stringify({
+  model: 'google/gemini-3.1-flash-image-preview',
+  messages: [{ role: 'user', content }],
+  generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+  stream: false,
+}),
+```
 
-- **Line 41** (ControlRailProps): Add `backgroundRepainting: boolean` after `currentlyRepainting`
-- **Line 51** (destructuring): Add `backgroundRepainting`
-- **Line 97** (RepaintTimer JSX): Add `backgroundRepainting={backgroundRepainting}` prop
+## Scope
+- Change the repaint `model` back to `google/gemini-3.1-flash-image-preview`
+- Add `generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }`
+- Do not touch the anatomy branch
+- Do not change any surrounding logic, parsing, retries, or response handling
+- One file only: `supabase/functions/gemini-repaint/index.ts`
 
-## 3. `src/pages/Index.tsx`
-
-- **Line 613** (ControlRail JSX): Add `backgroundRepainting={state.backgroundRepainting}` prop
-
+## Why this should resolve it
+- It restores the requested model name
+- It uses the Gemini-specific response-modality field instead of `modalities`
+- It keeps the edit to a single request-body block, which minimises the chance of introducing another startup error
