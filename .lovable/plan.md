@@ -1,35 +1,35 @@
 
 
-# Add miniature details hook, fix colour extraction, assemble prompt, update submit
+# Replace PaintDirectivePanel with read-only prompt display
 
-One file: `src/pages/Index.tsx`.
+## Summary
 
-## 1. Add `useMiniatureDetails` hook (before `Index` component, ~line 136)
+Completely rewrite `PaintDirectivePanel.tsx` to be a thin display component. The prompt assembly logic has moved upstream to `Index.tsx`, so this component now just shows the assembled prompt (read-only) and collects miniature details via passed-in setters.
 
-Define a small hook returning `{ name, setName, origin, setOrigin, manufacturer, setManufacturer, role, setRole, customRole, setCustomRole }`. Destructure as `const miniature = useMiniatureDetails();` inside Index, after the existing destructuring block (~line 176).
-
-## 2. Fix extracted colours — use reference images
-
-Replace the `useEffect` at lines 189–198 (which reads `mainImages[0]`) with the version that maps over `state.referenceImages`, merges with `Set`, and depends on `state.referenceImages.length`.
-
-## 3. Add `assembledPrompt` via `useMemo`
-
-After the miniature destructure, add the `useMemo` block that builds a multi-line prompt from `state.activePrompt`, miniature details, role map, primer note, scheme note, and theme note. Dependencies: `state.activePrompt`, `state.primeColor`, `state.zenithalEnabled`, `state.selectedTheme`, `state.colorSchemes`, `state.baseOverride`, `state.midtoneOverrides`, `state.highlightOverride`, plus all miniature fields.
-
-**Import**: Add `useMemo` to the React import at line 1.
-
-## 4. Update `handleSubmitRepaint` (lines 467–509)
-
-- **Guard** (line 468): Change from `!state.activePrompt` to `!assembledPrompt || !mainImage || state.currentlyRepainting`
-- **Call** (line 478): Change `state.activePrompt` to `assembledPrompt` in `submitCustomRepaint`
-- **History** (line 491): Change `state.activePrompt` to `assembledPrompt` in the gemini history turn
-- **Deps** (line 509): Change `state.activePrompt` to `assembledPrompt`
-
-Also remove the `console.log` on line 477 per project rules (no console.log in committed code).
+The two consumers (`ColorPlanPanel.tsx` and `PrimingZenithalPanel.tsx`) must update their JSX to pass the new props.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `src/pages/Index.tsx` | Hook definition, extracted colours fix, assembledPrompt memo, handleSubmitRepaint update |
+| `src/components/PaintDirectivePanel.tsx` | Full rewrite — new props interface, read-only prompt display, miniature form, no template logic |
+| `src/components/panels/ColorPlanPanel.tsx` | Update `PaintDirectivePanel` JSX props to match new interface |
+| `src/components/panels/PrimingZenithalPanel.tsx` | Update `PaintDirectivePanel` JSX props to match new interface |
+
+## Detail
+
+### 1. `PaintDirectivePanel.tsx` — full replacement
+
+- **New props**: `assembledPrompt: string`, `onSubmit`, `currentlyRepainting`, `submitError`, `miniature` object (with name/origin/manufacturer/role/customRole + setters)
+- **Removed**: `activePrompt`, `onPromptChange`, `zenithalEnabled`, `primeColor` props; all `useState` for form fields; `useRef`/tick pattern; `useEffect` template substitution; "Inject into prompt" button
+- **Layout**: Collapsible (closed by default), two-column grid when open
+  - Left: `<div>` with `whitespace-pre-wrap` showing `assembledPrompt` (read-only, not a textarea)
+  - Right: miniature details form (name, origin, manufacturer, role select, conditional customRole input), "Apply paint directive" primary button calling `onSubmit`, error display
+- Button disabled when `currentlyRepainting || !assembledPrompt`
+
+### 2. `ColorPlanPanel.tsx` and `PrimingZenithalPanel.tsx`
+
+Both panels currently pass `activePrompt`, `onPromptChange`, `zenithalEnabled`, `primeColor` to `PaintDirectivePanel`. These will be replaced with `assembledPrompt`, `miniature`, and the existing `onSubmit`/`currentlyRepainting`/`submitError` props. The parent props interfaces for both panels will need `assembledPrompt` and `miniature` added, and the old prompt/primer props removed from the `PaintDirectivePanel` call sites.
+
+This also requires `Index.tsx` to pass `assembledPrompt` and `miniature` down through both panel components — but since those are already available in Index, it's just prop threading.
 
