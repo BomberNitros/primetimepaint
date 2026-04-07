@@ -454,6 +454,7 @@ export default function Index() {
 
       setSharedSliderIndex(0);
       setPipelineComplete(true);
+      setActiveStep('priming');
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Pipeline failed.";
       setPipelineError(message);
