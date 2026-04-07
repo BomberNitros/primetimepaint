@@ -149,13 +149,11 @@ export function PrimingZenithalPanel({
       {/* Paint Directive */}
       {pipelineComplete && (
         <PaintDirectivePanel
-          activePrompt={activePrompt}
-          onPromptChange={onPromptChange}
+          assembledPrompt={assembledPrompt}
           onSubmit={onSubmitRepaint}
           currentlyRepainting={currentlyRepainting}
           submitError={submitError}
-          zenithalEnabled={zenithalEnabled}
-          primeColor={primeColor}
+          miniature={miniature}
         />
       )}
 
