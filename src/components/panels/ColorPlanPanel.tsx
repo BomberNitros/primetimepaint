@@ -171,6 +171,7 @@ export function ColorPlanPanel({
             (zenithalEnabled ? 'Zenithal · ' : '') +
             (primeColor === 'white' ? 'White' : primeColor === 'black' ? 'Black' : 'Grey')
           }
+          colorSwatches={swatches}
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />
