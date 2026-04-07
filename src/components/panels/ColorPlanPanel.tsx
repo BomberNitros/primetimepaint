@@ -121,7 +121,7 @@ export function ColorPlanPanel({
         id: img.id,
         src: recolored || img.objectUrl,
         badgeLeft: 'Main',
-        badgeRight: recolored ? 'Recolored' : 'Awaiting scheme',
+        badgeRight: recolored ? 'Recoloured' : 'Awaiting scheme',
         badgeRightAccent: !!recolored,
       };
     });
@@ -154,13 +154,13 @@ export function ColorPlanPanel({
 
   return (
     <div className="space-y-6">
-      {/* Heading */}
+      {/* 1. Title */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Color plan</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Colour plan</h2>
         <p className="text-sm text-muted-foreground">Choose a mood and build your palette.</p>
       </div>
 
-      {/* Image display — DualSlider when pipeline complete, ImageSlider otherwise */}
+      {/* 2. Image display */}
       {pipelineComplete ? (
         <DualSlider
           leftImages={mainImages.map((_, i) => ({
@@ -183,41 +183,61 @@ export function ColorPlanPanel({
         slides.length > 0 && <ImageSlider slides={slides} />
       )}
 
-      {/* Paint Directive */}
+      {/* 3. Paint directive */}
       {pipelineComplete && (
         <PaintDirectivePanel
           assembledPrompt={assembledPrompt}
-          onSubmit={onSubmitRepaint}
-          currentlyRepainting={currentlyRepainting}
-          submitError={submitError}
           miniature={miniature}
         />
       )}
 
-      {/* Two-column grid */}
+      {/* 4. Submit button + error (outside directive panel) */}
+      {pipelineComplete && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            className="w-full py-2 text-xs font-medium rounded border border-primary bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            onClick={onSubmitRepaint}
+            disabled={currentlyRepainting || !assembledPrompt}
+          >
+            {currentlyRepainting ? 'Repainting…' : 'Apply paint directive'}
+          </button>
+          {submitError && (
+            <p className="text-xs text-destructive">{submitError}</p>
+          )}
+        </div>
+      )}
+
+      {/* 5. Schemes row */}
+      {colorSchemes.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Schemes</h3>
+          <p className="text-xs text-muted-foreground">Extracted reference-based paint plan shown as the baseline set of colours.</p>
+          <div className="grid grid-cols-3 gap-4">
+            {colorSchemes.map((s, i) => (
+              <SchemeCard key={i} scheme={s} index={i} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 6. Disclaimer */}
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Your selections update the paint directive text. Repaint images do not refresh automatically when you change settings. Submit a new paint directive to regenerate the repainted previews.
+      </p>
+
+      {/* 7. Two-column row */}
       <div className="grid grid-cols-2 gap-6 items-start">
-        {/* LEFT — Palette & Analysis */}
+        {/* LEFT — Palette */}
         <div className="space-y-5">
           <div className="flex items-center gap-1.5 text-muted-foreground" style={columnLabelStyle}>
             <Layers className="w-3.5 h-3.5" />
-            <span>Palette &amp; analysis</span>
+            <span>Palette</span>
           </div>
 
-          {/* Extracted colors */}
-          {extractedColors.length > 0 && (
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Extracted colors</h3>
-              <div className="flex gap-1.5">
-                {extractedColors.map((c, i) => (
-                  <div key={i} className="w-8 h-8 rounded-md border border-border" style={{ backgroundColor: c }} title={c} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Prime colour selector */}
+          {/* Priming colour */}
           <OptionButtons<PrimeColor>
-            label="Prime colour"
+            label="Priming colour"
             options={[
               { value: 'black', label: 'Black' },
               { value: 'grey', label: 'Grey' },
@@ -227,39 +247,48 @@ export function ColorPlanPanel({
             onChange={onPrimeColorChange}
           />
 
-          {/* Theme */}
-          <ThemeSelector selected={selectedTheme} onSelect={onThemeSelect} />
-
-          {/* Schemes */}
-          {colorSchemes.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Generated schemes</h3>
-              {colorSchemes.map((s, i) => (
-                <SchemeCard key={i} scheme={s} index={i} />
-              ))}
+          {/* Extracted colours */}
+          {extractedColors.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Extracted colours</h3>
+              <div className="flex gap-1.5">
+                {extractedColors.map((c, i) => (
+                  <div key={i} className="w-8 h-8 rounded-md border border-border" style={{ backgroundColor: c }} title={c} />
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* RIGHT — Color & Theory */}
+        {/* RIGHT — Colour & theory */}
         <div className="space-y-5">
           <div className="flex items-center gap-1.5 text-muted-foreground" style={columnLabelStyle}>
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Color &amp; theory</span>
+            <span>Colour &amp; theory</span>
           </div>
 
-          {/* Color theory FIRST */}
+          {/* Theme */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Theme</h3>
+            <p className="text-xs text-muted-foreground">Stylistic interpretation applied on top of the baseline to generate a themed variation.</p>
+            <ThemeSelector selected={selectedTheme} onSelect={onThemeSelect} />
+          </div>
+
+          {/* Colour theory */}
           <ColorTheoryHelper baseHex={primaryHex} />
 
-          {/* Role overrides SECOND */}
-          <ColorRoleSelector
-            baseOverride={baseOverride}
-            midtoneOverrides={midtoneOverrides}
-            highlightOverride={highlightOverride}
-            onBaseChange={onBaseChange}
-            onMidtoneChange={onMidtoneChange}
-            onHighlightChange={onHighlightChange}
-          />
+          {/* Colour overrides */}
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">Manual colour replacements for specific paint roles or areas.</p>
+            <ColorRoleSelector
+              baseOverride={baseOverride}
+              midtoneOverrides={midtoneOverrides}
+              highlightOverride={highlightOverride}
+              onBaseChange={onBaseChange}
+              onMidtoneChange={onMidtoneChange}
+              onHighlightChange={onHighlightChange}
+            />
+          </div>
         </div>
       </div>
     </div>

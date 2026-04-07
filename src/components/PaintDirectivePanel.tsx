@@ -13,17 +13,11 @@ interface MiniatureDetails {
 
 interface PaintDirectivePanelProps {
   assembledPrompt: string;
-  onSubmit: () => void;
-  currentlyRepainting: boolean;
-  submitError: string | null;
   miniature: MiniatureDetails;
 }
 
 export function PaintDirectivePanel({
   assembledPrompt,
-  onSubmit,
-  currentlyRepainting,
-  submitError,
   miniature,
 }: PaintDirectivePanelProps) {
   const [open, setOpen] = useState(false);
@@ -54,7 +48,7 @@ export function PaintDirectivePanel({
             {assembledPrompt || 'No prompt assembled yet.'}
           </div>
 
-          {/* Right column — miniature details & actions */}
+          {/* Right column — miniature details */}
           <div className="space-y-3">
             <div className="text-xs font-medium text-muted-foreground">
               Miniature details
@@ -118,19 +112,6 @@ export function PaintDirectivePanel({
                 onChange={e => miniature.setCustomRole(e.target.value)}
                 placeholder="Describe role…"
               />
-            )}
-
-            <button
-              type="button"
-              className="w-full py-2 text-xs font-medium rounded border border-primary bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-              onClick={onSubmit}
-              disabled={currentlyRepainting || !assembledPrompt}
-            >
-              {currentlyRepainting ? 'Repainting…' : 'Apply paint directive'}
-            </button>
-
-            {submitError && (
-              <p className="text-xs text-destructive">{submitError}</p>
             )}
           </div>
         </div>
