@@ -73,11 +73,9 @@ export function ImageUploader({
         <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
       </div>
 
-      {refCount === 0 && !currentlyRepainting && mainCount > 0 && (
-        <p className="text-xs text-muted-foreground">
-          Drop 4 main photos and a reference. Give the AI something to steal from.
-        </p>
-      )}
+      <p className="text-sm font-medium text-muted-foreground">
+        Drop 4 main photos and a reference. Give the AI something to steal from.
+      </p>
 
       {/* Dual dropzones */}
       <div className="w-full max-w-2xl grid grid-cols-2 gap-4">
