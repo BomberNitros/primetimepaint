@@ -1,35 +1,27 @@
 
-# Fix `gemini-repaint` startup-safe repaint request
 
-## What I found
-In `supabase/functions/gemini-repaint/index.ts`, the repaint request body currently uses:
+# Move prime color selector and add color swatches overlay
 
-```ts
-model: 'google/gemini-2.0-flash-preview-image-generation'
-```
+Two files: `ColorPlanPanel.tsx` and `DualSlider.tsx`.
 
-and there is no `generationConfig` block present in the live file.
+## 1. `src/components/panels/ColorPlanPanel.tsx`
 
-## Plan
-Update only the repaint model call in `supabase/functions/gemini-repaint/index.ts`:
+- **Import** `SPEEDPAINT_MOST_WANTED` from `'@/data/speedpaints'`
+- **Move** the `OptionButtons` for prime colour (lines 222–231) from the RIGHT column to the LEFT column, immediately after the extracted colors block (after line 185) and before `ThemeSelector`
+- **Remove** lines 221–231 from the right column
+- **Compute** `activeScheme` and `swatches` array as specified, using `colorSchemes[0]`, override props, and `SPEEDPAINT_MOST_WANTED` lookups
+- **Pass** `colorSwatches={swatches}` to `DualSlider` (line 133)
 
-```ts
-body: JSON.stringify({
-  model: 'google/gemini-3.1-flash-image-preview',
-  messages: [{ role: 'user', content }],
-  generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
-  stream: false,
-}),
-```
+## 2. `src/components/DualSlider.tsx`
 
-## Scope
-- Change the repaint `model` back to `google/gemini-3.1-flash-image-preview`
-- Add `generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }`
-- Do not touch the anatomy branch
-- Do not change any surrounding logic, parsing, retries, or response handling
-- One file only: `supabase/functions/gemini-repaint/index.ts`
+- **Add** `colorSwatches?: { label: string; hex: string; name: string }[]` to `DualSliderProps`
+- **Add** `position: 'relative'` to the right panel image container (line 155)
+- **Inside** that container, after the image/fallback, add an absolutely-positioned overlay anchored bottom-right displaying each swatch as a row with label, color dot, and name
 
-## Why this should resolve it
-- It restores the requested model name
-- It uses the Gemini-specific response-modality field instead of `modalities`
-- It keeps the edit to a single request-body block, which minimises the chance of introducing another startup error
+## Files changed
+
+| File | Change |
+|---|---|
+| `src/components/panels/ColorPlanPanel.tsx` | Move prime color selector to left column, compute swatches, pass to DualSlider |
+| `src/components/DualSlider.tsx` | Accept `colorSwatches` prop, render overlay on right panel |
+
