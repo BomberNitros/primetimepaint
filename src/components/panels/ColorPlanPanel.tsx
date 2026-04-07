@@ -208,11 +208,16 @@ export function ColorPlanPanel({
         </div>
       )}
 
-      {/* 5. Schemes row */}
+      {/* 5. Disclaimer */}
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Your selections update the paint directive text. Repaint images do not refresh automatically when you change settings. Submit a new paint directive to regenerate the repainted previews.
+      </p>
+
+      {/* 6. Schemes row */}
       {colorSchemes.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Schemes</h3>
-          <p className="text-xs text-muted-foreground">Extracted reference-based paint plan shown as the baseline set of colours.</p>
+          <p className="text-xs text-muted-foreground">Extracted reference-based paint plan shown as the baseline set of colors.</p>
           <div className="grid grid-cols-3 gap-4">
             {colorSchemes.map((s, i) => (
               <SchemeCard key={i} scheme={s} index={i} />
@@ -220,11 +225,6 @@ export function ColorPlanPanel({
           </div>
         </div>
       )}
-
-      {/* 6. Disclaimer */}
-      <p className="text-sm text-muted-foreground leading-relaxed">
-        Your selections update the paint directive text. Repaint images do not refresh automatically when you change settings. Submit a new paint directive to regenerate the repainted previews.
-      </p>
 
       {/* 7. Two-column row */}
       <div className="grid grid-cols-2 gap-6 items-start">
