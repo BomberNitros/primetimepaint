@@ -185,6 +185,7 @@ export default function Index() {
     appendReferenceBase64s,
   } = usePrimetimeState();
 
+  const miniature = useMiniatureDetails();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const mainImages = state.mainImages;
