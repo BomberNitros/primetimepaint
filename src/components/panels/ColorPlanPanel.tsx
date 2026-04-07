@@ -10,6 +10,7 @@ import { ThemeId, ColorScheme, UploadedImage, PrimeColor } from '@/types/primeti
 import { cn } from '@/lib/utils';
 import { Layers, SlidersHorizontal } from 'lucide-react';
 import { randomFont } from '@/components/ControlRail';
+import { SPEEDPAINT_MOST_WANTED } from '@/data/speedpaints';
 
 interface ColorPlanPanelProps {
   extractedColors: string[];
@@ -120,6 +121,31 @@ export function ColorPlanPanel({
     });
   }, [mainImages, recolorMap]);
 
+  const activeScheme = colorSchemes[0];
+  const swatches = [
+    activeScheme?.base && {
+      label: 'Base',
+      hex: baseOverride
+        ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === baseOverride)?.hex ?? activeScheme.base.hex)
+        : activeScheme.base.hex,
+      name: baseOverride ?? activeScheme.base.name,
+    },
+    activeScheme?.midtone1 && {
+      label: 'Mid',
+      hex: midtoneOverrides[0]
+        ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === midtoneOverrides[0])?.hex ?? activeScheme.midtone1.hex)
+        : activeScheme.midtone1.hex,
+      name: midtoneOverrides[0] ?? activeScheme.midtone1.name,
+    },
+    activeScheme?.highlight && {
+      label: 'High',
+      hex: highlightOverride
+        ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === highlightOverride)?.hex ?? activeScheme.highlight.hex)
+        : activeScheme.highlight.hex,
+      name: highlightOverride ?? activeScheme.highlight.name,
+    },
+  ].filter(Boolean) as { label: string; hex: string; name: string }[];
+
   return (
     <div className="space-y-6">
       {/* Heading */}
@@ -145,6 +171,7 @@ export function ColorPlanPanel({
             (zenithalEnabled ? 'Zenithal · ' : '') +
             (primeColor === 'white' ? 'White' : primeColor === 'black' ? 'Black' : 'Grey')
           }
+          colorSwatches={swatches}
         />
       ) : (
         slides.length > 0 && <ImageSlider slides={slides} />
@@ -184,6 +211,18 @@ export function ColorPlanPanel({
             </div>
           )}
 
+          {/* Prime colour selector */}
+          <OptionButtons<PrimeColor>
+            label="Prime colour"
+            options={[
+              { value: 'black', label: 'Black' },
+              { value: 'grey', label: 'Grey' },
+              { value: 'white', label: 'White' },
+            ]}
+            value={primeColor as PrimeColor}
+            onChange={onPrimeColorChange}
+          />
+
           {/* Theme */}
           <ThemeSelector selected={selectedTheme} onSelect={onThemeSelect} />
 
@@ -216,18 +255,6 @@ export function ColorPlanPanel({
             onBaseChange={onBaseChange}
             onMidtoneChange={onMidtoneChange}
             onHighlightChange={onHighlightChange}
-          />
-
-          {/* Prime colour selector */}
-          <OptionButtons<PrimeColor>
-            label="Prime colour"
-            options={[
-              { value: 'black', label: 'Black' },
-              { value: 'grey', label: 'Grey' },
-              { value: 'white', label: 'White' },
-            ]}
-            value={primeColor as PrimeColor}
-            onChange={onPrimeColorChange}
           />
         </div>
       </div>
