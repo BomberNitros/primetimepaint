@@ -636,8 +636,6 @@ export default function Index() {
             onManualTempChange={setManualTempInput}
             assembledPrompt={assembledPrompt}
             miniature={miniature}
-            assembledPrompt={assembledPrompt}
-            miniature={miniature}
             onSubmitRepaint={handleSubmitRepaint}
             currentlyRepainting={state.currentlyRepainting}
             submitError={submitError}
