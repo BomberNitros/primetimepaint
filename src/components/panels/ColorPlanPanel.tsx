@@ -36,6 +36,9 @@ interface ColorPlanPanelProps {
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
+  pipelineComplete: boolean;
+  zenithalEnabled: boolean;
+  primeColor: string;
   onPrimeColorChange: (v: PrimeColor) => void;
   sharedSliderIndex: number;
   onSliderIndexChange: (i: number) => void;
