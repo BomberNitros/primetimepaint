@@ -1,66 +1,65 @@
 
 
-# Repaint panel layout and copy cleanup
+# Refactor `generateSchemes` — strict three-scheme separation
 
-Two files. No logic changes — layout, labels, and copy only.
+One file: `src/pages/Index.tsx`.
 
-## 1. `src/components/PaintDirectivePanel.tsx`
+## Current problem
 
-- Remove `onSubmit`, `currentlyRepainting`, `submitError` from `PaintDirectivePanelProps` (lines 16–18)
-- Remove them from the destructured props (lines 24–26)
-- Delete the submit button (lines 123–130) and error display (lines 132–134)
+`getBase`/`getMid1`/`getMid2`/`getHigh` all check overrides, so Scheme 1 (supposed baseline) is contaminated by user overrides. Scheme 2 also conditionally skips theme shift when overrides are set. Scheme 3 is an unrelated "mix approach" rather than an override variation.
 
-## 2. `src/components/panels/ColorPlanPanel.tsx`
+## Changes (lines 50–134)
 
-Rewrite the JSX return (lines 155–266) to this vertical order:
+### Pure baseline mappers (lines 78–101)
 
-### Position 1–2: Title + subtitle (unchanged)
+Strip all override logic from `getBase`, `getMid1`, `getMid2`, `getHigh`. They become simple extracted-colour-to-closest-paint mappers:
 
-### Position 3: DualSlider / ImageSlider (unchanged)
-
-### Position 4: PaintDirectivePanel + external submit
-- Pass only `assembledPrompt` and `miniature` to `PaintDirectivePanel` (remove `onSubmit`, `currentlyRepainting`, `submitError`)
-- Render submit button and error directly in `ColorPlanPanel`, below the panel:
-  ```tsx
-  <button onClick={onSubmitRepaint} disabled={currentlyRepainting || !assembledPrompt}>
-    {currentlyRepainting ? 'Repainting…' : 'Apply paint directive'}
-  </button>
-  {submitError && <p className="text-xs text-destructive">{submitError}</p>}
-  ```
-
-### Position 5: Schemes row (full-width)
-- Move schemes out of the left column into a standalone full-width block
-- Title: "Schemes" — description: "Extracted reference-based paint plan shown as the baseline set of colours."
-- `grid grid-cols-3 gap-4` layout, always visible
-
-### Position 6: Disclaimer
+```ts
+const getBase = () => extractedColors[0] ? closestPaint(extractedColors[0]) : paints[8];
+const getMid1 = () => extractedColors[1] ? closestPaint(extractedColors[1]) : paints[7];
+const getMid2 = () => extractedColors[2] ? closestPaint(extractedColors[2]) : null;
+const getHigh = () => extractedColors[3] ? closestPaint(extractedColors[3]) : paints[23];
 ```
-Your selections update the paint directive text. Repaint images do not
-refresh automatically when you change settings. Submit a new paint
-directive to regenerate the repainted previews.
+
+### Scheme 1 — Baseline (lines 103–110)
+
+Rename to `"Baseline"`. Uses pure `getBase`/`getMid1`/`getMid2`/`getHigh`. No changes needed beyond the name.
+
+### Scheme 2 — Theme variation (lines 112–123)
+
+Remove all override guards. Apply `themeShift` unconditionally to all four roles from Scheme 1:
+
+```ts
+const s2: ColorScheme = {
+  name: "Theme variation",
+  base: paints[(paints.indexOf(s1.base) + themeShift) % paints.length],
+  midtone1: paints[(paints.indexOf(s1.midtone1) + themeShift + 2) % paints.length],
+  midtone2: s1.midtone2 ? paints[(paints.indexOf(s1.midtone2) + themeShift + 4) % paints.length] : null,
+  highlight: paints[(paints.indexOf(s1.highlight) + themeShift + 1) % paints.length],
+};
 ```
-Style: `text-sm text-muted-foreground leading-relaxed`
 
-### Position 7: Two-column row
+### Scheme 3 — Override variation (lines 125–132)
 
-**Left column** — title: "Palette"
-1. Priming colour (rename label from "Prime colour" to "Priming colour")
-2. Extracted colours
+Replace the "mix approach" with override application on top of Scheme 2:
 
-**Right column** — title: "Colour & theory"
-1. Theme — add section title "Theme" + description: "Stylistic interpretation applied on top of the baseline to generate a themed variation."
-2. Colour theory helper
-3. Colour overrides — add description above `ColorRoleSelector`: "Manual colour replacements for specific paint roles or areas."
+```ts
+const s3: ColorScheme = {
+  name: "Override variation",
+  type: "speedpaint-led",
+  base: baseOverride ? (paints.find(p => p.name === baseOverride) || s2.base) : s2.base,
+  midtone1: midtoneOverrides[0] ? (paints.find(p => p.name === midtoneOverrides[0]) || s2.midtone1) : s2.midtone1,
+  midtone2: midtoneOverrides[1] ? (paints.find(p => p.name === midtoneOverrides[1]) || s2.midtone2) : s2.midtone2,
+  highlight: highlightOverride ? (paints.find(p => p.name === highlightOverride) || s2.highlight) : s2.highlight,
+};
+```
 
-### What moves where
-| Component | From | To |
-|---|---|---|
-| Submit button + error | Inside `PaintDirectivePanel` | `ColorPlanPanel` position 4 |
-| Schemes | Left column | Full-width row position 5 |
-| ThemeSelector | Left column | Right column (with title/desc) |
-| Priming colour + Extracted colours | Left column | Left column (only remaining items) |
+### Function signature
 
-### Props interface
-`PaintDirectivePanelProps`: remove `onSubmit`, `currentlyRepainting`, `submitError`. No new props.
-`ColorPlanPanelProps`: unchanged (already has `onSubmitRepaint`, `currentlyRepainting`, `submitError`).
+Unchanged — still accepts `(extractedColors, theme, baseOverride, midtoneOverrides, highlightOverride)`. The overrides are only consumed in Scheme 3 now.
+
+## No other changes
+
+- Call site (line 284) unchanged
+- `assembledPrompt`, preview colours, layout — all untouched in this prompt
 
