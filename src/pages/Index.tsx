@@ -200,15 +200,85 @@ export default function Index() {
   };
 
   useEffect(() => {
-    if (mainImages.length === 0) {
+    if (state.referenceImages.length === 0) {
       setExtractedColors([]);
       return;
     }
-    const img = mainImages[0];
-    extractDominantColors(img.objectUrl).then((colors) => {
-      setExtractedColors(colors);
+    Promise.all(
+      state.referenceImages.map(img => extractDominantColors(img.objectUrl))
+    ).then(results => {
+      const merged = [...new Set(results.flat())];
+      setExtractedColors(merged);
     });
-  }, [mainImages.length]);
+  }, [state.referenceImages.length]);
+
+  const assembledPrompt = useMemo(() => {
+    const roleMap: Record<string, string> = {
+      'Boss / Major Enemy': 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Hero / Champion': 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Villain / Antagonist': 'Treat as a centrepiece. Maximum detail, strong contrast, showcase-level shading.',
+      'Monster / Creature': 'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Daemon / Otherworldly Entity': 'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Undead / Construct': 'Organic emphasis. Wet textures, deep recesses, biological colour variation.',
+      'Vehicle / War Machine': 'Hard surface priority. Panel shading, wear and weathering appropriate.',
+      'Terrain / Structure': 'Hard surface priority. Panel shading, wear and weathering appropriate.',
+      'Infantry / Foot Soldier': 'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+      'Swarm / Horde Unit': 'Tabletop standard. Efficient coverage, clear contrast, unit-consistent aesthetic.',
+    };
+
+    const primerNote = state.zenithalEnabled
+      ? 'Zenithal gradient — light from above, shadow below. Preserve and build on it.'
+      : state.primeColor === 'white'
+        ? 'White primer. Push shadows hard into recesses.'
+        : state.primeColor === 'black'
+          ? 'Black primer. Drive highlights up on raised surfaces. Let recesses stay dark.'
+          : 'Grey primer. Build shading from scratch, light from 45° above.';
+
+    const activeScheme = state.colorSchemes?.[0];
+    const schemeNote = activeScheme
+      ? `Colour scheme: ${activeScheme.name}. ` +
+        `Base: ${activeScheme.base.name}. ` +
+        `Midtone: ${activeScheme.midtone1.name}${activeScheme.midtone2 ? `, ${activeScheme.midtone2.name}` : ''}. ` +
+        `Highlight: ${activeScheme.highlight.name}.`
+      : '';
+
+    const themeNote = state.selectedTheme
+      ? `Theme: ${state.selectedTheme}.`
+      : '';
+
+    const lines = [
+      state.activePrompt ?? '',
+      '',
+      '--- Miniature context ---',
+      miniature.name ? `Name: ${miniature.name}` : '',
+      miniature.origin ? `Origin: ${miniature.origin}` : '',
+      miniature.manufacturer ? `Manufacturer: ${miniature.manufacturer}` : '',
+      miniature.role && miniature.role !== 'other'
+        ? `Role: ${miniature.role}. ${roleMap[miniature.role] ?? ''}`
+        : miniature.role === 'other' && miniature.customRole
+          ? `Role: ${miniature.customRole}`
+          : '',
+      themeNote,
+      schemeNote,
+      `Primer: ${primerNote}`,
+    ].filter(Boolean);
+
+    return lines.join('\n').trim();
+  }, [
+    state.activePrompt,
+    state.primeColor,
+    state.zenithalEnabled,
+    state.selectedTheme,
+    state.colorSchemes,
+    state.baseOverride,
+    state.midtoneOverrides,
+    state.highlightOverride,
+    miniature.name,
+    miniature.origin,
+    miniature.manufacturer,
+    miniature.role,
+    miniature.customRole,
+  ]);
 
   useEffect(() => {
     const schemes = generateSchemes(
