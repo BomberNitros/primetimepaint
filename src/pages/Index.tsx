@@ -454,6 +454,7 @@ export default function Index() {
 
       setSharedSliderIndex(0);
       setPipelineComplete(true);
+      setActiveStep('priming');
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Pipeline failed.";
       setPipelineError(message);
@@ -590,6 +591,7 @@ export default function Index() {
             onSliderIndexChange={setSharedSliderIndex}
             primingRepaintMap={state.primingRepaintMap}
             colorRepaintMap={state.colorRepaintMap}
+            onPrimeColorChange={setPrimeColor}
           />
         );
       case "brush-guide":

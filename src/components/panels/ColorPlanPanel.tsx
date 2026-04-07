@@ -6,7 +6,8 @@ import { SchemeCard } from '@/components/SchemeCard';
 import { ImageSlider, SliderImage } from '@/components/ImageSlider';
 import { DualSlider } from '@/components/DualSlider';
 import { PaintDirectivePanel } from '@/components/PaintDirectivePanel';
-import { ThemeId, ColorScheme, UploadedImage } from '@/types/primetime';
+import { ThemeId, ColorScheme, UploadedImage, PrimeColor } from '@/types/primetime';
+import { cn } from '@/lib/utils';
 import { Layers, SlidersHorizontal } from 'lucide-react';
 import { randomFont } from '@/components/ControlRail';
 
@@ -31,10 +32,40 @@ interface ColorPlanPanelProps {
   pipelineComplete: boolean;
   zenithalEnabled: boolean;
   primeColor: string;
+  onPrimeColorChange: (v: PrimeColor) => void;
   sharedSliderIndex: number;
   onSliderIndexChange: (i: number) => void;
   primingRepaintMap: Record<number, string>;
   colorRepaintMap: Record<number, string>;
+}
+
+function OptionButtons<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: { label: string; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <div className="space-y-2">
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      <div className="flex gap-2">
+        {options.map(o => (
+          <button
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            className={cn(
+              'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              value === o.value
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+            )}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 const columnLabelStyle: React.CSSProperties = {
@@ -66,6 +97,7 @@ export function ColorPlanPanel({
   pipelineComplete,
   zenithalEnabled,
   primeColor,
+  onPrimeColorChange,
   sharedSliderIndex,
   onSliderIndexChange,
   primingRepaintMap,
@@ -184,6 +216,18 @@ export function ColorPlanPanel({
             onBaseChange={onBaseChange}
             onMidtoneChange={onMidtoneChange}
             onHighlightChange={onHighlightChange}
+          />
+
+          {/* Prime colour selector */}
+          <OptionButtons<PrimeColor>
+            label="Prime colour"
+            options={[
+              { value: 'black', label: 'Black' },
+              { value: 'grey', label: 'Grey' },
+              { value: 'white', label: 'White' },
+            ]}
+            value={primeColor as PrimeColor}
+            onChange={onPrimeColorChange}
           />
         </div>
       </div>
