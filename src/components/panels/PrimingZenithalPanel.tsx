@@ -26,8 +26,14 @@ interface PrimingZenithalPanelProps {
   onZenithalMethodChange: (v: ZenithalMethod) => void;
   onZenithalDirectionChange: (v: ZenithalDirection) => void;
   onManualTempChange: (v: number | null) => void;
-  activePrompt: string | null;
-  onPromptChange: (prompt: string) => void;
+  assembledPrompt: string;
+  miniature: {
+    name: string; setName: (v: string) => void;
+    origin: string; setOrigin: (v: string) => void;
+    manufacturer: string; setManufacturer: (v: string) => void;
+    role: string; setRole: (v: string) => void;
+    customRole: string; setCustomRole: (v: string) => void;
+  };
   onSubmitRepaint: () => void;
   currentlyRepainting: boolean;
   submitError: string | null;
@@ -82,7 +88,7 @@ export function PrimingZenithalPanel({
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
   onManualTempChange,
-  activePrompt, onPromptChange, onSubmitRepaint,
+  assembledPrompt, miniature, onSubmitRepaint,
   currentlyRepainting, submitError,
   pipelineComplete, sharedSliderIndex, onSliderIndexChange,
   primingRepaintMap,
@@ -143,13 +149,11 @@ export function PrimingZenithalPanel({
       {/* Paint Directive */}
       {pipelineComplete && (
         <PaintDirectivePanel
-          activePrompt={activePrompt}
-          onPromptChange={onPromptChange}
+          assembledPrompt={assembledPrompt}
           onSubmit={onSubmitRepaint}
           currentlyRepainting={currentlyRepainting}
           submitError={submitError}
-          zenithalEnabled={zenithalEnabled}
-          primeColor={primeColor}
+          miniature={miniature}
         />
       )}
 
