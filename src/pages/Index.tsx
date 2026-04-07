@@ -546,9 +546,8 @@ export default function Index() {
     }
   }, [mainImages, state.currentlyRepainting, state.referenceImages]);
 
-  // Submit custom repaint from PaintDirectivePanel
   const handleSubmitRepaint = useCallback(async () => {
-    if (!mainImage || state.currentlyRepainting || !state.activePrompt) return;
+    if (!assembledPrompt || !mainImage || state.currentlyRepainting) return;
     setSubmitError(null);
     setCurrentlyRepainting(true);
     setRepaintStartTime(new Date());
@@ -557,8 +556,7 @@ export default function Index() {
     try {
       const base64 = await toBase64(mainImage.file);
       const refBase64s = await Promise.all(state.referenceImages.map((img) => toBase64(img.file)));
-      console.log("[index] referenceBase64s:", refBase64s.length);
-      const result = await submitCustomRepaint(base64, state.activePrompt, refBase64s);
+      const result = await submitCustomRepaint(base64, assembledPrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
 
@@ -571,7 +569,7 @@ export default function Index() {
 
       setGeminiHistory([
         ...trimmed,
-        { role: "user", textContent: state.activePrompt, hasImage: false },
+        { role: "user", textContent: assembledPrompt, hasImage: false },
         { role: "model", imageContent: result, hasImage: true },
       ]);
       setRepaintLog((prev) => [
@@ -589,7 +587,7 @@ export default function Index() {
     } finally {
       setCurrentlyRepainting(false);
     }
-  }, [mainImage, state.currentlyRepainting, state.activePrompt]);
+  }, [mainImage, state.currentlyRepainting, assembledPrompt]);
 
   const handlePromptChange = useCallback((prompt: string) => {
     setActivePrompt(prompt);
