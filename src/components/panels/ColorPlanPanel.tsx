@@ -121,6 +121,31 @@ export function ColorPlanPanel({
     });
   }, [mainImages, recolorMap]);
 
+  const activeScheme = colorSchemes[0];
+  const swatches = [
+    activeScheme?.base && {
+      label: 'Base',
+      hex: baseOverride
+        ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === baseOverride)?.hex ?? activeScheme.base.hex)
+        : activeScheme.base.hex,
+      name: baseOverride ?? activeScheme.base.name,
+    },
+    activeScheme?.midtone1 && {
+      label: 'Mid',
+      hex: midtoneOverrides[0]
+        ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === midtoneOverrides[0])?.hex ?? activeScheme.midtone1.hex)
+        : activeScheme.midtone1.hex,
+      name: midtoneOverrides[0] ?? activeScheme.midtone1.name,
+    },
+    activeScheme?.highlight && {
+      label: 'High',
+      hex: highlightOverride
+        ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === highlightOverride)?.hex ?? activeScheme.highlight.hex)
+        : activeScheme.highlight.hex,
+      name: highlightOverride ?? activeScheme.highlight.name,
+    },
+  ].filter(Boolean) as { label: string; hex: string; name: string }[];
+
   return (
     <div className="space-y-6">
       {/* Heading */}
