@@ -17,6 +17,7 @@ export function DualSlider({
   sharedIndex,
   onIndexChange,
   primingHint,
+  colorSwatches,
 }: DualSliderProps) {
   const [zoomImage, setZoomImage] = useState<ZoomState>(null);
   const [zoomScale, setZoomScale] = useState(1);
