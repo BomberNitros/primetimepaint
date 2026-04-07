@@ -14,7 +14,7 @@ interface Step {
 const STEPS: Step[] = [
   { id: 'upload', label: 'Miniature', icon: Upload },
   { id: 'priming', label: 'Priming', icon: Sun },
-  { id: 'color-plan', label: 'Coloring', icon: Palette },
+  { id: 'color-plan', label: 'Repaint', icon: Palette },
   { id: 'brush-guide', label: 'Brush Guide', icon: Paintbrush },
   { id: 'paint-handling', label: 'Handling', icon: Droplets },
   { id: 'thinning-plan', label: 'Application & Thinning', icon: ClipboardList },
