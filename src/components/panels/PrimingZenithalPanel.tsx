@@ -88,7 +88,7 @@ export function PrimingZenithalPanel({
   onPrimeColorChange, onZenithalEnabledChange, onZenithalSchemeChange,
   onZenithalMethodChange, onZenithalDirectionChange,
   onManualTempChange,
-  activePrompt, onPromptChange, onSubmitRepaint,
+  assembledPrompt, miniature, onSubmitRepaint,
   currentlyRepainting, submitError,
   pipelineComplete, sharedSliderIndex, onSliderIndexChange,
   primingRepaintMap,
