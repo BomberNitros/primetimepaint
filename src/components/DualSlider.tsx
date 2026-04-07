@@ -154,7 +154,7 @@ export function DualSlider({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={glowStyle}>{rightItem?.label ?? 'Repaint'}</span>
           </div>
-          <div style={{ height: '320px', overflow: 'hidden', borderRadius: '0.375rem', border: '1px solid var(--color-border)' }}>
+          <div style={{ position: 'relative', height: '320px', overflow: 'hidden', borderRadius: '0.375rem', border: '1px solid var(--color-border)' }}>
             {rightItem?.src ? (
               <img
                 src={rightItem.src}
@@ -165,6 +165,27 @@ export function DualSlider({
             ) : (
               <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
                 Repaint pending
+              </div>
+            )}
+            {colorSwatches && colorSwatches.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                bottom: '0.5rem',
+                right: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem',
+                background: 'rgba(0, 0, 0, 0.7)',
+                borderRadius: '0.375rem',
+                padding: '0.375rem 0.5rem',
+              }}>
+                {colorSwatches.map((s, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <span style={{ fontSize: '0.6rem', color: '#a1a1aa', width: '2rem', textAlign: 'right' }}>{s.label}</span>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: s.hex, border: '1px solid rgba(255,255,255,0.2)' }} />
+                    <span style={{ fontSize: '0.6rem', color: '#e4e4e7' }}>{s.name}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
