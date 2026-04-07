@@ -141,9 +141,8 @@ Return only a valid JSON array. No prose. No explanation. No markdown.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-flash-image-preview',
+        model: 'google/gemini-2.0-flash-preview-image-generation',
         messages: [{ role: 'user', content }],
-        modalities: ['image'],
         stream: false,
       }),
     });
