@@ -341,7 +341,7 @@ export default function Index() {
         toast.error(message, { duration: 4000 });
         setBackgroundRepainting(false);
       }
-    }, 2000);
+    }, 5000);
 
     return () => {
       if (primingDebounceRef.current) clearTimeout(primingDebounceRef.current);
@@ -387,7 +387,7 @@ export default function Index() {
       } catch {
         // silent — colour repaint is best-effort
       }
-    }, 2500);
+    }, 6000);
 
     return () => {
       if (colorDebounceRef.current) clearTimeout(colorDebounceRef.current);

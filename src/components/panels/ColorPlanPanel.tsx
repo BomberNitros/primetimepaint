@@ -121,8 +121,8 @@ export function ColorPlanPanel({
     });
   }, [mainImages, recolorMap]);
 
-  const activeScheme = colorSchemes[0];
-  const swatches = [
+  const activeScheme = colorSchemes?.[0];
+  const swatches = activeScheme ? [
     activeScheme?.base && {
       label: 'Base',
       hex: baseOverride
@@ -144,7 +144,7 @@ export function ColorPlanPanel({
         : activeScheme.highlight.hex,
       name: highlightOverride ?? activeScheme.highlight.name,
     },
-  ].filter(Boolean) as { label: string; hex: string; name: string }[];
+  ].filter(Boolean) as { label: string; hex: string; name: string }[] : [];
 
   return (
     <div className="space-y-6">
