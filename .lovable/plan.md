@@ -1,65 +1,51 @@
 
 
-# Refactor `generateSchemes` — strict three-scheme separation
+# Repaint active scheme state and selection wiring
 
-One file: `src/pages/Index.tsx`.
+Five files. Adds `activeSchemeIndex`, wires auto-selection with first-render guards, updates preview/prompt to use active scheme, makes scheme cards clickable.
 
-## Current problem
+## 1. `src/types/primetime.ts`
+Add `activeSchemeIndex: number` after `colorSchemes` in `PrimetimeState`.
 
-`getBase`/`getMid1`/`getMid2`/`getHigh` all check overrides, so Scheme 1 (supposed baseline) is contaminated by user overrides. Scheme 2 also conditionally skips theme shift when overrides are set. Scheme 3 is an unrelated "mix approach" rather than an override variation.
+## 2. `src/hooks/usePrimetimeState.ts`
+- `selectedTheme: 'grimdark'` (was `null`)
+- `activeSchemeIndex: 0` in initial state
+- `setActiveSchemeIndex` setter + export
 
-## Changes (lines 50–134)
+## 3. `src/pages/Index.tsx`
 
-### Pure baseline mappers (lines 78–101)
+**Destructure** `setActiveSchemeIndex` from `usePrimetimeState()`.
 
-Strip all override logic from `getBase`, `getMid1`, `getMid2`, `getHigh`. They become simple extracted-colour-to-closest-paint mappers:
-
+**Two refs** at component level:
 ```ts
-const getBase = () => extractedColors[0] ? closestPaint(extractedColors[0]) : paints[8];
-const getMid1 = () => extractedColors[1] ? closestPaint(extractedColors[1]) : paints[7];
-const getMid2 = () => extractedColors[2] ? closestPaint(extractedColors[2]) : null;
-const getHigh = () => extractedColors[3] ? closestPaint(extractedColors[3]) : paints[23];
+const themeInteracted = useRef(false);
+const overrideInteracted = useRef(false);
 ```
 
-### Scheme 1 — Baseline (lines 103–110)
+**assembledPrompt** (line 214): `state.colorSchemes?.[0]` → `state.colorSchemes?.[state.activeSchemeIndex]`. Add `state.activeSchemeIndex` to deps.
 
-Rename to `"Baseline"`. Uses pure `getBase`/`getMid1`/`getMid2`/`getHigh`. No changes needed beyond the name.
+**Preview colours** (lines 271–275): replace with active-scheme-only reads, drop `getOverrideHex` fallbacks.
 
-### Scheme 2 — Theme variation (lines 112–123)
+**handleThemeSelect** (lines 337–343): set `themeInteracted.current = true`, call `setActiveSchemeIndex(1)`.
 
-Remove all override guards. Apply `themeShift` unconditionally to all four roles from Scheme 1:
-
+**Override effect** (new, after line 269):
 ```ts
-const s2: ColorScheme = {
-  name: "Theme variation",
-  base: paints[(paints.indexOf(s1.base) + themeShift) % paints.length],
-  midtone1: paints[(paints.indexOf(s1.midtone1) + themeShift + 2) % paints.length],
-  midtone2: s1.midtone2 ? paints[(paints.indexOf(s1.midtone2) + themeShift + 4) % paints.length] : null,
-  highlight: paints[(paints.indexOf(s1.highlight) + themeShift + 1) % paints.length],
-};
+useEffect(() => {
+  if (!overrideInteracted.current) { overrideInteracted.current = true; return; }
+  if (state.baseOverride || state.midtoneOverrides.length > 0 || state.highlightOverride) {
+    setActiveSchemeIndex(2);
+  }
+}, [state.baseOverride, state.midtoneOverrides, state.highlightOverride]);
 ```
 
-### Scheme 3 — Override variation (lines 125–132)
+**ColorPlanPanel props** (~line 630): add `activeSchemeIndex` and `onSchemeSelect`.
 
-Replace the "mix approach" with override application on top of Scheme 2:
+## 4. `src/components/panels/ColorPlanPanel.tsx`
+Accept `activeSchemeIndex` and `onSchemeSelect` props. Pass `isActive={i === activeSchemeIndex}` and `onSelect={() => onSchemeSelect(i)}` to each `SchemeCard`.
 
-```ts
-const s3: ColorScheme = {
-  name: "Override variation",
-  type: "speedpaint-led",
-  base: baseOverride ? (paints.find(p => p.name === baseOverride) || s2.base) : s2.base,
-  midtone1: midtoneOverrides[0] ? (paints.find(p => p.name === midtoneOverrides[0]) || s2.midtone1) : s2.midtone1,
-  midtone2: midtoneOverrides[1] ? (paints.find(p => p.name === midtoneOverrides[1]) || s2.midtone2) : s2.midtone2,
-  highlight: highlightOverride ? (paints.find(p => p.name === highlightOverride) || s2.highlight) : s2.highlight,
-};
-```
+## 5. `src/components/SchemeCard.tsx`
+Add `isActive` and `onSelect` props. Outer div gets `onClick={onSelect}`, `cursor-pointer`, conditional `border-primary`/`border-border`.
 
-### Function signature
-
-Unchanged — still accepts `(extractedColors, theme, baseOverride, midtoneOverrides, highlightOverride)`. The overrides are only consumed in Scheme 3 now.
-
-## No other changes
-
-- Call site (line 284) unchanged
-- `assembledPrompt`, preview colours, layout — all untouched in this prompt
+## Scope lock
+No layout, thumbnail, toast, backend, or repaint submission changes.
 
