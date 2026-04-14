@@ -89,6 +89,8 @@ export function ColorPlanPanel({
   extractedColors,
   selectedTheme,
   colorSchemes,
+  activeSchemeIndex,
+  onSchemeSelect,
   baseOverride,
   midtoneOverrides,
   highlightOverride,

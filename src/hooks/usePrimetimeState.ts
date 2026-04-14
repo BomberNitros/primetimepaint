@@ -224,6 +224,10 @@ export function usePrimetimeState() {
     setState(s => ({ ...s, sharedSliderIndex: v }));
   }, []);
 
+  const setActiveSchemeIndex = useCallback((v: number) => {
+    setState(s => ({ ...s, activeSchemeIndex: v }));
+  }, []);
+
   const setPrimingRepaintEntry = useCallback((index: number, value: string) => {
     setState(s => ({ ...s, primingRepaintMap: { ...s.primingRepaintMap, [index]: value } }));
   }, []);
@@ -276,6 +280,7 @@ export function usePrimetimeState() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setActiveSchemeIndex,
     setPrimingRepaintEntry,
     setColorRepaintEntry,
     setRepaintHistory,
