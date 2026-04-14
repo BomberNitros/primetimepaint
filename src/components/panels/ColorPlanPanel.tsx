@@ -16,6 +16,8 @@ interface ColorPlanPanelProps {
   extractedColors: string[];
   selectedTheme: ThemeId | null;
   colorSchemes: ColorScheme[];
+  activeSchemeIndex: number;
+  onSchemeSelect: (i: number) => void;
   baseOverride: string | null;
   midtoneOverrides: string[];
   highlightOverride: string | null;
