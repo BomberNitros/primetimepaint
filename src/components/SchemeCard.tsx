@@ -4,9 +4,11 @@ import { PaintLidBadge } from './PaintLidBadge';
 interface SchemeCardProps {
   scheme: ColorScheme;
   index: number;
+  isActive: boolean;
+  onSelect: () => void;
 }
 
-export function SchemeCard({ scheme, index }: SchemeCardProps) {
+export function SchemeCard({ scheme, index, isActive, onSelect }: SchemeCardProps) {
   const colors = [
     { role: 'Base', paint: scheme.base },
     { role: 'Midtone 1', paint: scheme.midtone1 },
@@ -15,7 +17,7 @@ export function SchemeCard({ scheme, index }: SchemeCardProps) {
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div onClick={onSelect} className={`rounded-xl border bg-card p-4 cursor-pointer transition-colors ${isActive ? 'border-primary' : 'border-border'}`}>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold text-foreground">Scheme {index + 1}</h4>
         <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-secondary capitalize">

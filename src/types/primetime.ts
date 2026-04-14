@@ -111,6 +111,7 @@ export interface PrimetimeState {
   extractedColors: string[];
   selectedTheme: ThemeId | null;
   colorSchemes: ColorScheme[];
+  activeSchemeIndex: number;
 
   // Color-Role Overrides
   baseOverride: string | null;
