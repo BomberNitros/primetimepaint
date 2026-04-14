@@ -16,6 +16,8 @@ interface ColorPlanPanelProps {
   extractedColors: string[];
   selectedTheme: ThemeId | null;
   colorSchemes: ColorScheme[];
+  activeSchemeIndex: number;
+  onSchemeSelect: (i: number) => void;
   baseOverride: string | null;
   midtoneOverrides: string[];
   highlightOverride: string | null;
@@ -87,6 +89,8 @@ export function ColorPlanPanel({
   extractedColors,
   selectedTheme,
   colorSchemes,
+  activeSchemeIndex,
+  onSchemeSelect,
   baseOverride,
   midtoneOverrides,
   highlightOverride,
@@ -220,7 +224,7 @@ export function ColorPlanPanel({
           <p className="text-xs text-muted-foreground">Extracted reference-based paint plan shown as the baseline set of colors.</p>
           <div className="grid grid-cols-3 gap-4">
             {colorSchemes.map((s, i) => (
-              <SchemeCard key={i} scheme={s} index={i} />
+              <SchemeCard key={i} scheme={s} index={i} isActive={i === activeSchemeIndex} onSelect={() => onSchemeSelect(i)} />
             ))}
           </div>
         </div>

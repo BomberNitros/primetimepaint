@@ -156,11 +156,15 @@ export default function Index() {
     setPipelineComplete,
     setPipelineError,
     setSharedSliderIndex,
+    setActiveSchemeIndex,
     setPrimingRepaintEntry,
     setColorRepaintEntry,
     setRepaintHistory,
     appendReferenceBase64s,
   } = usePrimetimeState();
+
+  const themeInteracted = useRef(false);
+  const overrideInteracted = useRef(false);
 
   const miniature = useMiniatureDetails();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -211,7 +215,7 @@ export default function Index() {
           ? 'Black primer. Drive highlights up on raised surfaces. Let recesses stay dark.'
           : 'Grey primer. Build shading from scratch, light from 45° above.';
 
-    const activeScheme = state.colorSchemes?.[0];
+    const activeScheme = state.colorSchemes?.[state.activeSchemeIndex];
     const schemeNote = activeScheme
       ? `Colour scheme: ${activeScheme.name}. ` +
         `Base: ${activeScheme.base.name}. ` +
@@ -247,6 +251,7 @@ export default function Index() {
     state.zenithalEnabled,
     state.selectedTheme,
     state.colorSchemes,
+    state.activeSchemeIndex,
     state.baseOverride,
     state.midtoneOverrides,
     state.highlightOverride,
@@ -268,11 +273,21 @@ export default function Index() {
     setColorSchemes(schemes);
   }, [state.extractedColors, state.selectedTheme, state.baseOverride, state.midtoneOverrides, state.highlightOverride]);
 
-  const activeScheme = state.colorSchemes[0];
-  const previewBase = getOverrideHex(state.baseOverride) || activeScheme?.base.hex || null;
-  const previewMid1 = getOverrideHex(state.midtoneOverrides[0]) || activeScheme?.midtone1.hex || null;
-  const previewMid2 = getOverrideHex(state.midtoneOverrides[1]) || activeScheme?.midtone2?.hex || null;
-  const previewHigh = getOverrideHex(state.highlightOverride) || activeScheme?.highlight.hex || null;
+  const activeScheme = state.colorSchemes?.[state.activeSchemeIndex];
+  const previewBase = activeScheme?.base.hex || null;
+  const previewMid1 = activeScheme?.midtone1.hex || null;
+  const previewMid2 = activeScheme?.midtone2?.hex || null;
+  const previewHigh = activeScheme?.highlight.hex || null;
+
+  useEffect(() => {
+    if (!overrideInteracted.current) {
+      overrideInteracted.current = true;
+      return;
+    }
+    if (state.baseOverride || state.midtoneOverrides.length > 0 || state.highlightOverride) {
+      setActiveSchemeIndex(2);
+    }
+  }, [state.baseOverride, state.midtoneOverrides, state.highlightOverride]);
 
   const recolorMap = useRecolorMap(mainImages, {
     baseColor: previewBase,
@@ -336,7 +351,9 @@ export default function Index() {
 
   const handleThemeSelect = useCallback(
     (t: ThemeId) => {
+      themeInteracted.current = true;
       setSelectedTheme(t);
+      setActiveSchemeIndex(1);
       if (state.activeStep !== "color-plan") setActiveStep("color-plan");
     },
     [state.activeStep],
@@ -628,6 +645,8 @@ export default function Index() {
             extractedColors={state.extractedColors}
             selectedTheme={state.selectedTheme}
             colorSchemes={state.colorSchemes}
+            activeSchemeIndex={state.activeSchemeIndex}
+            onSchemeSelect={setActiveSchemeIndex}
             baseOverride={state.baseOverride}
             midtoneOverrides={state.midtoneOverrides}
             highlightOverride={state.highlightOverride}
