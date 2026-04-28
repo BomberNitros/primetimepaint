@@ -98,7 +98,7 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
           onClick={handleDownloadAll}
           className="ml-auto flex-shrink-0 bg-secondary text-xs text-muted-foreground rounded-md px-3 py-1.5 hover:text-foreground transition-colors"
         >
-          Download all
+          Download Repaints
         </button>
       )}
     </div>
