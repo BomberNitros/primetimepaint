@@ -1,4 +1,4 @@
-import { UploadedImage } from '@/types/primetime';
+import { UploadedImage, RepaintHistoryEntry } from '@/types/primetime';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import JSZip from 'jszip';
@@ -9,29 +9,40 @@ interface BottomBarProps {
   onSelect: (index: number) => void;
   onRemove: (id: string) => void;
   selectedTheme: string | null;
+  repaintHistory: RepaintHistoryEntry[];
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme, repaintHistory }: BottomBarProps) {
   if (images.length === 0) return null;
 
   const mainImages = images.filter(i => i.type === 'main');
 
+  const downloadDataUrl = (dataUrl: string, filename: string) => {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const handleDownloadAll = async () => {
+    if (repaintHistory.length === 0) return;
+    if (repaintHistory.length === 1) {
+      downloadDataUrl(repaintHistory[0].image, 'repaint-1.png');
+      return;
+    }
     const zip = new JSZip();
-    for (let i = 0; i < mainImages.length; i++) {
-      try {
-        const res = await fetch(mainImages[i].objectUrl);
-        const blob = await res.blob();
-        zip.file(`image-${i}.png`, blob);
-      } catch {
-        // ignore individual failures
-      }
+    for (let i = 0; i < repaintHistory.length; i++) {
+      const dataUrl = repaintHistory[i].image;
+      const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+      zip.file(`repaint-${i + 1}.png`, base64, { base64: true });
     }
     const content = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(content);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'primetime-images.zip';
+    a.download = 'repaints.zip';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -66,13 +77,23 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
         </div>
       ))}
 
+      {repaintHistory.map((entry, i) => (
+        <button
+          key={i}
+          onClick={() => downloadDataUrl(entry.image, `repaint-${i + 1}.png`)}
+          className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30 flex-shrink-0"
+        >
+          <img src={entry.image} alt="" className="w-full h-full object-cover" />
+        </button>
+      ))}
+
       {selectedTheme && (
         <div className="flex-shrink-0 px-3 py-1.5 rounded-md bg-secondary text-xs text-muted-foreground capitalize">
           {selectedTheme}
         </div>
       )}
 
-      {mainImages.length > 0 && (
+      {repaintHistory.length > 0 && (
         <button
           onClick={handleDownloadAll}
           className="ml-auto flex-shrink-0 bg-secondary text-xs text-muted-foreground rounded-md px-3 py-1.5 hover:text-foreground transition-colors"
