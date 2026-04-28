@@ -22,6 +22,14 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
+import {
+  initDB,
+  saveImage,
+  loadImages,
+  clearImages,
+  saveRepaint,
+  loadRepaints,
+} from "@/lib/primetime-db";
 
 async function compressBase64Image(
   base64: string,
@@ -165,6 +173,8 @@ export default function Index() {
 
   const themeInteracted = useRef(false);
   const overrideInteracted = useRef(false);
+  const rehydratedRef = useRef(false);
+  const savedImageIdsRef = useRef<Set<string>>(new Set());
 
   const miniature = useMiniatureDetails();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -179,6 +189,99 @@ export default function Index() {
     if (!name) return null;
     return SPEEDPAINT_MOST_WANTED.find((p) => p.name === name)?.hex || null;
   };
+
+  // One-time rehydration on mount
+  useEffect(() => {
+    if (rehydratedRef.current) return;
+    rehydratedRef.current = true;
+
+    (async () => {
+      try {
+        await initDB();
+
+        try {
+          const raw = sessionStorage.getItem('primetime-session');
+          if (raw) {
+            const s = JSON.parse(raw);
+            if (s.activeStep) setActiveStep(s.activeStep);
+            if (s.primeColor) setPrimeColor(s.primeColor);
+            if (typeof s.zenithalEnabled === 'boolean') setZenithalEnabled(s.zenithalEnabled);
+            if (s.zenithalScheme) setZenithalScheme(s.zenithalScheme);
+            if (s.zenithalMethod) setZenithalMethod(s.zenithalMethod);
+            if (s.zenithalDirection) setZenithalDirection(s.zenithalDirection);
+            if (s.selectedTheme) setSelectedTheme(s.selectedTheme);
+            if (typeof s.activeSchemeIndex === 'number') setActiveSchemeIndex(s.activeSchemeIndex);
+            if (s.baseOverride !== undefined) setBaseOverride(s.baseOverride);
+            if (Array.isArray(s.midtoneOverrides)) setMidtoneOverrides(s.midtoneOverrides);
+            if (s.highlightOverride !== undefined) setHighlightOverride(s.highlightOverride);
+            if (typeof s.pipelineComplete === 'boolean') setPipelineComplete(s.pipelineComplete);
+            if (typeof s.sharedSliderIndex === 'number') setSharedSliderIndex(s.sharedSliderIndex);
+            themeInteracted.current = true;
+            overrideInteracted.current = true;
+          }
+        } catch {
+          // ignore corrupt session
+        }
+
+        const stored = await loadImages();
+        const mainFiles = stored.filter((s) => s.type === 'main').map((s) => s.file);
+        const refFiles = stored.filter((s) => s.type === 'reference').map((s) => s.file);
+        if (mainFiles.length) addMainImages(mainFiles);
+        if (refFiles.length) addReferenceImages(refFiles);
+
+        const repaints = await loadRepaints();
+        for (const { key, data } of repaints) {
+          const m = key.match(/^(priming|color)-(\d+)$/);
+          if (!m) continue;
+          const idx = parseInt(m[2], 10);
+          if (m[1] === 'priming') setPrimingRepaintEntry(idx, data);
+          else setColorRepaintEntry(idx, data);
+        }
+      } catch (e) {
+        console.error('[rehydrate] failed', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist any new images that haven't been saved yet
+  useEffect(() => {
+    const all = [
+      ...state.mainImages.map((i) => ({ id: i.id, file: i.file, type: 'main' as const })),
+      ...state.referenceImages.map((i) => ({ id: i.id, file: i.file, type: 'reference' as const })),
+    ];
+    for (const { id, file, type } of all) {
+      if (!savedImageIdsRef.current.has(id)) {
+        savedImageIdsRef.current.add(id);
+        saveImage(id, file, type).catch((e) => console.error('[saveImage] failed', e));
+      }
+    }
+  }, [state.mainImages, state.referenceImages]);
+
+  const handleRemoveImage = useCallback(
+    async (id: string) => {
+      removeImage(id);
+      savedImageIdsRef.current.delete(id);
+      try {
+        await clearImages();
+        const remaining = [
+          ...state.mainImages
+            .filter((i) => i.id !== id)
+            .map((i) => ({ id: i.id, file: i.file, type: 'main' as const })),
+          ...state.referenceImages
+            .filter((i) => i.id !== id)
+            .map((i) => ({ id: i.id, file: i.file, type: 'reference' as const })),
+        ];
+        for (const { id: rid, file, type } of remaining) {
+          await saveImage(rid, file, type);
+          savedImageIdsRef.current.add(rid);
+        }
+      } catch (e) {
+        console.error('[handleRemoveImage] failed', e);
+      }
+    },
+    [removeImage, state.mainImages, state.referenceImages],
+  );
 
   useEffect(() => {
     if (state.referenceImages.length === 0) {
