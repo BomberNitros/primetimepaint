@@ -547,7 +547,7 @@ export default function Index() {
     if (colorDebounceRef.current) clearTimeout(colorDebounceRef.current);
 
     colorDebounceRef.current = setTimeout(async () => {
-      const colorCacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
+      const colorCacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}|${state.activeSchemeIndex}|${state.selectedTheme}|${JSON.stringify(state.baseOverride)}|${JSON.stringify(state.midtoneOverrides)}|${JSON.stringify(state.highlightOverride)}`;
       if (colorCacheRef.current.has(colorCacheKey)) {
         setColorRepaintEntry(idx, colorCacheRef.current.get(colorCacheKey)!);
         saveRepaint(`color-${idx}`, colorCacheRef.current.get(colorCacheKey)!).catch(() => {});
@@ -611,7 +611,7 @@ export default function Index() {
         const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
         setColorRepaintEntry(i, image);
         saveRepaint(`color-${i}`, image).catch(() => {});
-        const colorCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
+        const colorCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}|${state.activeSchemeIndex}|${state.selectedTheme}|${JSON.stringify(state.baseOverride)}|${JSON.stringify(state.midtoneOverrides)}|${JSON.stringify(state.highlightOverride)}`;
         colorCacheRef.current.set(colorCacheKey, image);
 
         if (i === 0) {
