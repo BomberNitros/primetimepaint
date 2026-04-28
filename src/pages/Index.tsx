@@ -819,6 +819,7 @@ export default function Index() {
           onSelect={setSelectedImageIndex}
           onRemove={handleRemoveImage}
           selectedTheme={state.selectedTheme}
+          repaintHistory={state.repaintHistory}
         />
       </div>
     </div>
