@@ -485,6 +485,7 @@ export default function Index() {
       const cacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
       if (primingCacheRef.current.has(cacheKey)) {
         setPrimingRepaintEntry(idx, primingCacheRef.current.get(cacheKey)!);
+        saveRepaint(`priming-${idx}`, primingCacheRef.current.get(cacheKey)!).catch(() => {});
         return;
       }
 
@@ -508,6 +509,7 @@ export default function Index() {
         );
         primingCacheRef.current.set(cacheKey, primingImage);
         setPrimingRepaintEntry(idx, primingImage);
+        saveRepaint(`priming-${idx}`, primingImage).catch(() => {});
 
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         setRepaintLog((prev) => [
@@ -548,6 +550,7 @@ export default function Index() {
       const colorCacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
       if (colorCacheRef.current.has(colorCacheKey)) {
         setColorRepaintEntry(idx, colorCacheRef.current.get(colorCacheKey)!);
+        saveRepaint(`color-${idx}`, colorCacheRef.current.get(colorCacheKey)!).catch(() => {});
         return;
       }
 
@@ -564,6 +567,7 @@ export default function Index() {
         );
         colorCacheRef.current.set(colorCacheKey, image);
         setColorRepaintEntry(idx, image);
+        saveRepaint(`color-${idx}`, image).catch(() => {});
       } catch {
         // silent — colour repaint is best-effort
       }
