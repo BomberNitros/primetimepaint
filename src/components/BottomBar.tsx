@@ -1,6 +1,7 @@
 import { UploadedImage } from '@/types/primetime';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import JSZip from 'jszip';
 
 interface BottomBarProps {
   images: UploadedImage[];
@@ -12,6 +13,30 @@ interface BottomBarProps {
 
 export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme }: BottomBarProps) {
   if (images.length === 0) return null;
+
+  const mainImages = images.filter(i => i.type === 'main');
+
+  const handleDownloadAll = async () => {
+    const zip = new JSZip();
+    for (let i = 0; i < mainImages.length; i++) {
+      try {
+        const res = await fetch(mainImages[i].objectUrl);
+        const blob = await res.blob();
+        zip.file(`image-${i}.png`, blob);
+      } catch {
+        // ignore individual failures
+      }
+    }
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'primetime-images.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="h-20 min-h-[80px] border-t border-border bg-surface flex items-center gap-3 px-4 overflow-x-auto">
@@ -42,9 +67,18 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
       ))}
 
       {selectedTheme && (
-        <div className="ml-auto flex-shrink-0 px-3 py-1.5 rounded-md bg-secondary text-xs text-muted-foreground capitalize">
+        <div className="flex-shrink-0 px-3 py-1.5 rounded-md bg-secondary text-xs text-muted-foreground capitalize">
           {selectedTheme}
         </div>
+      )}
+
+      {mainImages.length > 0 && (
+        <button
+          onClick={handleDownloadAll}
+          className="ml-auto flex-shrink-0 bg-secondary text-xs text-muted-foreground rounded-md px-3 py-1.5 hover:text-foreground transition-colors"
+        >
+          Download all
+        </button>
       )}
     </div>
   );

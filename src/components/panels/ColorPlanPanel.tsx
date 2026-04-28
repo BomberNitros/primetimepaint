@@ -131,7 +131,7 @@ export function ColorPlanPanel({
     });
   }, [mainImages, recolorMap]);
 
-  const activeScheme = colorSchemes?.[0];
+  const activeScheme = colorSchemes?.[activeSchemeIndex];
   const swatches = activeScheme ? [
     activeScheme?.base && {
       label: 'Base',
@@ -146,6 +146,11 @@ export function ColorPlanPanel({
         ? (SPEEDPAINT_MOST_WANTED.find(p => p.name === midtoneOverrides[0])?.hex ?? activeScheme.midtone1.hex)
         : activeScheme.midtone1.hex,
       name: midtoneOverrides[0] ?? activeScheme.midtone1.name,
+    },
+    activeScheme?.midtone2 && {
+      label: 'Mid 2',
+      hex: activeScheme.midtone2.hex,
+      name: activeScheme.midtone2.name,
     },
     activeScheme?.highlight && {
       label: 'High',
