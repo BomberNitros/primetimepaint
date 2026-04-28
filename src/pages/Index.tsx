@@ -604,11 +604,13 @@ export default function Index() {
           refBase64s,
         );
         setPrimingRepaintEntry(i, primingImage);
+        saveRepaint(`priming-${i}`, primingImage).catch(() => {});
         const primingCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
         primingCacheRef.current.set(primingCacheKey, primingImage);
 
         const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
         setColorRepaintEntry(i, image);
+        saveRepaint(`color-${i}`, image).catch(() => {});
         const colorCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
         colorCacheRef.current.set(colorCacheKey, image);
 
@@ -660,6 +662,7 @@ export default function Index() {
       const result = await submitCustomRepaint(base64, assembledPrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
+      saveRepaint(`color-${state.sharedSliderIndex}`, result).catch(() => {});
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       const imageTurns = state.geminiHistory.filter((t) => t.hasImage);
@@ -814,7 +817,7 @@ export default function Index() {
           images={allImages}
           selectedIndex={state.selectedImageIndex}
           onSelect={setSelectedImageIndex}
-          onRemove={removeImage}
+          onRemove={handleRemoveImage}
           selectedTheme={state.selectedTheme}
         />
       </div>
