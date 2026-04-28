@@ -22,6 +22,14 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
+import {
+  initDB,
+  saveImage,
+  loadImages,
+  clearImages,
+  saveRepaint,
+  loadRepaints,
+} from "@/lib/primetime-db";
 
 async function compressBase64Image(
   base64: string,
@@ -165,6 +173,8 @@ export default function Index() {
 
   const themeInteracted = useRef(false);
   const overrideInteracted = useRef(false);
+  const rehydratedRef = useRef(false);
+  const savedImageIdsRef = useRef<Set<string>>(new Set());
 
   const miniature = useMiniatureDetails();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -179,6 +189,99 @@ export default function Index() {
     if (!name) return null;
     return SPEEDPAINT_MOST_WANTED.find((p) => p.name === name)?.hex || null;
   };
+
+  // One-time rehydration on mount
+  useEffect(() => {
+    if (rehydratedRef.current) return;
+    rehydratedRef.current = true;
+
+    (async () => {
+      try {
+        await initDB();
+
+        try {
+          const raw = sessionStorage.getItem('primetime-session');
+          if (raw) {
+            const s = JSON.parse(raw);
+            if (s.activeStep) setActiveStep(s.activeStep);
+            if (s.primeColor) setPrimeColor(s.primeColor);
+            if (typeof s.zenithalEnabled === 'boolean') setZenithalEnabled(s.zenithalEnabled);
+            if (s.zenithalScheme) setZenithalScheme(s.zenithalScheme);
+            if (s.zenithalMethod) setZenithalMethod(s.zenithalMethod);
+            if (s.zenithalDirection) setZenithalDirection(s.zenithalDirection);
+            if (s.selectedTheme) setSelectedTheme(s.selectedTheme);
+            if (typeof s.activeSchemeIndex === 'number') setActiveSchemeIndex(s.activeSchemeIndex);
+            if (s.baseOverride !== undefined) setBaseOverride(s.baseOverride);
+            if (Array.isArray(s.midtoneOverrides)) setMidtoneOverrides(s.midtoneOverrides);
+            if (s.highlightOverride !== undefined) setHighlightOverride(s.highlightOverride);
+            if (typeof s.pipelineComplete === 'boolean') setPipelineComplete(s.pipelineComplete);
+            if (typeof s.sharedSliderIndex === 'number') setSharedSliderIndex(s.sharedSliderIndex);
+            themeInteracted.current = true;
+            overrideInteracted.current = true;
+          }
+        } catch {
+          // ignore corrupt session
+        }
+
+        const stored = await loadImages();
+        const mainFiles = stored.filter((s) => s.type === 'main').map((s) => s.file);
+        const refFiles = stored.filter((s) => s.type === 'reference').map((s) => s.file);
+        if (mainFiles.length) addMainImages(mainFiles);
+        if (refFiles.length) addReferenceImages(refFiles);
+
+        const repaints = await loadRepaints();
+        for (const { key, data } of repaints) {
+          const m = key.match(/^(priming|color)-(\d+)$/);
+          if (!m) continue;
+          const idx = parseInt(m[2], 10);
+          if (m[1] === 'priming') setPrimingRepaintEntry(idx, data);
+          else setColorRepaintEntry(idx, data);
+        }
+      } catch (e) {
+        console.error('[rehydrate] failed', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist any new images that haven't been saved yet
+  useEffect(() => {
+    const all = [
+      ...state.mainImages.map((i) => ({ id: i.id, file: i.file, type: 'main' as const })),
+      ...state.referenceImages.map((i) => ({ id: i.id, file: i.file, type: 'reference' as const })),
+    ];
+    for (const { id, file, type } of all) {
+      if (!savedImageIdsRef.current.has(id)) {
+        savedImageIdsRef.current.add(id);
+        saveImage(id, file, type).catch((e) => console.error('[saveImage] failed', e));
+      }
+    }
+  }, [state.mainImages, state.referenceImages]);
+
+  const handleRemoveImage = useCallback(
+    async (id: string) => {
+      removeImage(id);
+      savedImageIdsRef.current.delete(id);
+      try {
+        await clearImages();
+        const remaining = [
+          ...state.mainImages
+            .filter((i) => i.id !== id)
+            .map((i) => ({ id: i.id, file: i.file, type: 'main' as const })),
+          ...state.referenceImages
+            .filter((i) => i.id !== id)
+            .map((i) => ({ id: i.id, file: i.file, type: 'reference' as const })),
+        ];
+        for (const { id: rid, file, type } of remaining) {
+          await saveImage(rid, file, type);
+          savedImageIdsRef.current.add(rid);
+        }
+      } catch (e) {
+        console.error('[handleRemoveImage] failed', e);
+      }
+    },
+    [removeImage, state.mainImages, state.referenceImages],
+  );
 
   useEffect(() => {
     if (state.referenceImages.length === 0) {
@@ -382,6 +485,7 @@ export default function Index() {
       const cacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
       if (primingCacheRef.current.has(cacheKey)) {
         setPrimingRepaintEntry(idx, primingCacheRef.current.get(cacheKey)!);
+        saveRepaint(`priming-${idx}`, primingCacheRef.current.get(cacheKey)!).catch(() => {});
         return;
       }
 
@@ -405,6 +509,7 @@ export default function Index() {
         );
         primingCacheRef.current.set(cacheKey, primingImage);
         setPrimingRepaintEntry(idx, primingImage);
+        saveRepaint(`priming-${idx}`, primingImage).catch(() => {});
 
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         setRepaintLog((prev) => [
@@ -445,6 +550,7 @@ export default function Index() {
       const colorCacheKey = `${img.id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
       if (colorCacheRef.current.has(colorCacheKey)) {
         setColorRepaintEntry(idx, colorCacheRef.current.get(colorCacheKey)!);
+        saveRepaint(`color-${idx}`, colorCacheRef.current.get(colorCacheKey)!).catch(() => {});
         return;
       }
 
@@ -461,6 +567,7 @@ export default function Index() {
         );
         colorCacheRef.current.set(colorCacheKey, image);
         setColorRepaintEntry(idx, image);
+        saveRepaint(`color-${idx}`, image).catch(() => {});
       } catch {
         // silent — colour repaint is best-effort
       }
@@ -497,11 +604,13 @@ export default function Index() {
           refBase64s,
         );
         setPrimingRepaintEntry(i, primingImage);
+        saveRepaint(`priming-${i}`, primingImage).catch(() => {});
         const primingCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
         primingCacheRef.current.set(primingCacheKey, primingImage);
 
         const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s);
         setColorRepaintEntry(i, image);
+        saveRepaint(`color-${i}`, image).catch(() => {});
         const colorCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
         colorCacheRef.current.set(colorCacheKey, image);
 
@@ -553,6 +662,7 @@ export default function Index() {
       const result = await submitCustomRepaint(base64, assembledPrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
+      saveRepaint(`color-${state.sharedSliderIndex}`, result).catch(() => {});
 
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       const imageTurns = state.geminiHistory.filter((t) => t.hasImage);
@@ -707,7 +817,7 @@ export default function Index() {
           images={allImages}
           selectedIndex={state.selectedImageIndex}
           onSelect={setSelectedImageIndex}
-          onRemove={removeImage}
+          onRemove={handleRemoveImage}
           selectedTheme={state.selectedTheme}
         />
       </div>
