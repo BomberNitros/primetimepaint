@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import {
   PrimetimeState, StepId, UploadedImage, PrimeColor,
@@ -49,6 +49,29 @@ const initialState: PrimetimeState = {
 
 export function usePrimetimeState() {
   const [state, setState] = useState<PrimetimeState>(initialState);
+
+  useEffect(() => {
+    try {
+      const subset = {
+        activeStep: state.activeStep,
+        primeColor: state.primeColor,
+        zenithalEnabled: state.zenithalEnabled,
+        zenithalScheme: state.zenithalScheme,
+        zenithalMethod: state.zenithalMethod,
+        zenithalDirection: state.zenithalDirection,
+        selectedTheme: state.selectedTheme,
+        activeSchemeIndex: state.activeSchemeIndex,
+        baseOverride: state.baseOverride,
+        midtoneOverrides: state.midtoneOverrides,
+        highlightOverride: state.highlightOverride,
+        pipelineComplete: state.pipelineComplete,
+        sharedSliderIndex: state.sharedSliderIndex,
+      };
+      sessionStorage.setItem('primetime-session', JSON.stringify(subset));
+    } catch {
+      // sessionStorage unavailable (private mode, quota, etc.)
+    }
+  }, [state]);
 
   const setActiveStep = useCallback((step: StepId) => {
     setState(s => ({ ...s, activeStep: step }));
