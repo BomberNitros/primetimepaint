@@ -810,7 +810,26 @@ export default function Index() {
         backgroundRepainting={state.backgroundRepainting}
         repaintStartTime={state.repaintStartTime}
         repaintLog={state.repaintLog}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Button
+        size="icon"
+        variant="secondary"
+        onClick={() => setSidebarOpen((v) => !v)}
+        className="fixed bottom-20 right-4 z-50 md:hidden rounded-full shadow-lg"
+        aria-label="Toggle sidebar"
+      >
+        <SlidersHorizontal />
+      </Button>
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 overflow-y-auto">
