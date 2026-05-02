@@ -1,55 +1,31 @@
-# Mobile-only collapsible sidebar
+## Implementation: Palette footer strip on repaint downloads
 
-Make `ControlRail` hidden by default on mobile (<768px), toggled via a fixed icon button. Desktop behavior unchanged.
+### `src/components/BottomBar.tsx`
 
-## Files
-- `src/components/ControlRail.tsx`
-- `src/pages/Index.tsx`
+1. Add `ColorScheme` to types import.
+2. Add `activeScheme: ColorScheme | null` to `BottomBarProps`.
+3. Destructure `activeScheme` in component.
+4. Add helper `composeWithPaletteStrip(dataUrl: string): Promise<string>`:
+   - Load image via `new Image()` (set `crossOrigin = 'anonymous'`, await `onload`).
+   - If `activeScheme` is null, return original dataUrl.
+   - Build colors array: `[base, midtone1, midtone2?, highlight]` filtered.
+   - Create canvas sized `img.width` x `img.height + 64`.
+   - Draw image at (0, 0).
+   - Fill strip rect (0, h, w, 64) with `#1a1a1a`.
+   - Compute `swatchWidth = (w - 8*(n+1)) / n`. For each swatch i:
+     - Draw `20px` swatch at `x = 8 + i*(swatchWidth+8)`, `y = h + 8`, fill with paint hex.
+     - Set `ctx.fillStyle = '#fff'`, `font = '11px sans-serif'`, `textBaseline = 'top'`.
+     - Truncate name to fit `swatchWidth` (measure, append `…` while too wide).
+     - Draw text at `x`, `y = h + 8 + 20 + 6` (= h + 34).
+   - Return `canvas.toDataURL('image/png')`.
+5. Replace single-thumbnail `onClick` to call `composeWithPaletteStrip(entry.image)` then `downloadDataUrl`. Make handler async.
+6. In `handleDownloadAll`:
+   - Single-entry branch: compose then download.
+   - Multi-entry branch: await compose for each, strip prefix, add to zip.
 
-## src/components/ControlRail.tsx
+### `src/pages/Index.tsx`
 
-1. Add `X` to the existing `lucide-react` import.
-2. Extend `ControlRailProps`:
-   ```ts
-   isOpen?: boolean;
-   onClose?: () => void;
-   ```
-3. In the function signature, default them: `isOpen = true`, `onClose = () => {}`.
-4. Replace the root `<nav>` classes so it behaves responsively:
-   - Mobile (default): `fixed inset-y-0 right-0 z-40 w-72 bg-background shadow-xl overflow-y-auto`
-   - Desktop reset: `md:relative md:inset-auto md:z-auto md:w-[168px] md:shadow-none`
-   - Keep existing `bg-sidebar border-r border-sidebar-border flex flex-col h-full min-w-[168px]` (preserved for desktop).
-   - Wrap the entire `<nav>` render in `{(isOpen || /* desktop */ true) && ...}` — simpler: render the nav always, but on mobile hide via class when `!isOpen`. Use conditional class: when `!isOpen`, add `hidden md:flex` (or similar) so it disappears on mobile but stays on desktop.
-5. Add an `X` close button as the first child of the `<nav>`, visible only on mobile (`md:hidden`), positioned top-right, calling `onClose`.
+Pass `activeScheme={state.colorSchemes[state.activeSchemeIndex] ?? null}` to `<BottomBar />`.
 
-Approach for visibility: render `<nav>` with class
-`cn('... existing classes ...', !isOpen && 'hidden md:flex')`
-so on mobile it's hidden when closed; on md+ it's always shown.
-
-## src/pages/Index.tsx
-
-1. Add import: `import { SlidersHorizontal } from 'lucide-react';` and `Button` from `@/components/ui/button` (verify if already imported; if not, add).
-2. Add `const [sidebarOpen, setSidebarOpen] = useState(false);`.
-3. Pass `isOpen={sidebarOpen}` and `onClose={() => setSidebarOpen(false)}` to the existing `<ControlRail />`.
-4. Add a backdrop element rendered when `sidebarOpen`:
-   ```tsx
-   {sidebarOpen && (
-     <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
-   )}
-   ```
-5. Add a fixed toggle button (mobile only):
-   ```tsx
-   <Button
-     size="icon"
-     variant="secondary"
-     onClick={() => setSidebarOpen(v => !v)}
-     className="fixed bottom-20 right-4 z-50 md:hidden rounded-full"
-   >
-     <SlidersHorizontal />
-   </Button>
-   ```
-
-## Notes / minor ambiguities
-- The spec says "default true" for `isOpen` in ControlRail, which makes desktop-without-prop callers still work. Combined with the `md:flex` class reset, desktop is unchanged.
-- No animation, no new libraries.
-- No other files touched.
+### Out of scope
+No other files, no styling changes outside the strip composition, no changes to `downloadDataUrl` helper signature.

@@ -1,4 +1,4 @@
-import { UploadedImage, RepaintHistoryEntry } from '@/types/primetime';
+import { UploadedImage, RepaintHistoryEntry, ColorScheme } from '@/types/primetime';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import JSZip from 'jszip';
@@ -10,9 +10,10 @@ interface BottomBarProps {
   onRemove: (id: string) => void;
   selectedTheme: string | null;
   repaintHistory: RepaintHistoryEntry[];
+  activeScheme: ColorScheme | null;
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme, repaintHistory }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
   if (images.length === 0) return null;
 
   const mainImages = images.filter(i => i.type === 'main');
@@ -26,15 +27,66 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
     document.body.removeChild(a);
   };
 
+  const composeWithPaletteStrip = async (dataUrl: string): Promise<string> => {
+    if (!activeScheme) return dataUrl;
+    const paints = [
+      activeScheme.base,
+      activeScheme.midtone1,
+      ...(activeScheme.midtone2 ? [activeScheme.midtone2] : []),
+      activeScheme.highlight,
+    ];
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => resolve(im);
+      im.onerror = reject;
+      im.src = dataUrl;
+    });
+    const w = img.width;
+    const h = img.height;
+    const stripH = 64;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h + stripH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, h, w, stripH);
+    const n = paints.length;
+    const gutter = 8;
+    const swatchWidth = (w - gutter * (n + 1)) / n;
+    const swatchSize = 20;
+    ctx.font = '11px sans-serif';
+    ctx.textBaseline = 'top';
+    for (let i = 0; i < n; i++) {
+      const x = gutter + i * (swatchWidth + gutter);
+      const y = h + 8;
+      ctx.fillStyle = paints[i].hex;
+      ctx.fillRect(x, y, swatchSize, swatchSize);
+      let name = paints[i].name;
+      if (ctx.measureText(name).width > swatchWidth) {
+        while (name.length > 0 && ctx.measureText(name + '…').width > swatchWidth) {
+          name = name.slice(0, -1);
+        }
+        name = name + '…';
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(name, x, h + 8 + swatchSize + 6);
+    }
+    return canvas.toDataURL('image/png');
+  };
+
   const handleDownloadAll = async () => {
     if (repaintHistory.length === 0) return;
     if (repaintHistory.length === 1) {
-      downloadDataUrl(repaintHistory[0].image, 'repaint-1.png');
+      const composed = await composeWithPaletteStrip(repaintHistory[0].image);
+      downloadDataUrl(composed, 'repaint-1.png');
       return;
     }
     const zip = new JSZip();
     for (let i = 0; i < repaintHistory.length; i++) {
-      const dataUrl = repaintHistory[i].image;
+      const dataUrl = await composeWithPaletteStrip(repaintHistory[i].image);
       const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
       zip.file(`repaint-${i + 1}.png`, base64, { base64: true });
     }
@@ -80,7 +132,10 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
       {repaintHistory.map((entry, i) => (
         <button
           key={i}
-          onClick={() => downloadDataUrl(entry.image, `repaint-${i + 1}.png`)}
+          onClick={async () => {
+            const composed = await composeWithPaletteStrip(entry.image);
+            downloadDataUrl(composed, `repaint-${i + 1}.png`);
+          }}
           className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30 flex-shrink-0"
         >
           <img src={entry.image} alt="" className="w-full h-full object-cover" />
