@@ -22,7 +22,7 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
-import { SlidersHorizontal } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   initDB,
@@ -825,10 +825,10 @@ export default function Index() {
         size="icon"
         variant="secondary"
         onClick={() => setSidebarOpen((v) => !v)}
-        className="fixed bottom-20 right-4 z-50 md:hidden rounded-full shadow-lg"
+        className="fixed top-4 left-4 z-50 md:hidden rounded-full shadow-lg"
         aria-label="Toggle sidebar"
       >
-        <SlidersHorizontal />
+        {sidebarOpen ? <ChevronLeft /> : <ChevronRight />}
       </Button>
 
       <div className="flex-1 flex flex-col min-w-0">

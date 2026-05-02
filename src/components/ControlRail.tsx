@@ -61,7 +61,7 @@ export function ControlRail({
     <nav
       className={cn(
         'bg-sidebar border-r border-sidebar-border flex flex-col h-full',
-        'fixed inset-y-0 right-0 z-40 w-72 shadow-xl overflow-y-auto',
+        'fixed inset-y-0 left-0 z-40 w-72 shadow-xl overflow-y-auto',
         'md:relative md:inset-auto md:z-auto md:w-[168px] md:min-w-[168px] md:shadow-none md:overflow-visible',
         !isOpen && 'hidden md:flex',
       )}
