@@ -405,6 +405,8 @@ export default function Index() {
 
   const [primingResultMap, setPrimingResultMap] = useState<Record<string, string | null>>({});
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   useEffect(() => {
     if (mainImages.length === 0) {
       setPrimingResultMap({});
