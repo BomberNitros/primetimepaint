@@ -22,6 +22,8 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
+import { SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   initDB,
   saveImage,
