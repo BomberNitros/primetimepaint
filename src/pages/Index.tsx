@@ -843,6 +843,7 @@ export default function Index() {
           onRemove={handleRemoveImage}
           selectedTheme={state.selectedTheme}
           repaintHistory={state.repaintHistory}
+          activeScheme={state.colorSchemes[state.activeSchemeIndex] ?? null}
         />
       </div>
     </div>
