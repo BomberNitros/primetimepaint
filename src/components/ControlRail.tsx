@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { StepId, RepaintEntry } from '@/types/primetime';
-import { Upload, Sun, Palette, Paintbrush, Droplets, ClipboardList, Shield } from 'lucide-react';
+import { Upload, Sun, Palette, Paintbrush, Droplets, ClipboardList, Shield, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RepaintTimer } from '@/components/RepaintTimer';
 import { RepaintTicker } from '@/components/RepaintTicker';
@@ -41,6 +41,8 @@ interface ControlRailProps {
   backgroundRepainting: boolean;
   repaintStartTime: Date | null;
   repaintLog: RepaintEntry[];
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function ControlRail({
@@ -52,9 +54,25 @@ export function ControlRail({
   backgroundRepainting,
   repaintStartTime,
   repaintLog,
+  isOpen = true,
+  onClose = () => {},
 }: ControlRailProps) {
   return (
-    <nav className="w-[168px] min-w-[168px] bg-sidebar border-r border-sidebar-border flex flex-col h-full">
+    <nav
+      className={cn(
+        'bg-sidebar border-r border-sidebar-border flex flex-col h-full',
+        'fixed inset-y-0 right-0 z-40 w-72 shadow-xl overflow-y-auto',
+        'md:relative md:inset-auto md:z-auto md:w-[168px] md:min-w-[168px] md:shadow-none md:overflow-visible',
+        !isOpen && 'hidden md:flex',
+      )}
+    >
+      <button
+        onClick={onClose}
+        className="md:hidden absolute top-2 right-2 z-10 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
+        aria-label="Close sidebar"
+      >
+        <X className="w-4 h-4" />
+      </button>
       {/* Brand */}
       <div className="px-3 py-4 border-b border-sidebar-border flex flex-col items-start">
         <PaintBottleLogo />

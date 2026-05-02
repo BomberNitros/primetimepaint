@@ -22,6 +22,8 @@ import {
   submitCustomRepaint,
 } from "@/lib/gemini-pipeline";
 import { toast } from "sonner";
+import { SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   initDB,
   saveImage,
@@ -402,6 +404,8 @@ export default function Index() {
   });
 
   const [primingResultMap, setPrimingResultMap] = useState<Record<string, string | null>>({});
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (mainImages.length === 0) {
@@ -806,7 +810,26 @@ export default function Index() {
         backgroundRepainting={state.backgroundRepainting}
         repaintStartTime={state.repaintStartTime}
         repaintLog={state.repaintLog}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Button
+        size="icon"
+        variant="secondary"
+        onClick={() => setSidebarOpen((v) => !v)}
+        className="fixed bottom-20 right-4 z-50 md:hidden rounded-full shadow-lg"
+        aria-label="Toggle sidebar"
+      >
+        <SlidersHorizontal />
+      </Button>
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 overflow-y-auto">

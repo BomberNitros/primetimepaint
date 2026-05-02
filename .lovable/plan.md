@@ -1,65 +1,55 @@
-# Persistence layer — images, repaints, session state
+# Mobile-only collapsible sidebar
 
-Three files. Native IndexedDB wrapper, sessionStorage autosave, on-mount rehydration. No new dependencies.
+Make `ControlRail` hidden by default on mobile (<768px), toggled via a fixed icon button. Desktop behavior unchanged.
 
-## 1. `src/lib/primetime-db.ts` (new)
+## Files
+- `src/components/ControlRail.tsx`
+- `src/pages/Index.tsx`
 
-Native IndexedDB. DB `primetime-db`, version 1.
+## src/components/ControlRail.tsx
 
-Stores (created in `onupgradeneeded`):
-- `images` — keyPath `id` — `{ id, file, type }`
-- `repaints` — keyPath `key` — `{ key, data }`
+1. Add `X` to the existing `lucide-react` import.
+2. Extend `ControlRailProps`:
+   ```ts
+   isOpen?: boolean;
+   onClose?: () => void;
+   ```
+3. In the function signature, default them: `isOpen = true`, `onClose = () => {}`.
+4. Replace the root `<nav>` classes so it behaves responsively:
+   - Mobile (default): `fixed inset-y-0 right-0 z-40 w-72 bg-background shadow-xl overflow-y-auto`
+   - Desktop reset: `md:relative md:inset-auto md:z-auto md:w-[168px] md:shadow-none`
+   - Keep existing `bg-sidebar border-r border-sidebar-border flex flex-col h-full min-w-[168px]` (preserved for desktop).
+   - Wrap the entire `<nav>` render in `{(isOpen || /* desktop */ true) && ...}` — simpler: render the nav always, but on mobile hide via class when `!isOpen`. Use conditional class: when `!isOpen`, add `hidden md:flex` (or similar) so it disappears on mobile but stays on desktop.
+5. Add an `X` close button as the first child of the `<nav>`, visible only on mobile (`md:hidden`), positioned top-right, calling `onClose`.
 
-Module-level cached `Promise<IDBDatabase>` reused by all functions. Each operation wraps a transaction in a Promise resolving on `oncomplete` / rejecting on `onerror`.
+Approach for visibility: render `<nav>` with class
+`cn('... existing classes ...', !isOpen && 'hidden md:flex')`
+so on mobile it's hidden when closed; on md+ it's always shown.
 
-Exports:
-- `initDB(): Promise<void>`
-- `saveImage(id, file, type): Promise<void>` — `put` into `images`
-- `loadImages(): Promise<Array<{id,file,type}>>` — `getAll`
-- `clearImages(): Promise<void>` — `clear`
-- `saveRepaint(key, data): Promise<void>` — `put` into `repaints`
-- `loadRepaints(): Promise<Array<{key,data}>>` — `getAll`
-- `clearRepaints(): Promise<void>` — `clear`
+## src/pages/Index.tsx
 
-## 2. `src/hooks/usePrimetimeState.ts`
+1. Add import: `import { SlidersHorizontal } from 'lucide-react';` and `Button` from `@/components/ui/button` (verify if already imported; if not, add).
+2. Add `const [sidebarOpen, setSidebarOpen] = useState(false);`.
+3. Pass `isOpen={sidebarOpen}` and `onClose={() => setSidebarOpen(false)}` to the existing `<ControlRail />`.
+4. Add a backdrop element rendered when `sidebarOpen`:
+   ```tsx
+   {sidebarOpen && (
+     <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+   )}
+   ```
+5. Add a fixed toggle button (mobile only):
+   ```tsx
+   <Button
+     size="icon"
+     variant="secondary"
+     onClick={() => setSidebarOpen(v => !v)}
+     className="fixed bottom-20 right-4 z-50 md:hidden rounded-full"
+   >
+     <SlidersHorizontal />
+   </Button>
+   ```
 
-Add a `useEffect` watching `state` that writes the serialized subset to `sessionStorage['primetime-session']`:
-
-```
-{ activeStep, primeColor, zenithalEnabled, zenithalScheme, zenithalMethod,
-  zenithalDirection, selectedTheme, activeSchemeIndex, baseOverride,
-  midtoneOverrides, highlightOverride, pipelineComplete, sharedSliderIndex }
-```
-
-Wrapped in try/catch (private-mode safety). No other changes.
-
-## 3. `src/pages/Index.tsx`
-
-### One-time mount rehydration
-- Add `rehydratedRef = useRef(false)` (StrictMode guard).
-- In `useEffect(() => { ... }, [])`: if already rehydrated, return; else mark true and run:
-  1. `await initDB()`
-  2. Read `sessionStorage['primetime-session']`. If present, parse and apply via setters: `setActiveStep`, `setPrimeColor`, `setZenithalEnabled`, `setZenithalScheme`, `setZenithalMethod`, `setZenithalDirection`, `setSelectedTheme`, `setActiveSchemeIndex`, `setBaseOverride`, `setMidtoneOverrides`, `setHighlightOverride`, `setPipelineComplete`, `setSharedSliderIndex`. Set `themeInteracted.current = true` and `overrideInteracted.current = true` so the auto-select effects don't overwrite restored `activeSchemeIndex`.
-  3. `await loadImages()` → split by `type`, call `addMainImages(mainFiles)` and `addReferenceImages(refFiles)`. Reference color extraction fires automatically via the existing effect keyed on `state.referenceImages.length`.
-  4. `await loadRepaints()` → parse `priming-N` / `color-N` and dispatch via `setPrimingRepaintEntry(N, data)` / `setColorRepaintEntry(N, data)`.
-- Do NOT call `generateRepaint`, `generatePrimingRepaint`, or `handleAnalyseAndRepaint` during rehydration.
-
-### Image persistence (covers uploads + rehydration in one effect)
-- Add `savedImageIdsRef = useRef<Set<string>>(new Set())`.
-- Add `useEffect` on `[state.mainImages, state.referenceImages]`: iterate both arrays; for any `id` not already in `savedImageIdsRef.current`, call `saveImage(id, img.file, img.type)` (fire-and-forget) and add the id to the Set.
-
-### Image remove
-- Replace `onRemove={removeImage}` on `BottomBar` with a wrapper `handleRemoveImage(id)`:
-  1. `removeImage(id)`
-  2. `savedImageIdsRef.current.delete(id)`
-  3. `await clearImages()`
-  4. For each remaining image in `state.mainImages` + `state.referenceImages` (filtered to exclude the removed id), call `saveImage(...)` and re-add the id to the Set.
-
-### Repaint persistence
-- After every `setPrimingRepaintEntry(idx, primingImage)` (lines 384, 407, 499) → `saveRepaint(\`priming-${idx}\`, primingImage)` (fire-and-forget).
-- After every `setColorRepaintEntry(idx, image)` (lines 447, 463, 504, 555) → `saveRepaint(\`color-${idx}\`, image)` (fire-and-forget).
-
-## Scope lock
-- No layout, scheme, theme, or repaint-execution changes
-- Only the three files listed
-- No new npm dependencies (native IndexedDB only)
+## Notes / minor ambiguities
+- The spec says "default true" for `isOpen` in ControlRail, which makes desktop-without-prop callers still work. Combined with the `md:flex` class reset, desktop is unchanged.
+- No animation, no new libraries.
+- No other files touched.
