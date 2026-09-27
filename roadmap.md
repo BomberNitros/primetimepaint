@@ -1,3 +1,3 @@
-- DualSlider lightbox: light chip labels (in progress)
-- BottomBar: replace colorRepaintMap/primingRepaintMap props with repaintHistory; repaintEntries = repaintHistory.map((entry, i) => ({ index: i, image: entry.image }))
-- Index.tsx debounced effect: after setColorRepaintEntry + saveRepaint, append setRepaintHistory "Auto repaint" (not in cache-hit/catch)
+- DualSlider lightbox: light chip labels (done)
+- BottomBar: repaintHistory row (done)
+- Index.tsx: auto repaints appended to repaintHistory (done)
