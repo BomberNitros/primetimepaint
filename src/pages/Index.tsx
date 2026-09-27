@@ -740,7 +740,9 @@ export default function Index() {
     switch (state.activeStep) {
       case "upload":
         return (
-          <ImageUploader
+          <>
+            <PaintDirectivePanel miniature={miniature} />
+            <ImageUploader
             mainImages={state.mainImages}
             referenceImages={state.referenceImages}
             onMainImagesChange={(files) => addMainImages(files)}
