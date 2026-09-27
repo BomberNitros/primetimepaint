@@ -1,6 +1,6 @@
 // ============= Full file contents =============
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { UploadedImage, ColorScheme } from '@/types/primetime';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,13 +11,16 @@ interface BottomBarProps {
   selectedIndex: number;
   onSelect: (index: number) => void;
   onRemove: (id: string) => void;
+  onRemoveRepaint: (index: number) => void;
   onClearAll: () => void;
   selectedTheme: string | null;
   repaintHistory: { label: string; image: string }[];
   activeScheme: ColorScheme | null;
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAll, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, onRemoveRepaint, onClearAll, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
+  const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
+
   const repaintEntries = useMemo(
     () =>
       (repaintHistory ?? []).map((entry, i) => ({ index: i, image: entry.image })),
@@ -148,16 +151,23 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAl
 
       <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 min-w-0">
         {repaintEntries.map((entry) => (
-          <button
-            key={entry.index}
-            onClick={async () => {
-              const composed = await composeWithPaletteStrip(entry.image);
-              downloadDataUrl(composed, `repaint-${entry.index + 1}.png`);
-            }}
-            className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30 flex-shrink-0"
-          >
-            <img src={entry.image} alt="" className="w-full h-full object-cover" />
-          </button>
+          <div key={entry.index} className="relative group flex-shrink-0">
+            <button
+              onClick={() => setZoomedIndex(entry.index)}
+              className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30"
+            >
+              <img src={entry.image} alt="" className="w-full h-full object-cover" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveRepaint(entry.index);
+              }}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
         ))}
       </div>
 
@@ -186,6 +196,37 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAl
         >
           Clear uploads
         </button>
+      )}
+
+      {zoomedIndex !== null && repaintEntries[zoomedIndex] && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center gap-4 p-6"
+          onClick={() => setZoomedIndex(null)}
+        >
+          <button
+            onClick={() => setZoomedIndex(null)}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-secondary text-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={repaintEntries[zoomedIndex].image}
+            alt=""
+            className="max-h-[80vh] max-w-[90vw] object-contain rounded-md"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              const entry = repaintEntries[zoomedIndex];
+              const composed = await composeWithPaletteStrip(entry.image);
+              downloadDataUrl(composed, `repaint-${entry.index + 1}.png`);
+            }}
+            className="bg-primary text-primary-foreground text-sm font-medium rounded-md px-4 py-2 hover:bg-primary/90 transition-colors"
+          >
+            Download
+          </button>
+        </div>
       )}
     </div>
   );

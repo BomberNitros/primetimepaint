@@ -1,3 +1,7 @@
 - DualSlider lightbox: light chip labels (done)
 - BottomBar: repaintHistory row (done)
 - Index.tsx: auto repaints appended to repaintHistory (done)
+- BottomBar: repaint zoom lightbox + delete buttons (in progress)
+- Index.tsx: handleRemoveRepaint + pass onRemoveRepaint (pending)
+- BottomBar: repaint zoom lightbox + delete buttons (done)
+- Index.tsx: handleRemoveRepaint + pass onRemoveRepaint (done)
