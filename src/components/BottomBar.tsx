@@ -143,6 +143,13 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAl
         </div>
       ))}
 
+      {repaintEntries.length > 0 && (
+        <div className="flex-shrink-0 flex items-center gap-2 h-14">
+          <div className="w-px h-full bg-border" />
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Repaints</span>
+        </div>
+      )}
+
       <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 min-w-0">
         {repaintEntries.map((entry) => (
           <button
