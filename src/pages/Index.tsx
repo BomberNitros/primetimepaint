@@ -300,6 +300,10 @@ export default function Index() {
     }
   }, [removeImage, state.mainImages, state.referenceImages]);
 
+  const handleRemoveRepaint = useCallback((index: number) => {
+    setRepaintHistory((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   useEffect(() => {
     if (state.referenceImages.length === 0) {
       setExtractedColors([]);
@@ -879,6 +883,7 @@ export default function Index() {
           onSelect={setSelectedImageIndex}
           onRemove={handleRemoveImage}
           onClearAll={handleClearAll}
+          onRemoveRepaint={handleRemoveRepaint}
           selectedTheme={state.selectedTheme}
           repaintHistory={state.repaintHistory}
           activeScheme={state.colorSchemes[state.activeSchemeIndex] ?? null}
