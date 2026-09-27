@@ -572,6 +572,7 @@ export default function Index() {
           state.primeColor,
           refBase64s,
           buildColorSchemeBlock(state.anatomyRegions, state.colorSchemes[state.activeSchemeIndex] ?? null, state.baseOverride, state.midtoneOverrides, state.highlightOverride),
+          state.activePrompt ?? undefined,
         );
         colorCacheRef.current.set(colorCacheKey, image);
         setColorRepaintEntry(idx, image);
@@ -633,7 +634,7 @@ export default function Index() {
         const primingCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}`;
         primingCacheRef.current.set(primingCacheKey, primingImage);
 
-        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s, buildColorSchemeBlock(state.anatomyRegions, state.colorSchemes[state.activeSchemeIndex] ?? null, state.baseOverride, state.midtoneOverrides, state.highlightOverride));
+        const { image, prompt } = await generateRepaint(base64, regions, "miniature figure", state.primeColor, refBase64s, buildColorSchemeBlock(state.anatomyRegions, state.colorSchemes[state.activeSchemeIndex] ?? null, state.baseOverride, state.midtoneOverrides, state.highlightOverride), state.activePrompt ?? undefined);
         setColorRepaintEntry(i, image);
         saveRepaint(`color-${i}`, image).catch(() => {});
         const colorCacheKey = `${mainImages[i].id}|${state.primeColor}|${state.zenithalEnabled}|${state.zenithalScheme}|${state.zenithalMethod}|${state.zenithalDirection}|${state.activeSchemeIndex}|${state.selectedTheme}|${JSON.stringify(state.baseOverride)}|${JSON.stringify(state.midtoneOverrides)}|${JSON.stringify(state.highlightOverride)}`;
@@ -803,6 +804,8 @@ export default function Index() {
             onSliderIndexChange={setSharedSliderIndex}
             primingRepaintMap={state.primingRepaintMap}
             colorRepaintMap={state.colorRepaintMap}
+            activePrompt={state.activePrompt}
+            onPromptChange={handlePromptChange}
             onPrimeColorChange={setPrimeColor}
           />
         );
