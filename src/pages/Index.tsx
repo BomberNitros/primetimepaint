@@ -738,9 +738,7 @@ export default function Index() {
     switch (state.activeStep) {
       case "upload":
         return (
-          <>
-            <PaintDirectivePanel miniature={miniature} />
-            <ImageUploader
+          <ImageUploader
             mainImages={state.mainImages}
             referenceImages={state.referenceImages}
             onMainImagesChange={(files) => addMainImages(files)}
@@ -750,15 +748,15 @@ export default function Index() {
                 files.map((f) => toBase64(f instanceof File ? f : (f as unknown as { file: File }).file)),
               );
               appendReferenceBase64s(base64s);
-              console.log("[upload] referenceBase64s stored:", base64s.length);
             }}
             repaintStartTime={state.repaintStartTime}
             onAnalyseAndRepaint={handleAnalyseAndRepaint}
             pipelineComplete={state.pipelineComplete}
             pipelineError={state.pipelineError}
             currentlyRepainting={state.currentlyRepainting}
-            />
-          </>
+          >
+            <PaintDirectivePanel miniature={miniature} />
+          </ImageUploader>
         );
       case "priming":
         return (
