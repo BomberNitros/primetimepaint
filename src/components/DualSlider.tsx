@@ -39,6 +39,20 @@ export function DualSlider({
     whiteSpace: 'nowrap' as const,
   };
 
+  const zoomLabelStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.92)',
+    border: '1px solid rgba(0,0,0,0.1)',
+    boxShadow: 'none',
+    borderRadius: '0.375rem',
+    padding: '2px 10px',
+    color: '#000000',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    display: 'inline-flex',
+    alignItems: 'center',
+    whiteSpace: 'nowrap' as const,
+  };
+
   const maxCount = Math.max(leftImages.length, rightImages.length);
 
   const zoomNavigate = useCallback((newSlot: 'left' | 'right', newIndex: number) => {
@@ -225,18 +239,18 @@ export function DualSlider({
         >
           <button
             type="button"
-            style={{ ...glowStyle, position: 'absolute', top: '1rem', right: '1rem', zIndex: 10, cursor: 'pointer', fontSize: '1rem', padding: '4px 14px' }}
+            style={{ ...zoomLabelStyle, position: 'absolute', top: '1rem', right: '1rem', zIndex: 10, cursor: 'pointer', fontSize: '1rem', padding: '4px 14px' }}
             onClick={() => setZoomImage(null)}
           >
             ✕
           </button>
 
           <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span style={glowStyle}>{zoomImage.label}</span>
-            <span style={glowStyle}>{Math.round(zoomScale * 100)}%</span>
+            <span style={zoomLabelStyle}>{zoomImage.label}</span>
+            <span style={zoomLabelStyle}>{Math.round(zoomScale * 100)}%</span>
             <button
               type="button"
-              style={{ ...glowStyle, cursor: 'pointer' }}
+              style={{ ...zoomLabelStyle, cursor: 'pointer' }}
               onClick={e => {
                 e.stopPropagation();
                 setZoomScale(1);
@@ -254,22 +268,22 @@ export function DualSlider({
           }}>
             <button
               type="button"
-              style={{ ...glowStyle, cursor: zoomImage.index === 0 ? 'not-allowed' : 'pointer', opacity: zoomImage.index === 0 ? 0.3 : 1 }}
+              style={{ ...zoomLabelStyle, cursor: zoomImage.index === 0 ? 'not-allowed' : 'pointer', opacity: zoomImage.index === 0 ? 0.3 : 1 }}
               onClick={e => { e.stopPropagation(); zoomNavigate(zoomImage.slot, zoomImage.index - 1); }}
             >
               ← Prev set
             </button>
-            <span style={glowStyle}>{zoomImage.index + 1} / {maxCount}</span>
+            <span style={zoomLabelStyle}>{zoomImage.index + 1} / {maxCount}</span>
             <button
               type="button"
-              style={{ ...glowStyle, cursor: zoomImage.index >= maxCount - 1 ? 'not-allowed' : 'pointer', opacity: zoomImage.index >= maxCount - 1 ? 0.3 : 1 }}
+              style={{ ...zoomLabelStyle, cursor: zoomImage.index >= maxCount - 1 ? 'not-allowed' : 'pointer', opacity: zoomImage.index >= maxCount - 1 ? 0.3 : 1 }}
               onClick={e => { e.stopPropagation(); zoomNavigate(zoomImage.slot, zoomImage.index + 1); }}
             >
               Next set →
             </button>
             <button
               type="button"
-              style={{ ...glowStyle, cursor: 'pointer' }}
+              style={{ ...zoomLabelStyle, cursor: 'pointer' }}
               onClick={e => { e.stopPropagation(); zoomNavigate(zoomImage.slot === 'left' ? 'right' : 'left', zoomImage.index); }}
             >
               {zoomImage.slot === 'left' ? 'View repaint →' : '← View original'}
@@ -278,9 +292,10 @@ export function DualSlider({
 
           <div style={{
             position: 'absolute', bottom: '0.25rem', left: '50%', transform: 'translateX(-50%)', zIndex: 10,
-            color: '#a78bfa', fontSize: '0.6rem', opacity: 0.7, whiteSpace: 'nowrap' as const,
           }}>
-            Scroll zoom · Drag pan · ← → images · ↑↓ toggle side · Esc close
+            <span style={zoomLabelStyle}>
+              Scroll zoom · Drag pan · ← → images · ↑↓ toggle side · Esc close
+            </span>
           </div>
 
           <img

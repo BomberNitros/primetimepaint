@@ -1,0 +1,3 @@
+- DualSlider lightbox: light chip labels (done)
+- BottomBar: repaintHistory row (done)
+- Index.tsx: auto repaints appended to repaintHistory (done)

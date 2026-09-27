@@ -13,19 +13,15 @@ interface BottomBarProps {
   onRemove: (id: string) => void;
   onClearAll: () => void;
   selectedTheme: string | null;
-  colorRepaintMap: Record<number, string>;
-  primingRepaintMap: Record<number, string>;
+  repaintHistory: { label: string; image: string }[];
   activeScheme: ColorScheme | null;
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAll, selectedTheme, colorRepaintMap, primingRepaintMap, activeScheme }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAll, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
   const repaintEntries = useMemo(
     () =>
-      Array.from(new Set([...Object.keys(colorRepaintMap), ...Object.keys(primingRepaintMap)]))
-        .map(Number)
-        .sort((a, b) => a - b)
-        .map((index) => ({ index, image: colorRepaintMap[index] ?? primingRepaintMap[index] })),
-    [colorRepaintMap, primingRepaintMap]
+      (repaintHistory ?? []).map((entry, i) => ({ index: i, image: entry.image })),
+    [repaintHistory]
   );
 
   if (images.length === 0) return null;
