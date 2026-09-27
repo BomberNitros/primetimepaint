@@ -197,6 +197,37 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, onRemoveR
           Clear uploads
         </button>
       )}
+
+      {zoomedIndex !== null && repaintEntries[zoomedIndex] && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center gap-4 p-6"
+          onClick={() => setZoomedIndex(null)}
+        >
+          <button
+            onClick={() => setZoomedIndex(null)}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-secondary text-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={repaintEntries[zoomedIndex].image}
+            alt=""
+            className="max-h-[80vh] max-w-[90vw] object-contain rounded-md"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              const entry = repaintEntries[zoomedIndex];
+              const composed = await composeWithPaletteStrip(entry.image);
+              downloadDataUrl(composed, `repaint-${entry.index + 1}.png`);
+            }}
+            className="bg-primary text-primary-foreground text-sm font-medium rounded-md px-4 py-2 hover:bg-primary/90 transition-colors"
+          >
+            Download
+          </button>
+        </div>
+      )}
     </div>
   );
 }
