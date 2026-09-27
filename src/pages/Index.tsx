@@ -710,7 +710,7 @@ export default function Index() {
 
       setGeminiHistory([
         ...trimmed,
-        { role: "user", textContent: assembledPrompt, hasImage: false },
+        { role: "user", textContent: resolvedPrompt, hasImage: false },
         { role: "model", imageContent: result, hasImage: true },
       ]);
       setRepaintLog((prev) => [
@@ -728,7 +728,7 @@ export default function Index() {
     } finally {
       setCurrentlyRepainting(false);
     }
-  }, [mainImage, state.currentlyRepainting, assembledPrompt]);
+  }, [mainImage, state.currentlyRepainting, assembledPrompt, state.activePrompt]);
 
   const handlePromptChange = useCallback((prompt: string) => {
     setActivePrompt(prompt);
