@@ -14,6 +14,30 @@ import {
   ZenithalDirection,
 } from "@/types/primetime";
 
+
+function snapToSpeedpaint(hex: string): { name: string; hex: string } {
+  const [r, g, b] = [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+  let best = SPEEDPAINT_MOST_WANTED[0];
+  let bestDist = Infinity;
+  for (const p of SPEEDPAINT_MOST_WANTED) {
+    const [pr, pg, pb] = [
+      parseInt(p.hex.slice(1, 3), 16),
+      parseInt(p.hex.slice(3, 5), 16),
+      parseInt(p.hex.slice(5, 7), 16),
+    ];
+    const dist = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+    if (dist < bestDist) {
+      best = p;
+      bestDist = dist;
+    }
+  }
+  return { name: best.name, hex: best.hex };
+}
+
 export function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
