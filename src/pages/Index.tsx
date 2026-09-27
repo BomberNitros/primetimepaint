@@ -4,6 +4,7 @@ import { useRecolorMap } from "@/hooks/useRecolorMap";
 import { ControlRail } from "@/components/ControlRail";
 import { BottomBar } from "@/components/BottomBar";
 import { ImageUploader } from "@/components/ImageUploader";
+import { PaintDirectivePanel } from "@/components/PaintDirectivePanel";
 import { PrimingZenithalPanel } from "@/components/panels/PrimingZenithalPanel";
 import { ColorPlanPanel } from "@/components/panels/ColorPlanPanel";
 import { BrushGuidePanel } from "@/components/panels/BrushGuidePanel";
