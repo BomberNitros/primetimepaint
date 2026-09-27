@@ -204,13 +204,13 @@ export function ColorPlanPanel({
         />
       )}
 
-      {/* 4. Editable repaint prompt */}
+      {/* 4. Editable paint directive */}
       {pipelineComplete && (
         <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Repaint prompt</h3>
-          <p className="text-xs text-muted-foreground">Leave empty to use the automatic prompt. Anything typed here replaces it entirely.</p>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Paint directive</h3>
+          <p className="text-xs text-muted-foreground">Auto-generated from your miniature details, theme, and colour scheme. Edit to override.</p>
           <Textarea
-            value={activePrompt ?? ''}
+            value={activePrompt ?? assembledPrompt}
             onChange={(e) => onPromptChange(e.target.value)}
             rows={4}
             className="text-sm"
