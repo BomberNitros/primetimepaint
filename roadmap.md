@@ -1,0 +1,2 @@
+- DualSlider lightbox: light chip labels (in progress)
+- BottomBar: replace colorRepaintMap/primingRepaintMap props with repaintHistory; repaintEntries = repaintHistory.map((entry, i) => ({ index: i, image: entry.image }))
