@@ -12,12 +12,10 @@ interface MiniatureDetails {
 }
 
 interface PaintDirectivePanelProps {
-  assembledPrompt: string;
   miniature: MiniatureDetails;
 }
 
 export function PaintDirectivePanel({
-  assembledPrompt,
   miniature,
 }: PaintDirectivePanelProps) {
   const [open, setOpen] = useState(false);
@@ -40,15 +38,7 @@ export function PaintDirectivePanel({
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <div className="grid grid-cols-2 gap-4 pt-3">
-          {/* Left column — read-only prompt */}
-          <div
-            className="w-full min-h-[160px] text-xs font-mono p-2 rounded border border-border bg-muted/30 whitespace-pre-wrap break-words overflow-y-auto"
-          >
-            {assembledPrompt || 'No prompt assembled yet.'}
-          </div>
-
-          {/* Right column — miniature details */}
+        <div className="pt-3">
           <div className="space-y-3">
             <div className="text-xs font-medium text-muted-foreground">
               Miniature details
