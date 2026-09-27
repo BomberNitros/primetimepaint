@@ -687,6 +687,7 @@ export default function Index() {
 
   const handleSubmitRepaint = useCallback(async () => {
     if (!assembledPrompt || !mainImage || state.currentlyRepainting) return;
+    const resolvedPrompt = state.activePrompt || assembledPrompt;
     setSubmitError(null);
     setCurrentlyRepainting(true);
     setRepaintStartTime(new Date());
@@ -695,7 +696,7 @@ export default function Index() {
     try {
       const base64 = await toBase64(mainImage.file);
       const refBase64s = await Promise.all(state.referenceImages.map((img) => toBase64(img.file)));
-      const result = await submitCustomRepaint(base64, assembledPrompt, refBase64s);
+      const result = await submitCustomRepaint(base64, resolvedPrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
       saveRepaint(`color-${state.sharedSliderIndex}`, result).catch(() => {});
