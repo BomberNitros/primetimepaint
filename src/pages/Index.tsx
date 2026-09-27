@@ -861,7 +861,8 @@ export default function Index() {
           onSelect={setSelectedImageIndex}
           onRemove={handleRemoveImage}
           selectedTheme={state.selectedTheme}
-          repaintHistory={state.repaintHistory}
+          colorRepaintMap={state.colorRepaintMap}
+          primingRepaintMap={state.primingRepaintMap}
           activeScheme={state.colorSchemes[state.activeSchemeIndex] ?? null}
         />
       </div>
