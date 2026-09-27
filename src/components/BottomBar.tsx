@@ -20,7 +20,7 @@ interface BottomBarProps {
 export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAll, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
   const repaintEntries = useMemo(
     () =>
-      repaintHistory.map((entry, i) => ({ index: i, image: entry.image })),
+      (repaintHistory ?? []).map((entry, i) => ({ index: i, image: entry.image })),
     [repaintHistory]
   );
 
