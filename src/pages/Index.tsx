@@ -348,8 +348,6 @@ export default function Index() {
       : '';
 
     const lines = [
-      state.activePrompt ?? '',
-      '',
       '--- Miniature context ---',
       miniature.name ? `Name: ${miniature.name}` : '',
       miniature.origin ? `Origin: ${miniature.origin}` : '',
@@ -366,7 +364,6 @@ export default function Index() {
 
     return lines.join('\n').trim();
   }, [
-    state.activePrompt,
     state.primeColor,
     state.zenithalEnabled,
     state.selectedTheme,
@@ -690,6 +687,7 @@ export default function Index() {
 
   const handleSubmitRepaint = useCallback(async () => {
     if (!assembledPrompt || !mainImage || state.currentlyRepainting) return;
+    const resolvedPrompt = state.activePrompt || assembledPrompt;
     setSubmitError(null);
     setCurrentlyRepainting(true);
     setRepaintStartTime(new Date());
@@ -698,7 +696,7 @@ export default function Index() {
     try {
       const base64 = await toBase64(mainImage.file);
       const refBase64s = await Promise.all(state.referenceImages.map((img) => toBase64(img.file)));
-      const result = await submitCustomRepaint(base64, assembledPrompt, refBase64s);
+      const result = await submitCustomRepaint(base64, resolvedPrompt, refBase64s);
       setCustomRepaintImage(result);
       setColorRepaintEntry(state.sharedSliderIndex, result);
       saveRepaint(`color-${state.sharedSliderIndex}`, result).catch(() => {});
@@ -712,7 +710,7 @@ export default function Index() {
 
       setGeminiHistory([
         ...trimmed,
-        { role: "user", textContent: assembledPrompt, hasImage: false },
+        { role: "user", textContent: resolvedPrompt, hasImage: false },
         { role: "model", imageContent: result, hasImage: true },
       ]);
       setRepaintLog((prev) => [
@@ -730,7 +728,7 @@ export default function Index() {
     } finally {
       setCurrentlyRepainting(false);
     }
-  }, [mainImage, state.currentlyRepainting, assembledPrompt]);
+  }, [mainImage, state.currentlyRepainting, assembledPrompt, state.activePrompt]);
 
   const handlePromptChange = useCallback((prompt: string) => {
     setActivePrompt(prompt);
