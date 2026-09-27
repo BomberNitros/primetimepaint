@@ -98,6 +98,13 @@ DO NOT:
 
 OUTPUT: Same photo angle and framing as input. Miniature repainted as described above.`;
 
+  const initialSchemeBlock = regions
+    .map(
+      (r) =>
+        `${r.region}: base ${r.baseColor.name} (${r.baseColor.hex}), shadow ${r.shadowColor.name} (${r.shadowColor.hex}), highlight ${r.highlightColor.name} (${r.highlightColor.hex})`,
+    )
+    .join("\n");
+
   // Token guard: replace {{COLOR_SCHEME_BLOCK}} before sending.
   // Prefer the caller-supplied block (active scheme + OVERRIDE directives);
   // fall back to anatomy-derived values so the section is never empty.
