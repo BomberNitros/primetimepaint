@@ -125,12 +125,24 @@ Return only a valid JSON array. No prose. No explanation. No markdown.`;
     }
 
     // type === 'repaint'
+    const precedenceDirective = `
+
+COLOR DIRECTIVE PRECEDENCE (ABSOLUTE):
+- Any token or instruction prefixed with OVERRIDE: is a binding paint directive.
+- OVERRIDE directives always take absolute precedence over:
+  1. the anatomical baseline colours of the input image,
+  2. the tones present in any reference image,
+  3. any other colour suggestion in this prompt.
+- Repaint every referenced region to the exact OVERRIDE colour (name and hex).
+- When an OVERRIDE conflicts with a reference image's palette, follow the OVERRIDE.`;
+
     const content: unknown[] = [
       { type: 'image_url', image_url: { url: image } },
       ...refParts,
       { type: 'text', text: prompt
+        + precedenceDirective
         + (refParts.length > 0
-          ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Match their palette, contrast level, brushwork character, and atmosphere in the repaint.'
+          ? '\n\nREFERENCE IMAGES PROVIDED ABOVE: Match their palette, contrast level, brushwork character, and atmosphere in the repaint, except where an OVERRIDE directive applies.'
           : '') }
     ];
 
