@@ -348,8 +348,6 @@ export default function Index() {
       : '';
 
     const lines = [
-      state.activePrompt ?? '',
-      '',
       '--- Miniature context ---',
       miniature.name ? `Name: ${miniature.name}` : '',
       miniature.origin ? `Origin: ${miniature.origin}` : '',
@@ -366,7 +364,6 @@ export default function Index() {
 
     return lines.join('\n').trim();
   }, [
-    state.activePrompt,
     state.primeColor,
     state.zenithalEnabled,
     state.selectedTheme,
