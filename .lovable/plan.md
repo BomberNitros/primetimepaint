@@ -1,11 +1,14 @@
-## Mobile sidebar corrections
+# generateRepaint: accept external colour scheme block
 
-### `src/components/ControlRail.tsx`
-- Line 64: replace `fixed inset-y-0 right-0 z-40 w-72 shadow-xl overflow-y-auto` with `fixed inset-y-0 left-0 z-40 w-72 shadow-xl overflow-y-auto`.
+## Change
+`src/lib/gemini-pipeline.ts`, function `generateRepaint` only.
 
-### `src/pages/Index.tsx`
-- Line 25: change `import { SlidersHorizontal } from "lucide-react";` to `import { ChevronRight, ChevronLeft } from "lucide-react";`.
-- Line 828: change className to `fixed top-4 left-4 z-50 md:hidden rounded-full shadow-lg`.
-- Line 831: replace `<SlidersHorizontal />` with `{sidebarOpen ? <ChevronLeft /> : <ChevronRight />}`.
+1. Add a parameter `colorSchemeBlock?: string` (optional, appended after `referenceImages`) so existing callers in `Index.tsx` keep compiling unchanged — `Index.tsx` is explicitly out of scope.
+2. Replace the token injection: the `{{COLOR_SCHEME_BLOCK}}` placeholder is substituted with `colorSchemeBlock` when it is a non-empty string; otherwise fall back to the existing `initialSchemeBlock` (anatomy-derived) so the prompt never ships an empty colour section.
+3. Keep `initialSchemeBlock` construction (needed as fallback). Remove the two `console.log` diagnostics inside `generateRepaint` (`[pipeline] referenceImages count` and `[pipeline] promptToSend preview`) — workspace rules ban console statements in committed code.
 
-No other changes.
+## Result
+Prompts sent to the `gemini-repaint` edge function now carry the block built by `buildColorSchemeBlock()` — active scheme names/hexes plus `OVERRIDE`-prefixed base/midtone/highlight directives — instead of raw anatomy regions alone, once the caller passes the block.
+
+## Out of scope (per instruction)
+`recolor-engine.ts`, `zenithal-preview.ts`, `Index.tsx`, and every other file. Wiring the call site to pass `buildColorSchemeBlock(...)` output is a separate step.
