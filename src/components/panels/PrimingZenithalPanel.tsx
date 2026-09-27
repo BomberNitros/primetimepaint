@@ -149,7 +149,6 @@ export function PrimingZenithalPanel({
       {/* Paint Directive */}
       {pipelineComplete && (
         <PaintDirectivePanel
-          assembledPrompt={assembledPrompt}
           miniature={miniature}
         />
       )}
