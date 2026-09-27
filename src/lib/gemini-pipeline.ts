@@ -57,6 +57,13 @@ export async function analyseAnatomy(imageBase64: string, referenceImages?: stri
 
   const regions: AnatomyRegion[] = data.regions;
 
+  const snapped: AnatomyRegion[] = regions.map((r) => ({
+    ...r,
+    baseColor: snapToSpeedpaint(r.baseColor.hex),
+    shadowColor: snapToSpeedpaint(r.shadowColor.hex),
+    highlightColor: snapToSpeedpaint(r.highlightColor.hex),
+  }));
+
   // Development diagnostic: warn if any region looks like primer/background
   regions.forEach((r) => {
     const hex = r.baseColor.hex.replace("#", "");
