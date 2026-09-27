@@ -580,7 +580,15 @@ export default function Index() {
     return () => {
       if (colorDebounceRef.current) clearTimeout(colorDebounceRef.current);
     };
-  }, [state.primingRepaintMap, state.sharedSliderIndex]);
+  }, [
+    state.primingRepaintMap,
+    state.sharedSliderIndex,
+    state.activeSchemeIndex,
+    state.selectedTheme,
+    state.baseOverride,
+    state.midtoneOverrides,
+    state.highlightOverride,
+  ]);
 
   const handleAnalyseAndRepaint = useCallback(async () => {
     if (mainImages.length === 0 || state.currentlyRepainting) return;
