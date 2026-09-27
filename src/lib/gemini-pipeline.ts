@@ -58,6 +58,7 @@ export async function generateRepaint(
   subjectName: string,
   primeColor: PrimeColor,
   referenceImages?: string[],
+  colorSchemeBlock?: string,
 ): Promise<{ image: string; prompt: string }> {
   const regionBlock = regions
     .map(
