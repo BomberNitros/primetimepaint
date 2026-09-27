@@ -6,6 +6,7 @@ import { SchemeCard } from '@/components/SchemeCard';
 import { ImageSlider, SliderImage } from '@/components/ImageSlider';
 import { DualSlider } from '@/components/DualSlider';
 import { PaintDirectivePanel } from '@/components/PaintDirectivePanel';
+import { Textarea } from '@/components/ui/textarea';
 import { ThemeId, ColorScheme, UploadedImage, PrimeColor } from '@/types/primetime';
 import { cn } from '@/lib/utils';
 import { Layers, SlidersHorizontal } from 'lucide-react';
@@ -46,6 +47,8 @@ interface ColorPlanPanelProps {
   onSliderIndexChange: (i: number) => void;
   primingRepaintMap: Record<number, string>;
   colorRepaintMap: Record<number, string>;
+  activePrompt: string | null;
+  onPromptChange: (p: string) => void;
 }
 
 function OptionButtons<T extends string>({
@@ -113,6 +116,8 @@ export function ColorPlanPanel({
   onSliderIndexChange,
   primingRepaintMap,
   colorRepaintMap,
+  activePrompt,
+  onPromptChange,
 }: ColorPlanPanelProps) {
   const primaryHex = extractedColors[0] || '#666666';
 
@@ -200,7 +205,21 @@ export function ColorPlanPanel({
         />
       )}
 
-      {/* 4. Submit button + error (outside directive panel) */}
+      {/* 4. Editable repaint prompt */}
+      {pipelineComplete && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Repaint prompt</h3>
+          <p className="text-xs text-muted-foreground">Leave empty to use the automatic prompt. Anything typed here replaces it entirely.</p>
+          <Textarea
+            value={activePrompt ?? ''}
+            onChange={(e) => onPromptChange(e.target.value)}
+            rows={4}
+            className="text-sm"
+          />
+        </div>
+      )}
+
+      {/* 5. Submit button + error (outside directive panel) */}
       {pipelineComplete && (
         <div className="space-y-2">
           <button
