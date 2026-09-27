@@ -14,7 +14,6 @@ import {
   ZenithalDirection,
 } from "@/types/primetime";
 
-
 function snapToSpeedpaint(hex: string): { name: string; hex: string } {
   const [r, g, b] = [
     parseInt(hex.slice(1, 3), 16),
