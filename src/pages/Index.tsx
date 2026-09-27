@@ -587,6 +587,7 @@ export default function Index() {
         colorCacheRef.current.set(colorCacheKey, image);
         setColorRepaintEntry(idx, image);
         saveRepaint(`color-${idx}`, image).catch(() => {});
+        setRepaintHistory((prev) => [...prev, { label: "Auto repaint", image }]);
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Colour repaint failed.";
         if (/429|rate limit/i.test(message)) {
