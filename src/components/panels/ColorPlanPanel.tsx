@@ -5,7 +5,6 @@ import { ColorTheoryHelper } from '@/components/ColorTheoryHelper';
 import { SchemeCard } from '@/components/SchemeCard';
 import { ImageSlider, SliderImage } from '@/components/ImageSlider';
 import { DualSlider } from '@/components/DualSlider';
-import { PaintDirectivePanel } from '@/components/PaintDirectivePanel';
 import { Textarea } from '@/components/ui/textarea';
 import { ThemeId, ColorScheme, UploadedImage, PrimeColor } from '@/types/primetime';
 import { cn } from '@/lib/utils';
@@ -197,14 +196,7 @@ export function ColorPlanPanel({
         slides.length > 0 && <ImageSlider slides={slides} />
       )}
 
-      {/* 3. Paint directive */}
-      {pipelineComplete && (
-        <PaintDirectivePanel
-          miniature={miniature}
-        />
-      )}
-
-      {/* 4. Editable paint directive */}
+      {/* 3. Editable paint directive */}
       {pipelineComplete && (
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Paint directive</h3>
