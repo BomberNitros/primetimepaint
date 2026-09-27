@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { SPEEDPAINT_MOST_WANTED } from "@/data/speedpaints";
 import {
   AnatomyRegion,
   ColorScheme,
