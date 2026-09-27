@@ -151,16 +151,23 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, onRemoveR
 
       <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 min-w-0">
         {repaintEntries.map((entry) => (
-          <button
-            key={entry.index}
-            onClick={async () => {
-              const composed = await composeWithPaletteStrip(entry.image);
-              downloadDataUrl(composed, `repaint-${entry.index + 1}.png`);
-            }}
-            className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30 flex-shrink-0"
-          >
-            <img src={entry.image} alt="" className="w-full h-full object-cover" />
-          </button>
+          <div key={entry.index} className="relative group flex-shrink-0">
+            <button
+              onClick={() => setZoomedIndex(entry.index)}
+              className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30"
+            >
+              <img src={entry.image} alt="" className="w-full h-full object-cover" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveRepaint(entry.index);
+              }}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
         ))}
       </div>
 
