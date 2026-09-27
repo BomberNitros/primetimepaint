@@ -59,21 +59,33 @@ export async function generateRepaint(
   primeColor: PrimeColor,
   referenceImages?: string[],
   colorSchemeBlock?: string,
+  fullPromptOverride?: string,
 ): Promise<{ image: string; prompt: string }> {
-  const regionBlock = regions
-    .map(
-      (r) =>
-        `${r.region}\n  Base: ${r.baseColor.name} (${r.baseColor.hex})\n  Shadow: ${r.shadowColor.name} (${r.shadowColor.hex})\n  Highlight: ${r.highlightColor.name} (${r.highlightColor.hex})\n  Treatment: ${r.surfaceNote}`,
-    )
-    .join("\n\n");
+  let promptToSend: string;
+  let returnedPrompt: string;
 
-  const primerDesc: Record<PrimeColor, string> = {
-    black: 'It is primed in black.',
-    grey:  'It is primed in neutral grey.',
-    white: 'It is primed in white.',
-  };
+  const useFullOverride =
+    typeof fullPromptOverride === "string" && fullPromptOverride.trim().length > 0;
 
-  const constructedPrompt = `You are digitally repainting a physical tabletop miniature. The subject is ${subjectName}.
+  if (useFullOverride) {
+    // Caller-supplied prompt: send verbatim, no construction or injection.
+    promptToSend = fullPromptOverride as string;
+    returnedPrompt = promptToSend;
+  } else {
+    const regionBlock = regions
+      .map(
+        (r) =>
+          `${r.region}\n  Base: ${r.baseColor.name} (${r.baseColor.hex})\n  Shadow: ${r.shadowColor.name} (${r.shadowColor.hex})\n  Highlight: ${r.highlightColor.name} (${r.highlightColor.hex})\n  Treatment: ${r.surfaceNote}`,
+      )
+      .join("\n\n");
+
+    const primerDesc: Record<PrimeColor, string> = {
+      black: 'It is primed in black.',
+      grey:  'It is primed in neutral grey.',
+      white: 'It is primed in white.',
+    };
+
+    const constructedPrompt = `You are digitally repainting a physical tabletop miniature. The subject is ${subjectName}.
 ${primerDesc[primeColor]}
 
 ---
@@ -98,22 +110,24 @@ DO NOT:
 
 OUTPUT: Same photo angle and framing as input. Miniature repainted as described above.`;
 
-  const initialSchemeBlock = regions
-    .map(
-      (r) =>
-        `${r.region}: base ${r.baseColor.name} (${r.baseColor.hex}), shadow ${r.shadowColor.name} (${r.shadowColor.hex}), highlight ${r.highlightColor.name} (${r.highlightColor.hex})`,
-    )
-    .join("\n");
+    const initialSchemeBlock = regions
+      .map(
+        (r) =>
+          `${r.region}: base ${r.baseColor.name} (${r.baseColor.hex}), shadow ${r.shadowColor.name} (${r.shadowColor.hex}), highlight ${r.highlightColor.name} (${r.highlightColor.hex})`,
+      )
+      .join("\n");
 
-  // Token guard: replace {{COLOR_SCHEME_BLOCK}} before sending.
-  // Prefer the caller-supplied block (active scheme + OVERRIDE directives);
-  // fall back to anatomy-derived values so the section is never empty.
-  const effectiveSchemeBlock =
-    typeof colorSchemeBlock === 'string' && colorSchemeBlock.length > 0
-      ? colorSchemeBlock
-      : initialSchemeBlock;
+    // Token guard: replace {{COLOR_SCHEME_BLOCK}} before sending.
+    // Prefer the caller-supplied block (active scheme + OVERRIDE directives);
+    // fall back to anatomy-derived values so the section is never empty.
+    const effectiveSchemeBlock =
+      typeof colorSchemeBlock === 'string' && colorSchemeBlock.length > 0
+        ? colorSchemeBlock
+        : initialSchemeBlock;
 
-  const promptToSend = constructedPrompt.replace(/\{\{COLOR_SCHEME_BLOCK\}\}/g, effectiveSchemeBlock);
+    promptToSend = constructedPrompt.replace(/\{\{COLOR_SCHEME_BLOCK\}\}/g, effectiveSchemeBlock);
+    returnedPrompt = constructedPrompt;
+  }
 
   const { data, error } = await supabase.functions.invoke("gemini-repaint", {
     body: { type: "repaint", image: imageBase64, prompt: promptToSend, referenceImages },
@@ -125,8 +139,9 @@ OUTPUT: Same photo angle and framing as input. Miniature repainted as described 
   const prefix = "data:image/png;base64,";
   const image = data.image.startsWith(prefix) ? data.image : `${prefix}${data.image}`;
 
-  // Return constructedPrompt with token intact for later injection
-  return { image, prompt: constructedPrompt };
+  // Default path returns the constructed prompt with token intact for later injection;
+  // override path returns the caller-supplied prompt verbatim.
+  return { image, prompt: returnedPrompt };
 }
 
 function buildPrimingSettingsBlock(
