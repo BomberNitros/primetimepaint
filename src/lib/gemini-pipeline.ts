@@ -58,6 +58,7 @@ export async function generateRepaint(
   subjectName: string,
   primeColor: PrimeColor,
   referenceImages?: string[],
+  colorSchemeBlock?: string,
 ): Promise<{ image: string; prompt: string }> {
   const regionBlock = regions
     .map(
@@ -97,7 +98,6 @@ DO NOT:
 
 OUTPUT: Same photo angle and framing as input. Miniature repainted as described above.`;
 
-  // Token guard: replace {{COLOR_SCHEME_BLOCK}} before sending
   const initialSchemeBlock = regions
     .map(
       (r) =>
@@ -105,9 +105,15 @@ OUTPUT: Same photo angle and framing as input. Miniature repainted as described 
     )
     .join("\n");
 
-  const promptToSend = constructedPrompt.replace(/\{\{COLOR_SCHEME_BLOCK\}\}/g, initialSchemeBlock);
-  console.log("[pipeline] referenceImages count:", referenceImages?.length ?? 0);
-  console.log("[pipeline] promptToSend preview:", promptToSend.slice(0, 200));
+  // Token guard: replace {{COLOR_SCHEME_BLOCK}} before sending.
+  // Prefer the caller-supplied block (active scheme + OVERRIDE directives);
+  // fall back to anatomy-derived values so the section is never empty.
+  const effectiveSchemeBlock =
+    typeof colorSchemeBlock === 'string' && colorSchemeBlock.length > 0
+      ? colorSchemeBlock
+      : initialSchemeBlock;
+
+  const promptToSend = constructedPrompt.replace(/\{\{COLOR_SCHEME_BLOCK\}\}/g, effectiveSchemeBlock);
 
   const { data, error } = await supabase.functions.invoke("gemini-repaint", {
     body: { type: "repaint", image: imageBase64, prompt: promptToSend, referenceImages },
