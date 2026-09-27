@@ -16,6 +16,7 @@ interface ImageUploaderProps {
   pipelineComplete: boolean;
   pipelineError: string | null;
   currentlyRepainting: boolean;
+  children?: React.ReactNode;
 }
 
 export function ImageUploader({
@@ -28,6 +29,7 @@ export function ImageUploader({
   pipelineComplete,
   pipelineError,
   currentlyRepainting,
+  children,
 }: ImageUploaderProps) {
   const [isDraggingMain, setIsDraggingMain] = useState(false);
   const [isDraggingRef, setIsDraggingRef] = useState(false);
@@ -70,11 +72,13 @@ export function ImageUploader({
     <div className="flex flex-col gap-6 p-8">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: `'${randomFont}', sans-serif` }}>Miniature</h2>
-        <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
+      <p className="text-sm text-muted-foreground">Upload photos of your miniature to begin planning.</p>
       </div>
 
+      {children}
+
       <p className="text-sm font-medium text-muted-foreground">
-        Drop 4 main photos and a reference. Give the AI something to steal from.
+        Drop 4 main photos and a reference. Give the AI something to steal from. 😜
       </p>
 
       {/* Dual dropzones */}
