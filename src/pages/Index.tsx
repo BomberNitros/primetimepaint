@@ -759,7 +759,8 @@ export default function Index() {
             pipelineComplete={state.pipelineComplete}
             pipelineError={state.pipelineError}
             currentlyRepainting={state.currentlyRepainting}
-          />
+            />
+          </>
         );
       case "priming":
         return (
