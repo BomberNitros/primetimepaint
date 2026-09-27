@@ -1,4 +1,7 @@
-import { UploadedImage, RepaintHistoryEntry, ColorScheme } from '@/types/primetime';
+// ============= Full file contents =============
+
+import { useMemo } from 'react';
+import { UploadedImage, ColorScheme } from '@/types/primetime';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import JSZip from 'jszip';
@@ -9,11 +12,21 @@ interface BottomBarProps {
   onSelect: (index: number) => void;
   onRemove: (id: string) => void;
   selectedTheme: string | null;
-  repaintHistory: RepaintHistoryEntry[];
+  colorRepaintMap: Record<number, string>;
+  primingRepaintMap: Record<number, string>;
   activeScheme: ColorScheme | null;
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme, colorRepaintMap, primingRepaintMap, activeScheme }: BottomBarProps) {
+  const repaintEntries = useMemo(
+    () =>
+      Array.from(new Set([...Object.keys(colorRepaintMap), ...Object.keys(primingRepaintMap)]))
+        .map(Number)
+        .sort((a, b) => a - b)
+        .map((index) => ({ index, image: colorRepaintMap[index] ?? primingRepaintMap[index] })),
+    [colorRepaintMap, primingRepaintMap]
+  );
+
   if (images.length === 0) return null;
 
   const mainImages = images.filter(i => i.type === 'main');
@@ -78,17 +91,17 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
   };
 
   const handleDownloadAll = async () => {
-    if (repaintHistory.length === 0) return;
-    if (repaintHistory.length === 1) {
-      const composed = await composeWithPaletteStrip(repaintHistory[0].image);
-      downloadDataUrl(composed, 'repaint-1.png');
+    if (repaintEntries.length === 0) return;
+    if (repaintEntries.length === 1) {
+      const composed = await composeWithPaletteStrip(repaintEntries[0].image);
+      downloadDataUrl(composed, `repaint-${repaintEntries[0].index + 1}.png`);
       return;
     }
     const zip = new JSZip();
-    for (let i = 0; i < repaintHistory.length; i++) {
-      const dataUrl = await composeWithPaletteStrip(repaintHistory[i].image);
+    for (const entry of repaintEntries) {
+      const dataUrl = await composeWithPaletteStrip(entry.image);
       const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-      zip.file(`repaint-${i + 1}.png`, base64, { base64: true });
+      zip.file(`repaint-${entry.index + 1}.png`, base64, { base64: true });
     }
     const content = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(content);
@@ -129,18 +142,20 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
         </div>
       ))}
 
-      {repaintHistory.map((entry, i) => (
-        <button
-          key={i}
-          onClick={async () => {
-            const composed = await composeWithPaletteStrip(entry.image);
-            downloadDataUrl(composed, `repaint-${i + 1}.png`);
-          }}
-          className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30 flex-shrink-0"
-        >
-          <img src={entry.image} alt="" className="w-full h-full object-cover" />
-        </button>
-      ))}
+      <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 min-w-0">
+        {repaintEntries.map((entry) => (
+          <button
+            key={entry.index}
+            onClick={async () => {
+              const composed = await composeWithPaletteStrip(entry.image);
+              downloadDataUrl(composed, `repaint-${entry.index + 1}.png`);
+            }}
+            className="w-14 h-14 rounded-md overflow-hidden border-2 border-transparent hover:border-muted-foreground/30 flex-shrink-0"
+          >
+            <img src={entry.image} alt="" className="w-full h-full object-cover" />
+          </button>
+        ))}
+      </div>
 
       {selectedTheme && (
         <div className="flex-shrink-0 px-3 py-1.5 rounded-md bg-secondary text-xs text-muted-foreground capitalize">
@@ -148,7 +163,7 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
         </div>
       )}
 
-      {repaintHistory.length > 0 && (
+      {repaintEntries.length > 0 && (
         <button
           onClick={handleDownloadAll}
           className="ml-auto flex-shrink-0 bg-secondary text-xs text-muted-foreground rounded-md px-3 py-1.5 hover:text-foreground transition-colors"
