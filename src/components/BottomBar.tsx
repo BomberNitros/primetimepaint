@@ -11,13 +11,14 @@ interface BottomBarProps {
   selectedIndex: number;
   onSelect: (index: number) => void;
   onRemove: (id: string) => void;
+  onClearAll: () => void;
   selectedTheme: string | null;
   colorRepaintMap: Record<number, string>;
   primingRepaintMap: Record<number, string>;
   activeScheme: ColorScheme | null;
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedTheme, colorRepaintMap, primingRepaintMap, activeScheme }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAll, selectedTheme, colorRepaintMap, primingRepaintMap, activeScheme }: BottomBarProps) {
   const repaintEntries = useMemo(
     () =>
       Array.from(new Set([...Object.keys(colorRepaintMap), ...Object.keys(primingRepaintMap)]))
@@ -169,6 +170,18 @@ export function BottomBar({ images, selectedIndex, onSelect, onRemove, selectedT
           className="ml-auto flex-shrink-0 bg-secondary text-xs text-muted-foreground rounded-md px-3 py-1.5 hover:text-foreground transition-colors"
         >
           Download Repaints
+        </button>
+      )}
+
+      {images.length > 0 && (
+        <button
+          onClick={onClearAll}
+          className={cn(
+            'flex-shrink-0 bg-secondary text-xs text-muted-foreground rounded-md px-3 py-1.5 hover:text-foreground transition-colors',
+            repaintEntries.length === 0 && 'ml-auto'
+          )}
+        >
+          Clear uploads
         </button>
       )}
     </div>

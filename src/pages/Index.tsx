@@ -287,6 +287,18 @@ export default function Index() {
     [removeImage, state.mainImages, state.referenceImages],
   );
 
+  const handleClearAll = useCallback(async () => {
+    for (const img of [...state.mainImages, ...state.referenceImages]) {
+      removeImage(img.id);
+      savedImageIdsRef.current.delete(img.id);
+    }
+    try {
+      await clearImages();
+    } catch (e) {
+      console.error('[handleClearAll] failed', e);
+    }
+  }, [removeImage, state.mainImages, state.referenceImages]);
+
   useEffect(() => {
     if (state.referenceImages.length === 0) {
       setExtractedColors([]);
@@ -865,6 +877,7 @@ export default function Index() {
           selectedIndex={state.selectedImageIndex}
           onSelect={setSelectedImageIndex}
           onRemove={handleRemoveImage}
+          onClearAll={handleClearAll}
           selectedTheme={state.selectedTheme}
           colorRepaintMap={state.colorRepaintMap}
           primingRepaintMap={state.primingRepaintMap}
