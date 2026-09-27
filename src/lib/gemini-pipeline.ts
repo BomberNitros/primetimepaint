@@ -81,7 +81,7 @@ export async function analyseAnatomy(imageBase64: string, referenceImages?: stri
     }
   });
 
-  return regions;
+  return snapped;
 }
 
 export async function generateRepaint(
