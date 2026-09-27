@@ -200,7 +200,6 @@ export function ColorPlanPanel({
       {/* 3. Paint directive */}
       {pipelineComplete && (
         <PaintDirectivePanel
-          assembledPrompt={assembledPrompt}
           miniature={miniature}
         />
       )}
