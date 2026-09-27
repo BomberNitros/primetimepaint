@@ -205,7 +205,21 @@ export function ColorPlanPanel({
         />
       )}
 
-      {/* 4. Submit button + error (outside directive panel) */}
+      {/* 4. Editable repaint prompt */}
+      {pipelineComplete && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Repaint prompt</h3>
+          <p className="text-xs text-muted-foreground">Leave empty to use the automatic prompt. Anything typed here replaces it entirely.</p>
+          <Textarea
+            value={activePrompt ?? ''}
+            onChange={(e) => onPromptChange(e.target.value)}
+            rows={4}
+            className="text-sm"
+          />
+        </div>
+      )}
+
+      {/* 5. Submit button + error (outside directive panel) */}
       {pipelineComplete && (
         <div className="space-y-2">
           <button
