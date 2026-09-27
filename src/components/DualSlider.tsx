@@ -39,6 +39,20 @@ export function DualSlider({
     whiteSpace: 'nowrap' as const,
   };
 
+  const zoomLabelStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.92)',
+    border: '1px solid rgba(0,0,0,0.1)',
+    boxShadow: 'none',
+    borderRadius: '0.375rem',
+    padding: '2px 10px',
+    color: '#000000',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    display: 'inline-flex',
+    alignItems: 'center',
+    whiteSpace: 'nowrap' as const,
+  };
+
   const maxCount = Math.max(leftImages.length, rightImages.length);
 
   const zoomNavigate = useCallback((newSlot: 'left' | 'right', newIndex: number) => {
