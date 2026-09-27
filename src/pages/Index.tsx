@@ -180,6 +180,7 @@ export default function Index() {
 
   const miniature = useMiniatureDetails();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [colorRepaintError, setColorRepaintError] = useState<string | null>(null);
 
   const mainImages = state.mainImages;
   const refImages = state.referenceImages;
@@ -558,6 +559,7 @@ export default function Index() {
         return;
       }
 
+      setColorRepaintError(null);
       try {
         const { data: compressedData, mimeType } = await compressBase64Image(primingImage);
         const compressedDataUri = `data:${mimeType};base64,${compressedData}`;
@@ -572,8 +574,17 @@ export default function Index() {
         colorCacheRef.current.set(colorCacheKey, image);
         setColorRepaintEntry(idx, image);
         saveRepaint(`color-${idx}`, image).catch(() => {});
-      } catch {
-        // silent — colour repaint is best-effort
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Colour repaint failed.";
+        if (/429|rate limit/i.test(message)) {
+          const notice = "Colour repaint paused — Gemini rate limit reached. Try again shortly.";
+          setColorRepaintError(notice);
+          toast.error(notice, { description: message, duration: 6000 });
+        } else {
+          const notice = `Colour repaint failed: ${message}`;
+          setColorRepaintError(notice);
+          toast.error(notice, { duration: 6000 });
+        }
       }
     }, 6000);
 
