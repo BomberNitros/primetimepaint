@@ -1,6 +1,6 @@
 // ============= Full file contents =============
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { UploadedImage, ColorScheme } from '@/types/primetime';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,13 +11,16 @@ interface BottomBarProps {
   selectedIndex: number;
   onSelect: (index: number) => void;
   onRemove: (id: string) => void;
+  onRemoveRepaint: (index: number) => void;
   onClearAll: () => void;
   selectedTheme: string | null;
   repaintHistory: { label: string; image: string }[];
   activeScheme: ColorScheme | null;
 }
 
-export function BottomBar({ images, selectedIndex, onSelect, onRemove, onClearAll, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
+export function BottomBar({ images, selectedIndex, onSelect, onRemove, onRemoveRepaint, onClearAll, selectedTheme, repaintHistory, activeScheme }: BottomBarProps) {
+  const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
+
   const repaintEntries = useMemo(
     () =>
       (repaintHistory ?? []).map((entry, i) => ({ index: i, image: entry.image })),
